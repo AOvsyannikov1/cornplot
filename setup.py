@@ -22,6 +22,8 @@ setup(
     package_data={
         "cornplot": [
             "images/*.png",
+            "hooks",
+            "railway"
         ]
     },
     include_package_data=True,
