@@ -2,6 +2,8 @@ import os, sys
 import dataclasses
 from array import array
 from datetime import datetime, timezone
+import importlib.resources as pkg_resources
+from pathlib import Path
 
 from PyQt6.QtGui import QColor
 from PyQt6.QtGui import QCursor, QGuiApplication, QColor
@@ -178,3 +180,14 @@ def resource_path(relative_path):
         base_path = os.path.abspath(".")
     
     return os.path.join(base_path, relative_path)
+
+
+def get_image_path(filename: str) -> Path:
+    """Получить путь к изображению из пакета"""
+    try:
+        # Python 3.9+ style
+        return str(pkg_resources.files("cornplot.images") / filename)
+    except AttributeError:
+        # Fallback для Python 3.7-3.8
+        with pkg_resources.path("cornplot.images", filename) as path:
+            return Path(path)

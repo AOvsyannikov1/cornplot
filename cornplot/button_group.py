@@ -2,13 +2,13 @@ from time import monotonic
 
 from PyQt6.QtWidgets import QPushButton, QFrame
 from PyQt6.QtGui import QFont, QIcon
-from .utils import button_style, resource_path
+from .utils import button_style, resource_path, get_image_path
 
 class ButtonGroup:
     def __init__(self, widget: QFrame, w, h):
         self.pause_button = QPushButton(widget)
         self.pause_button.setGeometry(w - 56, 22, 25, 25)
-        self.pause_button.setIcon(QIcon(resource_path("cornplot/images/pause.png")))
+        self.pause_button.setIcon(QIcon(get_image_path("pause.png")))
         self.pause_button.setToolTip("Пауза / Старт")
         self.pause_button.setStyleSheet(button_style(False))
         self.pause_button.show()
@@ -16,7 +16,7 @@ class ButtonGroup:
 
         self.restart_button = QPushButton(widget)
         self.restart_button.setGeometry(w - 28, 22, 25, 25)
-        self.restart_button.setIcon(QIcon(resource_path("./cornplot/images/restart.png")))
+        self.restart_button.setIcon(QIcon(get_image_path("restart.png")))
         self.restart_button.setToolTip("Перезапуск анимации")
         self.restart_button.setStyleSheet(button_style(False))
         self.restart_button.show()
@@ -26,7 +26,7 @@ class ButtonGroup:
         self.__buttons_visible = False
 
         self.arrow_button = QPushButton(widget)
-        self.arrow_button.setIcon(QIcon(resource_path("./cornplot/images/show.png")))
+        self.arrow_button.setIcon(QIcon(get_image_path("show.png")))
         self.arrow_button.clicked.connect(self.__arrow_btn_proc)
         self.arrow_button.show()
         self.arrow_button.setStyleSheet(button_style(False))
@@ -36,13 +36,13 @@ class ButtonGroup:
         self.more_button = QPushButton(widget)
         self.more_button.show()
         self.more_button.setToolTip("Настройки и анализ графиков")
-        self.more_button.setIcon(QIcon(resource_path("./cornplot/images/more.png")))
+        self.more_button.setIcon(QIcon(get_image_path("more.png")))
         self.more_button.setStyleSheet(button_style(False))
         self.more_button.setEnabled(True)
         self.more_button.enterEvent = self.__restart_timer
 
         self.save_button = QPushButton(widget)
-        self.save_button.setIcon(QIcon(resource_path("./cornplot/images/save.png")))
+        self.save_button.setIcon(QIcon(get_image_path("save.png")))
         self.save_button.setToolTip("Сохранить изображение")
         self.save_button.setStyleSheet(button_style(False))
         self.save_button.show()
@@ -50,14 +50,14 @@ class ButtonGroup:
         self.save_button.enterEvent = self.__restart_timer
 
         self.back_button = QPushButton(widget)
-        self.back_button.setIcon(QIcon(resource_path("./cornplot/images/cancel.png")))
+        self.back_button.setIcon(QIcon(get_image_path("cancel.png")))
         self.back_button.show()
         self.back_button.setToolTip("Отменить масштабирование")
         self.back_button.setStyleSheet(button_style(False))
         self.back_button.enterEvent = self.__restart_timer
 
         self.zoom_button = QPushButton(widget)
-        self.zoom_button.setIcon(QIcon(resource_path("./cornplot/images/scale.png")))
+        self.zoom_button.setIcon(QIcon(get_image_path("scale.png")))
         self.zoom_button.setToolTip("Масштабировать")
         self.zoom_button.setStyleSheet(button_style(False))
         self.zoom_button.show()
@@ -65,21 +65,21 @@ class ButtonGroup:
         self.zoom_button.enterEvent = self.__restart_timer
 
         self.add_vert_button = QPushButton(widget)
-        self.add_vert_button.setIcon(QIcon(resource_path("./cornplot/images/scan.png")))
+        self.add_vert_button.setIcon(QIcon(get_image_path("scan.png")))
         self.add_vert_button.show()
         self.add_vert_button.setToolTip("Добавить линию-сканер")
         self.add_vert_button.setStyleSheet(button_style(False))
         self.add_vert_button.enterEvent = self.__restart_timer
 
         self.clear_button = QPushButton(widget)
-        self.clear_button.setIcon(QIcon(resource_path("./cornplot/images/clear.png")))
+        self.clear_button.setIcon(QIcon(get_image_path("clear.png")))
         self.clear_button.show()
         self.clear_button.setToolTip("Очистить график от вспомогательных линий")
         self.clear_button.setStyleSheet(button_style(False))
         self.clear_button.enterEvent = self.__restart_timer
 
         self.fix_button = QPushButton(widget)
-        self.fix_button.setIcon(QIcon(resource_path("./cornplot/images/fix.png")))
+        self.fix_button.setIcon(QIcon(get_image_path("fix.png")))
         self.fix_button.show()
         self.fix_button.setToolTip("Закрепить нуль Y")
         self.fix_button.setStyleSheet(button_style(False))
