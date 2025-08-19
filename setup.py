@@ -4,7 +4,7 @@ from os.path import join, dirname
 setup(
     name="cornplot",
     version="3.0",
-    packages=find_packages(include=['cornplot', 'cornplot.*']),
+    packages=find_packages(include=['cornplot', 'cornplot.*', '*.pyd']),
     long_description=open(join(dirname(__file__), 'README.txt')).read(),
     package_data={
         "cornplot": ["images/*.png"]
