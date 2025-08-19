@@ -7,7 +7,10 @@ setup(
     packages=find_packages(include=['cornplot', 'cornplot.*', '*.pyd']),
     long_description=open(join(dirname(__file__), 'README.txt')).read(),
     package_data={
-        "cornplot": ["images/*.png"]
+        "cornplot": [
+            "images/*.png",
+            "*.pyd"
+        ]
     },
     include_package_data=True,
     entry_points={
