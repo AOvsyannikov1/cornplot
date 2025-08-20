@@ -13,11 +13,15 @@ extension = Extension(
     library_dirs=[]    # добавьте пути к библиотекам если нужно
 )
 
+def readme():
+  with open('README.md', 'r') as f:
+    return f.read()
+
 setup(
     name="cornplot",
-    version="3.0",
-    packages=find_packages(include=['cornplot', 'cornplot.*', '*.pyd']),
-    long_description=open(join(dirname(__file__), 'README.txt')).read(),
+    version="0.9.0",
+    packages=find_packages(include=['cornplot', 'cornplot.*']),
+    long_description=readme(),
     ext_modules=[extension],
     package_data={
         "cornplot": [
@@ -36,6 +40,9 @@ setup(
         "scipy>=1.16.1",
         "PyQt6>=6.9.0"
     ],
+    
     author="Ovsiannikov Andrey",
-    author_email="andsup108@gmail.com"
+    author_email="andsup108@gmail.com",
+    keywords="plot pyqt math",
+    python_requires='>=3.11'
 )
