@@ -681,23 +681,23 @@ class Axles(QFrame):
                             if self.__touch_x == pos.x() and self.__touch_y == pos.y() and not self._point_added:
                                 self.__scale_lines.add_line((pos.x() - self._MIN_X) / (self._MAX_X - self._MIN_X))
                                 self.__group.line_move_signal.emit()
-                    else:
-                        if abs(self.__scaling_rect.width()) > 10 and abs(self.__scaling_rect.height()) > 10:
-                            x0 = self.window_to_real_x(min(self.__scaling_rect.left(), self.__scaling_rect.right()))
-                            x1 = self.window_to_real_x(max(self.__scaling_rect.left(), self.__scaling_rect.right()))
-                            y0 = self.window_to_real_y(max(self.__scaling_rect.top(), self.__scaling_rect.bottom()) + self._OFFSET_Y_UP)
-                            y1 = self.window_to_real_y(min(self.__scaling_rect.top(), self.__scaling_rect.bottom()) + self._OFFSET_Y_UP)
-                            self.__action_buffer.add_action(self._xstart, self._xstop, self._ystart, self._ystop)
-                            self._set_x_start(x0)
-                            self._set_x_stop(x1)
-                            self._set_y_start(y0)
-                            self._set_y_stop(y1)
-                            self._update_step_y()
-                            self._update_step_x()
-                            self.__group.update_x_borders(x0, x1)
-                            self._recalculate_window_coords()
-                            self._y_scaled = True
-                            self._redraw_required = True
+                        else:
+                            if abs(self.__scaling_rect.width()) > 10 and abs(self.__scaling_rect.height()) > 10:
+                                x0 = self.window_to_real_x(min(self.__scaling_rect.left(), self.__scaling_rect.right()))
+                                x1 = self.window_to_real_x(max(self.__scaling_rect.left(), self.__scaling_rect.right()))
+                                y0 = self.window_to_real_y(max(self.__scaling_rect.top(), self.__scaling_rect.bottom()) + self._OFFSET_Y_UP)
+                                y1 = self.window_to_real_y(min(self.__scaling_rect.top(), self.__scaling_rect.bottom()) + self._OFFSET_Y_UP)
+                                self.__action_buffer.add_action(self._xstart, self._xstop, self._ystart, self._ystop)
+                                self._set_x_start(x0)
+                                self._set_x_stop(x1)
+                                self._set_y_start(y0)
+                                self._set_y_stop(y1)
+                                self._update_step_y()
+                                self._update_step_x()
+                                self.__group.update_x_borders(x0, x1)
+                                self._recalculate_window_coords()
+                                self._y_scaled = True
+                                self._redraw_required = True
 
                 self.__zoom_active = False
                 self.__scaling_rect.setCoords(0, 0, 0, 0)
