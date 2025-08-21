@@ -66,7 +66,7 @@
 
 ----------
 
-## Использование в коде напрямую ##
+## Построение статичных графиков ##
 
 	import cornplot as cp
 	import numpy as np
@@ -80,4 +80,45 @@
 	cp.plot(X, Y1, name="Sinus")
 	cp.subplot(2, 1, 2)
 	cp.plot(X, Y3)
+	cp.show()
+
+## Построение анимированных графиков ##
+
+	import time
+	
+	import cornplot as cp
+	import numpy as np
+	
+	
+	class UpdateFig1(cp.PlotUpdater):
+		"""Функция update_plot() вызывается в бесконечном цикле в отдельном потоке QThread."""
+	    def update_plot(self):
+	        t = time.monotonic()
+	        cp.add_point_to_animated_plot("Sin", t, np.sin(t))
+	        cp.add_point_to_animated_plot("Cos", t, np.cos(t))
+	        cp.add_point_to_animated_plot("SinSin", t, np.sin(2 * t))
+	        cp.add_point_to_animated_plot("CosCos", t, np.cos(2 * t))
+	
+	
+	class UpdateFig2(cp.PlotUpdater):
+		"""Период вызова по умолчанию 25 мс. Может быть изменён функцией set_delay_ms()"""
+	    def update_plot(self):
+	        t = time.monotonic()
+	        cp.add_point_to_animated_plot("sinsinsin", t, np.sin(t) + 0.3 * np.cos(3.5 * t))
+	
+	
+	cp.figure(1)
+	cp.subplot(2, 1, 1)
+	cp.animated_plot("Sin")
+	cp.animated_plot("Cos")
+	cp.subplot(2, 1, 2, link_subplots=False)
+	cp.animated_plot("SinSin")
+	cp.animated_plot("CosCos")
+	cp.add_plot_updater(UpdateFig1())
+	
+	cp.figure(2)
+	cp.animated_plot("sinsinsin")
+	updater = UpdateFig2()
+	updater.set_delay_ms(50)
+	cp.add_plot_updater(updater)
 	cp.show()

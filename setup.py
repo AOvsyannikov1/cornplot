@@ -1,5 +1,4 @@
 from setuptools import setup, find_packages, Extension
-from os.path import join, dirname
 
 
 c_files = ['cornplot/array_utils.c']
@@ -14,7 +13,7 @@ extension = Extension(
 )
 
 def readme():
-  with open('README.md', 'r') as f:
+  with open('README.md', 'r', encoding='utf-8') as f:
     return f.read()
 
 setup(
@@ -41,7 +40,7 @@ setup(
         "PyQt6>=6.9.0"
     ],
     
-    author="Ovsiannikov Andrey",
+    author="Ovsyannikov Andrey",
     author_email="andsup108@gmail.com",
     keywords="plot pyqt math",
     python_requires='>=3.11'
