@@ -1,12 +1,12 @@
-import csv, sys, os
+import csv
 from statistics import mean
 from functools import partial
 from enum import Enum
 from math import sqrt
 
 import numpy as np
-from PyQt6.QtCore import pyqtSignal, pyqtSlot, Qt, QTimer
-from PyQt6.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QColorDialog
+from PyQt6.QtCore import pyqtSignal, pyqtSlot as Slot, Qt, QTimer
+from PyQt6.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QColorDialog, QFontDialog
 from PyQt6.QtGui import QIcon, QColor, QFont
 
 from .cornplot_gui import Ui_CornplotGui
@@ -63,22 +63,42 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.eqWin = EquationWindow(dashboard)
 
         self.xName.setText(self.__dashboard.x_name)
-        self.xTicks.setChecked(self.__dashboard.x_ticks_enabled)
         self.yName.setText(self.__dashboard.y_name)
+
+        self.xTicks.setChecked(self.__dashboard.x_ticks_enabled)
         self.yTicks.setChecked(self.__dashboard.y_ticks_enabled)
+        
         self.xTypeNormal.clicked.connect(self.__dashboard.disable_human_time_display)
         self.xTypeTime.clicked.connect(self.__dashboard.enable_human_time_display)
-        self.originCheck.setChecked(self.__dashboard.origin_is_drawing)
-        self.majorTicksWidth.setValue(self.__dashboard.major_grid_width)
-        self.minorTicksWidth.setValue(self.__dashboard.minor_grid_width)
+        self.originCheckX.setChecked(self.__dashboard.origin_is_drawing)
+
+        self.majorTicksWidthX.setValue(self.__dashboard.x_major_grid_width)
+        self.minorTicksWidthX.setValue(self.__dashboard.x_minor_grid_width)
+        self.majorTicksWidthY.setValue(self.__dashboard.y_major_grid_width)
+        self.minorTicksWidthY.setValue(self.__dashboard.y_minor_grid_width)
+
         self.xScaleSelect.setCurrentIndex(self.__dashboard.x_is_logarithmic)
         self.yScaleSelect.setCurrentIndex(self.__dashboard.y_is_logarithmic)
 
+        self.xLabelCheck.setChecked(self.__dashboard.x_label_enabled)
+        self.yLabelCheck.setChecked(self.__dashboard.y_label_enabled)
+
+        self.drawLabelsAction.setChecked(self.xLabelCheck.isChecked() and self.yLabelCheck.isChecked())
+        self.drawTicksAction.setChecked(self.xTicks.isChecked() and self.yTicks.isChecked())
+        self.drawOriginAction.setChecked(self.originCheckX.isChecked() and self.originCheckY.isChecked())
+
         for key, value in GRID_STYLES.items():
-            if self.__dashboard.major_grid_style == value:
-                self.majorTicks.setCurrentText(GRID_STYLES[key])
-            if self.__dashboard.minor_grid_atyle == value:
-                self.minorTicks.setCurrentText(GRID_STYLES[key])
+            if self.__dashboard.x_major_grid_style == value:
+                self.majorTicksX.setCurrentText(GRID_STYLES[key])
+
+            if self.__dashboard.y_major_grid_style == value:
+                self.majorTicksY.setCurrentText(GRID_STYLES[key])
+
+            if self.__dashboard.x_minor_grid_atyle == value:
+                self.minorTicksX.setCurrentText(GRID_STYLES[key])
+
+            if self.__dashboard.y_minor_grid_atyle == value:
+                self.minorTicksY.setCurrentText(GRID_STYLES[key])
 
         self.aboutProgramAction.triggered.connect(self.__show_about)
         self.saveGraphAction.triggered.connect(self.__save_plots_to_file)
@@ -100,19 +120,31 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.xMax.valueChanged.connect(self.__dashboard.set_x_stop)
         self.yMax.valueChanged.connect(self.__dashboard.set_y_stop)
 
-        self.majorTicksCheck.toggled.connect(self.__dashboard.enable_major_grid)
-        self.minorTicksCheck.toggled.connect(self.__dashboard.enable_minor_grid)
-        self.originCheck.toggled.connect(self.__origin_enable)
-        self.originWidth.valueChanged.connect(self.__origin_enable)
+        self.majorTicksCheckX.toggled.connect(self.__dashboard.enable_major_grid_x)
+        self.majorTicksCheckY.toggled.connect(self.__dashboard.enable_major_grid_y)
+        self.minorTicksCheckX.toggled.connect(self.__dashboard.enable_minor_grid_x)
+        self.minorTicksCheckY.toggled.connect(self.__dashboard.enable_minor_grid_y)
+        self.originCheckX.toggled.connect(self.__origin_enable_x)
+        self.originWidthX.valueChanged.connect(self.__origin_enable_x)
+        self.originCheckY.toggled.connect(self.__origin_enable_y)
+        self.originWidthY.valueChanged.connect(self.__origin_enable_y)
 
-        self.majorTicks.currentTextChanged.connect(self.__major_style_change_event)
-        self.majorTicksWidth.valueChanged.connect(self.__major_style_change_event)
-        self.minorTicks.currentTextChanged.connect(self.__minor_style_change_event)
-        self.minorTicksWidth.valueChanged.connect(self.__minor_style_change_event)
-        self.minorTicksStep.valueChanged.connect(self.__minor_style_change_event)
+        self.majorTicksX.currentTextChanged.connect(self.__major_style_change_event_x)
+        self.majorTicksWidthX.valueChanged.connect(self.__major_style_change_event_x)
+        self.minorTicksX.currentTextChanged.connect(self.__minor_style_change_event_x)
+        self.minorTicksWidthX.valueChanged.connect(self.__minor_style_change_event_x)
+        self.minorTicksStepX.valueChanged.connect(self.__minor_style_change_event_x)
+
+        self.majorTicksY.currentTextChanged.connect(self.__major_style_change_event_y)
+        self.majorTicksWidthY.valueChanged.connect(self.__major_style_change_event_y)
+        self.minorTicksY.currentTextChanged.connect(self.__minor_style_change_event_y)
+        self.minorTicksWidthY.valueChanged.connect(self.__minor_style_change_event_y)
+        self.minorTicksStepY.valueChanged.connect(self.__minor_style_change_event_y)
 
         self.xTicks.toggled.connect(self.__dashboard.enable_x_ticks)
         self.yTicks.toggled.connect(self.__dashboard.enable_y_ticks)
+        self.xLabelCheck.toggled.connect(self.__dashboard.enable_x_label)
+        self.yLabelCheck.toggled.connect(self.__dashboard.enable_y_label)
 
         self.xTypeNormal.clicked.connect(self.__dashboard.disable_human_time_display)
         self.xTypeTime.clicked.connect(self.__dashboard.enable_human_time_display)
@@ -156,59 +188,103 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
 
         self.periodicalFft.toggled.connect(self.__start_periodical_fft)
 
+        self.deletePlotAction.triggered.connect(self.deletePlotButton.click)
+        self.backgroundColorAction.triggered.connect(self.__choose_background_color)
+
+        self.fontAction.triggered.connect(self.__select_font)
+
+        self.acceptXdivisor.clicked.connect(lambda: self.__dashboard.set_x_divisor(self.xDivisor.value()))
+        self.acceptYdivisor.clicked.connect(lambda: self.__dashboard.set_y_divisor(self.yDivisor.value()))
+
         self.__fft_tmr = QTimer()
 
         self.__operation = MathOperation.ONE_POINT_DIFF
 
-    @pyqtSlot(str)
+    @Slot()
+    def __select_font(self):
+        dlg = QFontDialog(self)
+        font, selected = dlg.getFont(self.__dashboard.font)
+        if selected:
+            self.__dashboard.set_font(font)
+
+    @Slot()
+    def __choose_background_color(self):
+        dlg = QColorDialog(self)
+        dlg.setWindowTitle("Выбор цвета фона")
+        dlg.setCurrentColor(self.__dashboard.background_color)
+
+        if dlg.exec():
+            self.__dashboard.set_background_color(dlg.currentColor())
+    
+    @Slot(str)
     def __set_plot_markers(self, val: str):
         style = Qt.PenCapStyle.RoundCap if (val == "Круглые") else Qt.PenCapStyle.SquareCap
         self.__dashboard.set_plot_markerstyle(self.plotName.currentText(), style)
 
-    @pyqtSlot(bool)
+    @Slot(bool)
     def __set_plot_accurate(self, val: bool):
         self.__dashboard.set_plot_accurate(self.plotName.currentText(), val)
 
-    @pyqtSlot(float)
+    @Slot(float)
     def __line_width_changed(self, val: float):
         self.__dashboard.set_plot_linewidth(self.plotName.currentText(), val)
 
-    @pyqtSlot(bool)
+    @Slot(bool)
     def __markers_checked(self, val: bool):
         self.__dashboard.plot_draw_markers(self.plotName.currentText(), val)
 
-    @pyqtSlot(bool)
+    @Slot(bool)
     def __line_checked(self, val: bool):
         self.__dashboard.plot_draw_line(self.plotName.currentText(), val)
 
-    @pyqtSlot(float)
+    @Slot(float)
     def __marker_width_changed(self, val: float):
         self.__dashboard.set_plot_markerwidth(self.plotName.currentText(), val)
 
     def set_plot_picture(self, grab):
         self.pltImage.setPixmap(grab)
 
-    @pyqtSlot()
-    def __origin_enable(self):
-        self.__dashboard.enable_origin_drawing(self.originCheck.isChecked(), self.originWidth.value())
+    @Slot()
+    def __origin_enable_x(self):
+        self.__dashboard.enable_origin_drawing_x(self.originCheckX.isChecked(), self.originWidthX.value())
 
-    @pyqtSlot()
-    def __major_style_change_event(self):
-        style = self.majorTicks.currentText()
+    @Slot()
+    def __origin_enable_y(self):
+        self.__dashboard.enable_origin_drawing_y(self.originCheckY.isChecked(), self.originWidthY.value())
+
+    @Slot()
+    def __major_style_change_event_x(self):
+        style = self.majorTicksX.currentText()
         if style in GRID_STYLES:
-            self.__dashboard.set_major_grid_style(GRID_STYLES[style], self.majorTicksWidth.value())
+            self.__dashboard.set_major_grid_style_x(GRID_STYLES[style], self.majorTicksWidthX.value())
         else:
-            self.__dashboard.set_major_grid_style("dot", self.majorTicksWidth.value())
+            self.__dashboard.set_major_grid_style_x("dot", self.majorTicksWidthX.value())
 
-    @pyqtSlot()
-    def __minor_style_change_event(self):
-        style = self.minorTicks.currentText()
+    @Slot()
+    def __major_style_change_event_y(self):
+        style = self.majorTicksY.currentText()
         if style in GRID_STYLES:
-            self.__dashboard.set_minor_grid_style(GRID_STYLES[style], self.minorTicksWidth.value(), self.minorTicksStep.value())
+            self.__dashboard.set_major_grid_style_y(GRID_STYLES[style], self.majorTicksWidthY.value())
         else:
-            self.__dashboard.set_minor_grid_style("dot", self.minorTicksWidth.value(), self.minorTicksStep.value())
+            self.__dashboard.set_major_grid_style_y("dot", self.majorTicksWidthY.value())
 
-    @pyqtSlot(str)
+    @Slot()
+    def __minor_style_change_event_x(self):
+        style = self.minorTicksX.currentText()
+        if style in GRID_STYLES:
+            self.__dashboard.set_minor_grid_style_x(GRID_STYLES[style], self.minorTicksWidthX.value(), self.minorTicksStepX.value())
+        else:
+            self.__dashboard.set_minor_grid_style_x("dot", self.minorTicksWidthX.value(), self.minorTicksStepX.value())
+
+    @Slot()
+    def __minor_style_change_event_y(self):
+        style = self.minorTicksX.currentText()
+        if style in GRID_STYLES:
+            self.__dashboard.set_minor_grid_style_y(GRID_STYLES[style], self.minorTicksWidthY.value(), self.minorTicksStepY.value())
+        else:
+            self.__dashboard.set_minor_grid_style_y("dot", self.minorTicksWidthY.value(), self.minorTicksStepY.value())
+
+    @Slot(str)
     def __set_plot_linestyle(self, style: str):
         plt_name = self.plotName.currentText()
         match style:
@@ -223,7 +299,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
             case "Пунктирная":
                 self.__dashboard.set_plot_linestyle(plt_name, Qt.PenStyle.DotLine)
 
-    @pyqtSlot()
+    @Slot()
     def __show_about(self):
         self.__message_box = QMessageBox()
         self.__message_box.setIcon(QMessageBox.Icon.Information)
@@ -247,8 +323,10 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
             self.yStep.setValue(self.__dashboard.step_y)
             self.yMin.setValue(self.__dashboard.y_start)
             self.yMax.setValue(self.__dashboard.y_stop)
-        self.majorTicksCheck.setChecked(self.__dashboard.major_ticks_enabled)
-        self.minorTicksCheck.setChecked(self.__dashboard.minor_ticks_enabled)
+        self.majorTicksCheckX.setChecked(self.__dashboard.x_major_ticks_enabled)
+        self.minorTicksCheckX.setChecked(self.__dashboard.x_minor_ticks_enabled)
+        self.majorTicksCheckY.setChecked(self.__dashboard.y_major_ticks_enabled)
+        self.minorTicksCheckY.setChecked(self.__dashboard.y_minor_ticks_enabled)
 
         last_index = self.plotName.currentIndex()
 
@@ -352,20 +430,21 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
             self.markerStyles.setCurrentText("Круглые")
         else:
             self.markerStyles.setCurrentText("Квадратные")
-            
-        self.tabWidget_2.setTabEnabled(2, not plot.is_hist)
-        self.tabWidget_2.setTabEnabled(3, not plot.is_hist)
-        self.tabWidget_2.setTabEnabled(4, not plot.is_hist)
+        
+        self.tabWidget_2.setTabEnabled(1, plot.x_ascending)
+        self.tabWidget_2.setTabEnabled(2, not plot.is_hist and plot.x_ascending)
+        self.tabWidget_2.setTabEnabled(3, not plot.is_hist and plot.x_ascending)
+        self.tabWidget_2.setTabEnabled(4, not plot.is_hist and plot.x_ascending)
         self.filterGroup.setEnabled(not plot.is_hist)
 
         # screen = self.__dashboard.take_plot_screenshot(self.plotName.currentText())
         # self.pltImage.setPixmap(screen.scaledToWidth(self.deletePlotButton.width()))
 
-    @pyqtSlot()
+    @Slot()
     def __delete_plot(self, plt_name):
         self.__message_box = QMessageBox()
         self.__message_box.setIcon(QMessageBox.Icon.Question)
-        self.__message_box.setText("Вы действительно хотите удалить график? Отменить это действие будет нельзя.")
+        self.__message_box.setText(f"Вы действительно хотите удалить график '{plt_name}'? Отменить это действие будет нельзя.")
         self.__message_box.setWindowTitle("Подтвердите операцию")
         self.__message_box.setStandardButtons(QMessageBox.StandardButton.Yes |
                                        QMessageBox.StandardButton.No)
@@ -377,7 +456,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
             self.__dashboard.delete_plot(plt_name)
             self.__message(f"График {plt_name} удалён.")
 
-    @pyqtSlot(Plot)
+    @Slot(Plot)
     def __open_color_dialog(self, plt: Plot):
         dlg = QColorDialog(self)
         dlg.setWindowTitle(f"{plt.name}: выбор цвета")
@@ -414,13 +493,13 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
                                             }}""")
             self.__dashboard._force_redraw()
 
-    @pyqtSlot()
+    @Slot()
     def __save_plots_to_file(self):
         fileName, _ = QFileDialog.getSaveFileName(self, "Экспорт в файл", filter="Cornplot Files (*.cplt)")
         if len(fileName) > 0:
             self.__dashboard.export_to_file(fileName)
 
-    @pyqtSlot()
+    @Slot()
     def __load_plots_from_file(self):
         fileName, _ = QFileDialog.getOpenFileName(self, "Импорт из файла", filter="Cornplot Files (*.cplt)")
         self.__dashboard.import_from_file(fileName)
@@ -587,7 +666,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
 
         self.__message("Длина дуги кривой вычислена успешно.")
 
-    @pyqtSlot(bool)
+    @Slot(bool)
     def __start_periodical_fft(self, start: bool):
         if start:
             self.__fftWindow.show()
@@ -598,18 +677,18 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
             self.__fft_tmr.stop()
             self.__fft_tmr.timeout.disconnect()
 
-    @pyqtSlot()
+    @Slot()
     def __periodical_fft(self):
         if self.__fftWindow.isVisible() and not self.__dashboard.is_paused() and self.periodicalFft.isChecked():
             plot = self.__plots[self.plotName.currentIndex()]
             self.__fourier_transform(plot)
 
-    @pyqtSlot()
+    @Slot()
     def __begin_all_fourier_transform(self):
         plot = self.__plots[self.plotName.currentIndex()]
         self.__fourier_transform(plot)
 
-    @pyqtSlot()
+    @Slot()
     def __begin_fourier_transform(self):
         if self.__dashboard.is_animated() and not self.__dashboard.is_paused():
             self.__message("Действие не может быть выполнено.")
@@ -618,7 +697,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.hide()
         self.__operation = MathOperation.FOURIER
 
-    @pyqtSlot()
+    @Slot()
     def __begin_point_diff(self):
         if self.__dashboard.is_animated() and not self.__dashboard.is_paused():
             self.__message("Действие не может быть выполнено.")
@@ -627,7 +706,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.hide()
         self.__operation = MathOperation.ONE_POINT_DIFF
 
-    @pyqtSlot()
+    @Slot()
     def __begin_interval_diff(self):
         if self.__dashboard.is_animated() and not self.__dashboard.is_paused():
             self.__message("Действие не может быть выполнено.")
@@ -636,21 +715,21 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.hide()
         self.__operation = MathOperation.INTERVAL_DIFF
 
-    @pyqtSlot()
+    @Slot()
     def __begin_all_diff(self):
         plot = self.__plots[self.plotName.currentIndex()]
         i0 = 0
         ik = len(plot.X) - 1
         self.__find_derivative_on_interval(plot, i0, ik)
 
-    @pyqtSlot()
+    @Slot()
     def __begin_all_integral(self):
         plot = self.__plots[self.plotName.currentIndex()]
         i0 = 0
         ik = len(plot.X)
         self.__find_integral(plot, i0, ik)
 
-    @pyqtSlot()
+    @Slot()
     def __begin_interval_integral(self):
         if self.__dashboard.is_animated() and not self.__dashboard.is_paused():
             self.__message("Действие не может быть выполнено.")
@@ -659,7 +738,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.hide()
         self.__operation = MathOperation.INTEGRATION
 
-    @pyqtSlot()
+    @Slot()
     def __begin_interval_approx(self):
         if self.__dashboard.is_animated() and not self.__dashboard.is_paused():
             self.__message("Действие не может быть выполнено.")
@@ -668,7 +747,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.hide()
         self.__operation = MathOperation.APPROX
 
-    @pyqtSlot()
+    @Slot()
     def __begin_interval_mean_calculating(self):
         if self.__dashboard.is_animated() and not self.__dashboard.is_paused():
             self.__message("Действие не может быть выполнено.")
@@ -677,21 +756,21 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.hide()
         self.__operation = MathOperation.MEAN
 
-    @pyqtSlot()
+    @Slot()
     def __begin_all_mean_calculating(self):
         plot = self.__plots[self.plotName.currentIndex()]
         i0 = 0
         ik = len(plot.X) - 1
         self.__find_mean_value(plot, i0, ik)
 
-    @pyqtSlot()
+    @Slot()
     def __begin_all_curve_length_calc(self):
         plot = self.__plots[self.plotName.currentIndex()]
         i0 = 0
         ik = len(plot.X) - 1
         self.__find_curve_length(plot, i0, ik)
 
-    @pyqtSlot()
+    @Slot()
     def __begin_interval_curve_length_calc(self):
         if self.__dashboard.is_animated() and not self.__dashboard.is_paused():
             self.__message("Действие не может быть выполнено.")
@@ -735,7 +814,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.__fftWindow.setWindowTitle(f"Преобразование Фурье {plot.name}")
         self.__fftWindow.open()
 
-    @pyqtSlot()
+    @Slot()
     def __filter_plot(self):
         plot = self.__plots[self.plotName.currentIndex()]
         x_arr = plot.X
@@ -757,7 +836,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
                                 name=f"{self.plotName.currentText()} (фильтрация)")
         self.__dashboard._force_redraw()
 
-    @pyqtSlot()
+    @Slot()
     def __fit(self, i0=None, ik=None):
         plot = self.__plots[self.plotName.currentIndex()]
 
@@ -911,7 +990,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         else:
             return QColor(255, 255, 255)
     
-    @pyqtSlot()
+    @Slot()
     def __export_plot_to_csv(self):
         plt = self.__plots[self.plotName.currentIndex()]
         fileName, _ = QFileDialog.getSaveFileName(self, "Экспорт в файл", directory=plt.name, filter="CSV files (*.csv)")
@@ -922,7 +1001,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
                 for x, y in zip(plt.X, plt.Y):
                     writer.writerow([x, y])
 
-    @pyqtSlot()
+    @Slot()
     def __import_plot_from_csv(self):
         fileName, _ = QFileDialog.getOpenFileName(self, "Импорт из файла", filter="CSV files (*.csv)")
         if len(fileName) > 0:
@@ -949,11 +1028,11 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
                 self.__dashboard.add_plot(x_arr, y_arr, name=f"CSV_{i + 1}")
         
     def __show_error(self, error: str):
-        self.errBox = QMessageBox()
-        self.errBox.setIcon(QMessageBox.Icon.Warning)
-        self.errBox.setWindowTitle("Ошибка!")
-        self.errBox.setText(error)
-        self.errBox.show()
+        self.__errBox = QMessageBox()
+        self.__errBox.setIcon(QMessageBox.Icon.Warning)
+        self.__errBox.setWindowTitle("Ошибка!")
+        self.__errBox.setText(error)
+        self.__errBox.show()
 
     def __message(self, msg: str):
         self.statusbar.showMessage(msg, 5000)

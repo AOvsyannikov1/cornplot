@@ -18,18 +18,18 @@ LOWER_INDEXES = ('₀', '₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈', 
 def button_style(dark):
     return (f"""QPushButton
             {{
-                background-color : {'rgba(255, 255, 255, 0)' if not dark else 'rgba(255, 255, 255, 0.3)'}; 
+                background-color : {'rgba(255, 255, 255, 0.7)' if not dark else 'rgba(180, 180, 180, 0.8)'}; 
                 color: {'rgb(150, 150, 150)' if dark else 'black'};
                 border-style : outset;
-                border-radius : 8px;
+                border-radius : 5px;
                 border-width : 1px;
-                border-color : {'rgb(187, 134, 252)' if dark else 'black'};
+                border-color: "black";
             }}
             QPushButton::hover
             {{
                 background-color : lightblue;
                 border-style : outset;
-                border-color : #666666;
+                border-color: rgba(0, 0, 0, 0);
             }}
             QPushButton::pressed
             {{
@@ -56,12 +56,12 @@ def arange(x0, xk, dx):
 
 
 def get_upper_index(number):
-    dozens = number // 10
-    ones = number % 10
+    dozens = abs(number) // 10
+    ones = abs(number) % 10
     if dozens == 0:
-        return UPPER_INDEXES[ones]
+        return ("⁻" if number < 0 else "") + UPPER_INDEXES[ones]
     else:
-        return UPPER_INDEXES[dozens] + UPPER_INDEXES[ones]
+        return ("⁻" if number < 0 else "") + UPPER_INDEXES[dozens] + UPPER_INDEXES[ones]
     
 
 def set_cursor_shape(shape: Qt.CursorShape):
@@ -171,23 +171,12 @@ class SelectedPoint:
     i: int
 
 
-def resource_path(relative_path):
-    """ Получает абсолютный путь к ресурсу, работает для dev и для PyInstaller """
-    try:
-        # PyInstaller создает временную папку в _MEIPASS
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-    
-    return os.path.join(base_path, relative_path)
-
-
 def get_image_path(filename: str) -> Path:
     """Получить путь к изображению из пакета"""
     try:
-        # Python 3.9+ style
         return str(pkg_resources.files("cornplot.images") / filename)
     except AttributeError:
-        # Fallback для Python 3.7-3.8
         with pkg_resources.path("cornplot.images", filename) as path:
             return Path(path)
+    except:
+        return filename

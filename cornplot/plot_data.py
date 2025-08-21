@@ -107,7 +107,6 @@ class Plot(QObject):
 
     def set_visible(self, visible: bool):
         if visible != self.visible:
-            print(visible)
             self.visible = visible
             self.redraw_signal.emit()
 

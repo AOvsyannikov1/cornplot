@@ -2,7 +2,7 @@ from time import monotonic
 
 from PyQt6.QtWidgets import QPushButton, QFrame
 from PyQt6.QtGui import QFont, QIcon
-from .utils import button_style, resource_path, get_image_path
+from .utils import button_style, get_image_path
 
 class ButtonGroup:
     def __init__(self, widget: QFrame, w, h):
@@ -84,6 +84,18 @@ class ButtonGroup:
         self.fix_button.setToolTip("Закрепить нуль Y")
         self.fix_button.setStyleSheet(button_style(False))
         self.fix_button.enterEvent = self.__restart_timer
+
+        self.lower_buttons = (
+            self.arrow_button, self.more_button, self.save_button, self.back_button, 
+            self.zoom_button, self.add_vert_button, self.clear_button, self.fix_button
+        )
+
+        for btn in self.lower_buttons:
+            btn.raise_()
+            btn.raise_()
+            btn.raise_()
+            btn.raise_()
+            
 
         self.__animated = False
         self.__visible = True

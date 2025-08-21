@@ -1,11 +1,7 @@
 import math as mt
 
-try:
-    from PyQt6.QtGui import QPainter, QPolygonF, QFont, QFontMetrics, QPen, QColor
-    from PyQt6.QtCore import QPointF, QRectF, Qt
-except ImportError:
-    from PyQt5.QtGui import QPainter, QPolygonF, QFont, QFontMetrics, QColor, QPen
-    from PyQt5.QtCore import QPointF, QRectF, Qt
+from PyQt6.QtGui import QPainter, QPolygonF, QFont, QFontMetrics, QPen, QColor
+from PyQt6.QtCore import QPointF, QRectF, Qt
 
 from .dashboard import Dashboard
 from .railway.semaphore import SemaphoreColor
@@ -13,8 +9,6 @@ from .railway.train_data import TrainData
 from .railway.track_data import TrackData
 try:
     from track_profile import SlopeCreator
-
-
 
     class RailwayDashboard(Dashboard):
 

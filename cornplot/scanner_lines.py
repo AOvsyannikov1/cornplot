@@ -36,6 +36,12 @@ class VerticalLineList(list):
         self.last_line = 0
         self.nearest_line = -1
 
+    def get_nearest_line(self) -> VerticalLine:
+        return self[self.nearest_line]
+    
+    def line_under_mouse(self):
+        return self.nearest_line >= 0
+
     def line_count(self):
         res = 0
         for l in self:

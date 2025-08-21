@@ -26,6 +26,30 @@ double window_to_real_y(double y, int height, double real_height, double y_stop,
 }
 
 
+double real_to_window_x_log(double x, int min_x, int width, double x_start, double x_stop)
+{
+    if (x <= 0) return min_x;
+    return min_x + width / log10(x_stop / x_start) * log10(x / x_start);
+}
+
+double real_to_window_y_log(double y, int min_y, int max_y, int height, double y_start, double y_stop)
+{
+    if (y <= 0) return max_y;
+    return min_y + height / log10(y_stop / y_start) * log10(y_stop / y);
+}
+
+double window_to_real_x_log(double x, int width, double x_start, double x_stop)
+{
+    return pow(10, log10(x_stop / x_start) * x / (double)width + log10(x_start));
+}
+
+double window_to_real_y_log(double y, int height, double y_start, double y_stop, int offset_y)
+{
+    y -= offset_y;
+    return pow(10, log10(y_stop) - log10(y_stop / y_start) * y / (double)height);
+}
+
+
 PyObject* c_real_to_window_x(PyObject* self, PyObject* args)
 {
     double x, x_start, real_width;
@@ -64,19 +88,41 @@ PyObject* c_window_to_real_y(PyObject* self, PyObject* args)
 }
 
 
-PyObject* array_ex(PyObject* self, PyObject* args)
+PyObject* c_real_to_window_x_log(PyObject* self, PyObject* args)
 {
-    PyListObject *list;
-    PyArg_ParseTuple(args, "O!", &PyList_Type, &list);
+    double x, x_start, x_stop;
+    int min_x, width;
+    PyArg_ParseTuple(args, "diidd", &x, &min_x, &width, &x_start, &x_stop);
+    double ret = real_to_window_x_log(x, min_x, width, x_start, x_stop);
+    return PyFloat_FromDouble(ret);
+}
 
-    int a = 0;
-    for(int i = 0; i < PyList_Size(list); ++i)
-    {
-        a = PyLong_AsLong(PyList_GetItem(list, i));
-        a /= 8.5;
-    }
 
-    return PyLong_FromLong(a);
+PyObject* c_real_to_window_y_log(PyObject* self, PyObject* args)
+{
+    double y, y_stop, y_start;
+    int min_y, max_y, height;
+    PyArg_ParseTuple(args, "diiidd", &y, &min_y, &max_y, &height, &y_start, &y_stop);
+    double ret = real_to_window_y_log(y, min_y, max_y, height, y_start, y_stop);
+    return PyFloat_FromDouble(ret);
+}
+
+
+PyObject* c_window_to_real_x_log(PyObject* self, PyObject* args)
+{
+    double x_start, x_stop, x;
+    int width;
+    PyArg_ParseTuple(args, "didd", &x, &width, &x_start, &x_stop);
+    return PyFloat_FromDouble(window_to_real_x_log(x, width, x_start, x_stop));
+}
+
+
+PyObject* c_window_to_real_y_log(PyObject* self, PyObject* args)
+{
+    double y_stop, y_start, y;
+    int height, offset_y;
+    PyArg_ParseTuple(args, "diddi", &y, &height, &y_start, &y_stop, &offset_y);
+    return PyFloat_FromDouble(window_to_real_y(y, height, y_start, y_stop, offset_y));
 }
 
 
@@ -165,6 +211,10 @@ PyMethodDef module_methods[] =
     {"c_real_to_window_y", c_real_to_window_y, METH_VARARGS, "Перевод реальных координат в оконные"},
     {"c_window_to_real_x", c_window_to_real_x, METH_VARARGS, "Перевод оконных координат в реальные"},
     {"c_window_to_real_y", c_window_to_real_y, METH_VARARGS, "Перевод оконных координат в реальные"},
+    {"c_real_to_window_x_log", c_real_to_window_x_log, METH_VARARGS, "Перевод реальных координат в оконные при логарифмическом масштабе"},
+    {"c_real_to_window_y_log", c_real_to_window_y_log, METH_VARARGS, "Перевод реальных координат в оконные при логарифмическом масштабе"},
+    {"c_window_to_real_x_log", c_window_to_real_x_log, METH_VARARGS, "Перевод оконных координат в реальные при логарифмическом масштабе"},
+    {"c_window_to_real_y_log", c_window_to_real_y_log, METH_VARARGS, "Перевод оконных координат в реальные при логарифмическом масштабе"},
     {"c_recalculate_window_x", c_recalculate_window_x, METH_VARARGS, "Пересчёт оконных координат по Х"},
     {"c_recalculate_window_y", c_recalculate_window_y, METH_VARARGS, "Пересчёт оконных координат по У"},
     {"c_get_nearest_value", c_get_nearest_value, METH_VARARGS, "Нахождение ближайшего значения в массиве"},
@@ -176,7 +226,7 @@ struct PyModuleDef array_utils =
 {
     PyModuleDef_HEAD_INIT, // Always initialize this member to PyModuleDef_HEAD_INIT
     "array_utils", // module name
-    "Модуль содержит функции, наиболее затратные по времени, реализованные на С", // module description
+    "Модуль содержит функции, наиболее критичные по времени, реализованные на С", // module description
     -1, // module size (more on this later)
     module_methods // methods associated with the module
 };

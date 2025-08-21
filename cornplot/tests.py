@@ -1,5 +1,5 @@
 import numpy as np
-from .core import plt
+from .console_plotter import _plotter as plt
 
 
 def show_demo_plots_1():
@@ -156,15 +156,6 @@ def show_demo_plots_3():
 
 
 def show_demo_plots_4():
-    X = np.arange(-10, 10, 1)
-    Y = np.exp(0.2 * X)
-    Y1 = -np.exp(0.2 * X)
-    plt.plot(X, Y, name="Гистограмма", axes=True)
-    plt.plot(X, Y1, name="Гистограмма1", axes=True)
-    plt.show()
-
-
-def show_demo_plots_5():
     X = np.arange(0, 0.04, 1e-5)
     Y = 220 * np.sqrt(2) * np.sin(314 * X)
 
@@ -172,10 +163,10 @@ def show_demo_plots_5():
     plt.show()
 
 
-def show_demo_plots_6():
+def show_demo_plots_5():
     X = np.random.beta(a=2, b=5, size=100000)
 
-    plt.hist(X, bins=25, name="Бета-распределение")
+    plt.histogram(X, name="Бета-распределение")
     plt.show()
 
 
@@ -186,20 +177,6 @@ def show_demo_pie_chart():
               "кислород любимый кислород что ж ты такой классный аааааааааа",
               "а прочие газы тут углекислый газ лох но им растения дышат")
 
-    X = np.arange(-10, 10, 0.005)
-    Y1 = np.sin(X)
-    Y2 = np.cos(X)
-    plt.subplot(2, 2, 1, link_plots=True)
-    plt.plot(X, Y1, name="Sin x")
-
-    plt.subplot(2, 2, 2, link_plots=True)
-    plt.plot(X, Y2, name="Cos x")
-
-    plt.subplot(2, 2, 3, pie_chart=True)
     plt.pie_chart(perc, cats, descrs)
-
-    plt.subplot(2, 2, 4)
-    X = np.random.beta(a=2, b=1.5, size=10000)
-    plt.hist(X, bins=25, name="Нормальное распределение", color='heatmap')
     plt.show()
 

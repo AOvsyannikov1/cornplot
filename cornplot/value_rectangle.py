@@ -11,7 +11,7 @@ class ValueRectangle(QRectF):
         self.point = point
 
     def __contains__(self, other):
-        return (self.y() >= other.y() and self.y() <= other.y() + other.height()) or (other.y() >= self.y() and other.y() <= self.y() + self.height())
+        return self.intersects(other)# (self.y() >= other.y() and self.y() <= other.y() + other.height()) or (other.y() >= self.y() and other.y() <= self.y() + self.height())
     
     @property
     def text(self):
