@@ -19,6 +19,7 @@ from .filters import MovingAverageFilter, ExponentialFilter, MedianFilter
 from scipy.optimize import curve_fit
 from scipy.fft import fft, fftfreq
 from .utils import *
+from .version import *
 
 
 GRID_STYLES = {
@@ -233,7 +234,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
 
         plt = self.__plots[self.plotName.currentIndex()]
         qp.setPen(plt.pen)
-        qp.drawLine(0, 10, self.pltImage.width(), 10)
+        qp.drawLine(5, self.pltImage.height() // 2, self.pltImage.width() - 5, self.pltImage.height() // 2)
 
         qp.end()
 
@@ -341,7 +342,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.__message_box = QMessageBox()
         self.__message_box.setIcon(QMessageBox.Icon.Information)
         self.__message_box.setText(f"Время перерисовки: {self.__dashboard.redraw_time * 1000:.2f} мс")
-        self.__message_box.setInformativeText("V.3.0 | 15.08.2025")
+        self.__message_box.setInformativeText(f"Версия {VERSION} | {DATE}")
         self.__message_box.setWindowTitle("О программе")
         self.__message_box.setStandardButtons(QMessageBox.StandardButton.Yes)
         self.__message_box.button(QMessageBox.StandardButton.Yes).setText("Очень рад!")

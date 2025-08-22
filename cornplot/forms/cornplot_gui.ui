@@ -48,7 +48,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="axlesTab">
        <property name="autoFillBackground">
@@ -1061,6 +1061,12 @@
            <layout class="QHBoxLayout" name="horizontalLayout_32">
             <item>
              <widget class="QLabel" name="label_36">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="font">
                <font>
                 <pointsize>10</pointsize>
@@ -1068,6 +1074,25 @@
               </property>
               <property name="text">
                <string>Выбранный график:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="pltImage">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="text">
+               <string/>
               </property>
              </widget>
             </item>
@@ -1534,19 +1559,6 @@
                    </widget>
                   </item>
                  </layout>
-                </item>
-                <item>
-                 <widget class="QLabel" name="pltImage">
-                  <property name="minimumSize">
-                   <size>
-                    <width>0</width>
-                    <height>30</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string/>
-                  </property>
-                 </widget>
                 </item>
                 <item>
                  <spacer name="verticalSpacer_11">

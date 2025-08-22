@@ -3,7 +3,7 @@ from math import log10, floor, ceil, pow
 
 from PyQt6.QtCore import Qt, QLineF, QRectF, pyqtSlot as Slot, QRect, QTimer
 from PyQt6.QtGui import QPen, QColor, QPainter, QFont, QFontMetrics 
-from PyQt6.QtWidgets import QFrame, QFileDialog
+from PyQt6.QtWidgets import QFileDialog, QWidget
 
 from .utils import *
 
@@ -18,7 +18,7 @@ from .coordinate_ax import CoordinateAx
 axle_groups: dict[str, AxleGroupData] = dict()
 
 
-class Axles(QFrame):
+class Axles(QWidget):
     _OFFSET_Y_UP = 22             # смещение по У для размещения шапки
     _OFFSET_Y_DOWN = 25
     _OFFSET_X = 100
@@ -26,7 +26,6 @@ class Axles(QFrame):
 
     def __init__(self, widget, x: int, y: int, w: int, h: int):
         super().__init__()
-
         self.setParent(widget)
         self.__group = AxleGroupData()
         self.__scale_lines = self.__group.scale_lines
