@@ -1,6 +1,5 @@
 from setuptools import setup, find_packages, Extension
 
-
 c_files = ['cornplot/array_utils.c']
 c_extension_name = "cornplot.array_utils"
 # Создание C-расширения
@@ -18,7 +17,7 @@ def readme():
 
 setup(
     name="cornplot",
-    version="0.9.0",
+    version="0.9.1",
     packages=find_packages(include=['cornplot', 'cornplot.*']),
     long_description=readme(),
     ext_modules=[extension],
