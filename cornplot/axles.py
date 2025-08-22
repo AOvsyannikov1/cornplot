@@ -807,9 +807,9 @@ class Axles(QWidget):
         if isinstance(a0, QGestureEvent):
             for gesture in a0.gestures():
                 if isinstance(gesture, QPinchGesture):
-                    self.__pinch_gesture_event(gesture)
+                    self.__pinch_gesture_event(gesture)     # масштабирование двумя пальцами
                 elif isinstance(gesture, QPanGesture):
-                    self.__pan_gesture_event(gesture)
+                    self.__pan_gesture_event(gesture)       # перемещение двумя пальцами
                 elif isinstance(gesture, QTapGesture):
                     self.__tap_gesture_event(gesture)
                 elif isinstance(gesture, QTapAndHoldGesture):
@@ -820,6 +820,8 @@ class Axles(QWidget):
     
     def __pinch_gesture_event(self, gesture: QPinchGesture):
         """Увеличение или уменьшение масштаба двумя пальцами"""
+        if self.__animated and not self.__paused:
+            return
         if gesture.state() == Qt.GestureState.GestureStarted:
             ...
         elif gesture.state() == Qt.GestureState.GestureUpdated:
@@ -893,6 +895,8 @@ class Axles(QWidget):
             pass
 
     def __pan_gesture_event(self, gesture: QPanGesture):
+        if self.__animated and not self.__paused:
+            return
         if gesture.state() == Qt.GestureState.GestureStarted:
            pass
         elif gesture.state() == Qt.GestureState.GestureUpdated:
@@ -934,9 +938,10 @@ class Axles(QWidget):
             pass
 
     def __tap_and_hold_gesture_event(self, gesture: QTapAndHoldGesture):
+        if self.__animated and not self.__paused:
+            return
         if gesture.state() == Qt.GestureState.GestureStarted:
             self._zoom_out()
-            self.__deselect_all_lines()
         elif gesture.state() == Qt.GestureState.GestureUpdated:
             pass
         elif gesture.state() == Qt.GestureState.GestureFinished:

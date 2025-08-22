@@ -41,7 +41,6 @@ class EquationWindow(Ui_Form, QWidget):
             self.__dashhboard.add_plot(X, Y, name=(eq if self.eqName.text() == "" else self.eqName.text()))
             self.close()
         except Exception as e:
-            print(e)
             msg = QMessageBox()
             msg.setWindowIcon(QIcon(get_image_path("mathIcon.png")))
             msg.setIcon(QMessageBox.Icon.Critical)
