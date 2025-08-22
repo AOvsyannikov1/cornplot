@@ -15,8 +15,12 @@ class FFTWindow(PlotterWindow):
         self.dashboard_a = Dashboard(self, 90, 30, 1400, 400)
         self.dashboard_f = Dashboard(self, 90, 450, 1400, 400)
         self.dashboard_a.set_y_name("Амплитуда")
+        self.dashboard_a.set_x_name("f, Гц")
         self.dashboard_f.set_x_name("f, Гц")
         self.dashboard_f.set_y_name("Угол, °")
+        self.dashboard_a.set_x_logarithmic(True)
+        self.dashboard_a.set_y_logarithmic(True)
+        self.dashboard_f.set_x_logarithmic(True)
 
         self.dashboard_a.move_to_group("__fftWindowGroup")
         self.dashboard_f.move_to_group("__fftWindowGroup")

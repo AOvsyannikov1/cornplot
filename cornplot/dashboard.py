@@ -108,7 +108,7 @@ class Dashboard(Axles):
         self._force_redraw()
         return True
     
-    def update_plot(self, name: str, x_arr, y_arr=None, rescale_y=False):
+    def update_plot(self, name: str, x_arr, y_arr=None, rescale_x=False, rescale_y=False):
         if not hasattr(x_arr, "__iter__"):
             return False
         if y_arr is None:
@@ -141,6 +141,7 @@ class Dashboard(Axles):
                 if len(self.__plots) == 1:
                     self._set_x_start(self._x_axis_min)
                     self._set_x_stop(self._x_axis_max)
+                    self._update_x_borders(self._x_axis_min, self._x_axis_max)
                 if rescale_y:
                     self._calculate_y_parameters()
                 self._recalculate_window_coords()
@@ -378,10 +379,9 @@ class Dashboard(Axles):
         self._draw_scanner_lines(value_rects)
         self.__draw_point_on_graph()
         self._draw_x_slider()
-        if self.is_animated() and not self.is_paused():
-            self._force_redraw()
-        else:
+        if not self.is_animated() or self.is_paused():
             self._redraw_required = False
+        
         
         self.__redraw_time = time.time() - t0
 

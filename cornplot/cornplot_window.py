@@ -859,9 +859,9 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         F.insert(0, np.rad2deg(np.angle(spectr[0])))
 
         if periodical:
-            self.__fftWindow.dashboard_a.update_plot('Амплитудный спектр', right_freq, A, rescale_y=True)
-            self.__fftWindow.dashboard_f.update_plot('Фазовый спектр', right_freq, F, rescale_y=True)
-            self.__fftWindow.dashboard_source.update_plot('Оригинал', x_arr, y_arr)
+            self.__fftWindow.dashboard_a.update_plot('Амплитудный спектр', right_freq, A, rescale_y=True, rescale_x=True)
+            self.__fftWindow.dashboard_f.update_plot('Фазовый спектр', right_freq, F, rescale_y=True, rescale_x=True)
+            self.__fftWindow.dashboard_source.update_plot('Оригинал', x_arr, y_arr, rescale_x=True, rescale_y=True)
         else:
             self.__fftWindow.dashboard_a.delete_all_plots()
             self.__fftWindow.dashboard_f.delete_all_plots()
