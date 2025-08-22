@@ -891,6 +891,7 @@ class Axles(QWidget):
             self._real_height = self._ystop - self._ystart
             if recalc:
                 self._recalculate_window_coords()
+            self._redraw_required = True
         elif gesture.state() == Qt.GestureState.GestureFinished:
             pass
 
@@ -924,6 +925,7 @@ class Axles(QWidget):
             
             if recalc:
                 self._recalculate_window_coords()
+            self._redraw_required = True
         elif gesture.state() == Qt.GestureState.GestureFinished:
             pass
 
