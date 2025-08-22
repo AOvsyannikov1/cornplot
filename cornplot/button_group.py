@@ -191,6 +191,6 @@ class ButtonGroup:
 
     def pause(self, pause: bool):
         if pause:
-            self.pause_button.setIcon(QIcon("./cornplot/images/play.png"))
+            self.pause_button.setIcon(QIcon(get_image_path("play.png")))
         else:
-            self.pause_button.setIcon(QIcon("./cornplot/images/pause.png"))
+            self.pause_button.setIcon(QIcon(get_image_path("pause.png")))
