@@ -5,10 +5,10 @@ from PyQt6.QtGui import QPen, QColor
 class CoordinateAx:
 
     def __init__(self):
-        self.pen_major = QPen(QColor(145, 145, 145), 1)
-        self.pen_major.setStyle(Qt.PenStyle.DotLine)
-        self.pen_minor = QPen(QColor(145, 145, 145), 0.5)
-        self.pen_minor.setStyle(Qt.PenStyle.DotLine)
+        self.pen_major = QPen(QColor(145, 145, 145), 0.5)
+        self.pen_major.setStyle(Qt.PenStyle.SolidLine)
+        self.pen_minor = QPen(QColor(145, 145, 145), 0.25)
+        self.pen_minor.setStyle(Qt.PenStyle.SolidLine)
         self.origin_pen = QPen(QColor(0, 0, 0), 0.5)
 
         self.minor_step_ratio = 5

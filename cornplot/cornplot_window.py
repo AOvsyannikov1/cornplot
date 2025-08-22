@@ -316,7 +316,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
 
     @Slot()
     def __minor_style_change_event_y(self):
-        style = self.minorTicksX.currentText()
+        style = self.minorTicksY.currentText()
         if style in GRID_STYLES:
             self.__dashboard.set_minor_grid_style_y(GRID_STYLES[style], self.minorTicksWidthY.value(), self.minorTicksStepY.value())
         else:
