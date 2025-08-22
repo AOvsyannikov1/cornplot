@@ -1,13 +1,7 @@
 from enum import Enum
+from PyQt6.QtGui import QPen, QColor, QPainter, QFont
+from PyQt6.QtCore import QLineF, Qt
 
-try:
-    from PyQt6.QtGui import QPen, QBrush, QColor, QPainter, QFont
-    from PyQt6.QtWidgets import QFrame
-    from PyQt6.QtCore import QLineF, QRectF, Qt
-except ImportError:
-    from PyQt5.QtGui import QPen, QBrush, QColor, QPainter, QFont
-    from PyQt5.QtWidgets import QFrame
-    from PyQt5.QtCore import QLineF, QRectF, Qt
 
 
 class SemaphoreColor(Enum):
@@ -21,7 +15,6 @@ class SemaphoreColor(Enum):
 class Semaphore:
 
     def __init__(self, widget, coord, name='', dark=False, four_digit=True):
-        # super().__init__(widget)
         self.__w = widget
         self.__x = coord
         self.__color = SemaphoreColor.green
@@ -34,7 +27,6 @@ class Semaphore:
         self.x_win = 0
         self.y_win = 0
         self.y_real = 0
-        # self.show()
 
     @property
     def x(self):

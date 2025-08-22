@@ -1,7 +1,8 @@
 import math as mt
+from collections.abc import Iterable
 
-from PyQt6.QtGui import QPainter, QPolygonF, QFont, QFontMetrics, QPen, QColor
-from PyQt6.QtCore import QPointF, QRectF, Qt
+from PyQt6.QtGui import QPolygonF, QPen, QColor
+from PyQt6.QtCore import QPointF, QRectF, Qt, QLineF
 
 from .dashboard import Dashboard
 from .railway.semaphore import SemaphoreColor
@@ -12,10 +13,16 @@ try:
 
     class RailwayDashboard(Dashboard):
 
-        def __init__(self, widget, x, y, w, h, dark=False, km=True, draw_track_data=True):
-            super().__init__(widget, x, y, h, w, dark=dark, x_name="x, км" if km else "x, м", y_name="h, м")
+        def __init__(self, widget, x, y, w, h, kilometers=True, draw_track_data=True):
+            super().__init__(widget, x, y, w, h)
 
-            self.__train_data = TrainData(dark)
+            self.set_x_name("x, км" if kilometers else "x, м")
+            self.set_y_name("h, м")
+
+            if kilometers:
+                self.set_x_divisor(1000)
+
+            self.__train_data = TrainData()
             self.__track_data = TrackData(widget)
 
             self.__follow_train = False
@@ -24,7 +31,7 @@ try:
             self.__four_digits = True
             self.__draw_track_data = draw_track_data
 
-            if km:
+            if kilometers:
                 self._x_div = 1000
 
             self._Y_STOP_RATIO = 4
@@ -32,8 +39,8 @@ try:
         def set_track_data_visible(self, visible: bool):
             self.__draw_track_data = visible
 
-        def set_theme(self, dark: bool):
-            super().set_theme(dark)
+        def set_dark(self, dark: bool):
+            super().set_dark(dark)
 
             self.__track_data.set_dark(dark)
             self.__train_data.set_dark(dark)
@@ -59,24 +66,24 @@ try:
 
             self.__follow_train = not self.__follow_train
 
-        def add_station(self, coord, name, length):
-            self.__track_data.add_station(coord, name, length, self._dark)
+        def add_station(self, coord: float, name: str, length: float):
+            self.__track_data.add_station(coord, name, length, self.dark)
 
-        def add_semaphore(self, coord, name, four_digit):
-            self.__track_data.add_semaphore(coord, name, self._dark, four_digit=four_digit)
+        def add_semaphore(self, coord: float, name: str, four_digit: bool):
+            self.__track_data.add_semaphore(coord, name, self.dark, four_digit=four_digit)
 
-        def add_train(self, number, lengths, colors = None):
+        def add_train(self, number: str, lengths: Iterable[float], colors: None | Iterable[str | QColor | int] = None):
             self.__train_data.add_train(number, lengths, colors)
 
-        def update_train(self, number, car_coords):
-            self.__train_data.update_train(number, car_coords)
+        def update_train(self, number: str, first_car_coord_m: float):
+            self.__train_data.update_train(number, first_car_coord_m)
 
-        def __redraw_train(self, qp):
+        def __redraw_train(self):
             coord_changed = False
             if self.__profile_data is None:
                 return
             
-            if self.h() == 0:
+            if self.height() == 0:
                 return
             if len(self.__profile_data) == 0:
                 return
@@ -95,8 +102,9 @@ try:
                     w = self._real_width
                     xtrg = X[0] - w / 2
                     if xtrg + w <= self._x_axis_max and xtrg >= self._x_axis_min:
-                        self.set_x_start(xtrg)
-                        self.set_x_stop(self._xstart + w)
+                        self._set_x_start(xtrg)
+                        self._set_x_stop(self._xstart + w)
+                        self._update_x_borders(xtrg, self._xstart + w)
                     coord_changed = True
                     first = False
 
@@ -106,14 +114,18 @@ try:
 
                 n_cars = len(train.X)
 
-                if abs(self.real_to_window_x(train.X[0]) - self.real_to_window_x(train.X[-1])) <= 10:
-                    x = self.real_to_window_x(X[0])
-                    y = self.real_to_window_y(self.__profile_data.get_absolute_height(X[0]))
-                    adder = (self._ystop - self._ystart) / self.h() * 5
+                if abs(self._real_to_window_x(train.X[0]) - self._real_to_window_x(train.X[-1])) <= 15:
+                    x = self._real_to_window_x(X[0])
+                    y = self._real_to_window_y(self.__profile_data.get_absolute_height(X[0]))
+                    adder = (self._ystop - self._ystart) / (self._MAX_Y - self._MIN_Y) * 5
                     ydown.append(y)
                     y -= adder
-                    qp.setPen(QPen(QColor(0xFF8000), 10, cap=Qt.PenCapStyle.SquareCap))
-                    qp.drawPoint(QPointF(x, y))
+
+                    self._qp.setPen(QPen(QColor(128, 128, 128), 1, Qt.PenStyle.DashDotDotLine))
+                    self._qp.drawLine(QLineF(x, y, x, self._MAX_Y))
+                    self._qp.drawText(QPointF(x + 5, self._MAX_Y - 2), str(num))
+                    self._qp.setPen(QPen(QColor(0xFF8000), 10, cap=Qt.PenCapStyle.SquareCap))
+                    self._qp.drawPoint(QPointF(x, y))
 
                     x_stop.append(x + 5)
 
@@ -146,10 +158,10 @@ try:
                             if not (self._ystart < y0 < self._ystop):
                                 continue
 
-                            ywin0 = self.real_to_window_y(y0)
-                            ywink = self.real_to_window_y(yk)
-                            xwin0 = self.real_to_window_x(x0)
-                            xwink = self.real_to_window_x(xk)
+                            ywin0 = self._real_to_window_y(y0)
+                            ywink = self._real_to_window_y(yk)
+                            xwin0 = self._real_to_window_x(x0)
+                            xwink = self._real_to_window_x(xk)
 
                             if xwink - xwin0 < 1:
                                 xwink = xwin0 + 1
@@ -173,45 +185,25 @@ try:
                             ydown.append(max(yp0, yp1, yp2, yp3))
                             x_stop.append(xp3)
 
-                            # h2 = min(h2, self.__y + self.__h + h - yp3)
-                            # xp3 = xp2 - h2 * mt.sin(-angle)
-                            # yp3 = yp2 + h2 * mt.cos(angle)
-
                             lst = [QPointF(xp0, yp0),
                                    QPointF(xp1, yp1),
                                    QPointF(xp2, yp2),
                                    QPointF(xp3, yp3)]
                             polygon = QPolygonF(lst)
                             coords.append(polygon)
-                        first_car = False
 
-                    train.draw(qp, coords, compact=abs(self.real_to_window_x(X[0]) - self.real_to_window_x(X[-1])) / n_cars < 2)
+                            if first_car:
+                                first_car = False
+                                self._qp.setPen(QPen(QColor(128, 128, 128), 1, Qt.PenStyle.DashDotDotLine))
+                                self._qp.drawLine(QLineF(xwink, ywin0, xwink, self._MAX_Y))
+                                self._qp.drawText(QPointF(xwink + 5, self._MAX_Y - 2), str(num))
 
-                if x_stop:
-                    x_stop = max(x_stop)
-                    yup = yup[0]
-                    ydown = max(ydown)
-
-                    h = 15
-                    font = QFont('consolas', 10)
-                    qp.setFont(font)
-
-                    w = QFontMetrics(font).horizontalAdvance(str(num))
-
-                    if yup - h - 5 <= self._y:
-                        rect = QRectF(x_stop - w, ydown, w, h)
-                    else:
-                        rect = QRectF(x_stop - w, yup - h - 5, w, h)
-                    if train.dark:
-                        qp.setPen(QColor(250, 250, 250))
-                    else:
-                        qp.setPen(QColor(0, 0, 0))
-                    qp.drawText(rect, Qt.AlignmentFlag.AlignRight, str(num))
+                    train.draw(self._qp, coords, compact=abs(self._real_to_window_x(X[0]) - self._real_to_window_x(X[-1])) / n_cars < 2)
 
             if coord_changed:
-                self.recalculate_window_coords()
+                self._recalculate_window_coords()
 
-        def manage_semaphores(self):
+        def __manage_semaphores(self):
             if len(self.__track_data.semaphores) < 3:
                 return
 
@@ -254,32 +246,28 @@ try:
                     color = SemaphoreColor.green
                 s.set_color(color)
 
-        def recalculate_window_coords(self) -> None:
-            super().recalculate_window_coords()
+        def _recalculate_window_coords(self) -> None:
+            super()._recalculate_window_coords()
             self.__recalculate_track_data_coords()
 
         def __recalculate_track_data_coords(self):
             for semphr in self.__track_data.semaphores:
-                semphr.x_win = self.real_to_window_x(semphr.x)
+                semphr.x_win = self._real_to_window_x(semphr.x)
                 semphr.y_real = self.__profile_data.get_absolute_height(semphr.x)
-                semphr.y_win = self.real_to_window_y(semphr.y_real)
+                semphr.y_win = self._real_to_window_y(semphr.y_real)
             for station in self.__track_data.stations:
                 x0 = max(station.x, self._xstart)
                 xk = min(station.x + station.l, self._xstop)
 
                 y0 = self.__profile_data.get_absolute_height(x0)
-                if not (self._ystart < y0 < self._ystop):
-                    continue
                 yk = self.__profile_data.get_absolute_height(xk)
-                if not (self._ystart < yk < self._ystop):
-                    continue
 
                 station.y0_real = y0
                 station.yk_real = yk
-                x0 = self.real_to_window_x(x0)
-                y0 = self.real_to_window_y(y0) - 1
-                xk = self.real_to_window_x(xk)
-                yk = self.real_to_window_y(yk) - 1
+                x0 = self._real_to_window_x(x0)
+                y0 = self._real_to_window_y(y0) - 1
+                xk = self._real_to_window_x(xk)
+                yk = self._real_to_window_y(yk) - 1
 
                 station.polygon = QPolygonF([
                     QPointF(x0, y0),
@@ -288,48 +276,31 @@ try:
                     QPointF(xk, yk)
                 ])
 
-        def __redraw_track_data(self, qp):
+        def __redraw_track_data(self):
             if self.__track_data is None or not self.__draw_track_data:
                 return
 
             for semphr in self.__track_data.semaphores:
                 if self._xstart < semphr.x < self._xstop:
-                    if not (self._ystart < semphr.y_real < self._ystop):
-                        continue
-                    semphr.draw(qp, semphr.x_win, semphr.y_win, up=(semphr.y_win - 2*semphr.r - semphr.h) > self._y)
+                    semphr.draw(self._qp, semphr.x_win, semphr.y_win, up=(semphr.y_win - 2*semphr.r - semphr.h) > self._MIN_Y)
 
 
             for station in self.__track_data.stations:
                 if not (self._xstart - station.l < station.x < self._xstop):
                     continue
 
-                if not (self._ystart < station.y0_real < self._ystop):
-                    continue
-                if not (self._ystart < station.yk_real < self._ystop):
-                    continue
+                station.draw(self._qp, up_txt=(station.polygon[0].y() - 40 - station.h) > self._MIN_Y)
 
-                station.draw(qp, up_txt=(station.polygon[0].y() - 40 - station.h) > self._y)
-
-
-        def redraw_plots(self):
-            if not self._visible:
+        def _redraw(self):
+            if not self.visible:
                 return
+            
+            super()._redraw()
+            self._qp.setClipRect(QRectF(self._MIN_X, self._MIN_Y - 1, self.width(), self.height() - self._OFFSET_Y_UP - self._OFFSET_Y_DOWN + 1))
+            self.__redraw_track_data()
+            self.__redraw_train()
+            self._qp.setClipRect(QRectF(0, 0, self.width(), self.height()))
+            self.__manage_semaphores()
 
-            self.check_graph_visibility()
-            self.update_extended_window()
-
-            self._qp.begin(self._widget)
-            self._qp.setRenderHint(QPainter.RenderHint.Antialiasing)
-            self._qp.setRenderHint(QPainter.RenderHint.TextAntialiasing)
-            self._qp.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-            self._draw_axes()
-
-            self._redraw_without_qp()
-            self.__redraw_track_data(self._qp)
-            self.__redraw_train(self._qp)
-            self.manage_semaphores()
-
-
-            self._qp.end()
 except ModuleNotFoundError:
     pass

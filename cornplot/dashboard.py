@@ -107,6 +107,47 @@ class Dashboard(Axles):
         self._force_redraw()
         return True
     
+    def update_plot(self, name: str, x_arr, y_arr=None, rescale_y=False):
+        if not hasattr(x_arr, "__iter__"):
+            return False
+        if y_arr is None:
+            y_arr = x_arr
+            x_arr = list(range(len(y_arr)))
+        elif not hasattr(y_arr, "__iter__"):
+            return False
+        
+        for plt in self.__plots:
+            if plt.name == name:
+                x_tmp = list(x_arr)
+                y_tmp = list(y_arr)
+                plt.update_x_array(array('d', x_tmp))
+                plt.update_y_array(array('d', y_tmp))
+
+                max_x = max(x_tmp)
+                min_x = min(x_tmp)
+                if min_x < self._x_axis_min or len(self.__plots) == 1:
+                    if self._x_axle.logarithmic:
+                        if min_x > 0:
+                            self._x_axis_min = min_x
+                        else:
+                            self._x_axis_min = 0.01
+                    else:
+                        self._x_axis_min = min_x
+
+                if max_x >= self._x_axis_max or len(self.__plots) == 1:
+                    self._x_axis_max = max_x
+
+                if len(self.__plots) == 1:
+                    self._set_x_start(self._x_axis_min)
+                    self._set_x_stop(self._x_axis_max)
+                if rescale_y:
+                    self._calculate_y_parameters()
+                self._recalculate_window_coords()
+                self._update_step_y()
+                self._update_step_x()
+                self._force_redraw()
+                break
+    
     def add_animated_plot(self, name: str, color='any', x_size=30, linewidth=2, linestyle='solid') -> bool:
         if len(name) == 0:
             return False
@@ -331,17 +372,18 @@ class Dashboard(Axles):
         self._draw_scanner_lines(value_rects)
         self.__draw_point_on_graph()
         self._draw_x_slider()
-        self._redraw_required = self.is_animated() and not self.is_paused()
+        if self.is_animated() and not self.is_paused():
+            self._force_redraw()
         
         self.__redraw_time = time.time() - t0
 
     def __create_value_pointer(self, xwin, plt: Plot):
         if len(plt.Y) <= 1:
             return None
-        x_real = self.window_to_real_x(xwin - self._MIN_X)
+        x_real = self._window_to_real_x(xwin - self._MIN_X)
         _, i = plt.get_nearest(x_real)[0]
         y = plt.Y[i]
-        ywin = max(self.real_to_window_y(y), self._MIN_Y)
+        ywin = max(self._real_to_window_y(y), self._MIN_Y)
         ywin = min(ywin, self._MAX_Y)
 
         if y == 0:
@@ -542,7 +584,7 @@ class Dashboard(Axles):
         max_y_list = []
         min_y_list = []
         for plt in self.__plots:
-            if not plt.visible or plt.length == 0:
+            if not plt.visible or len(plt) == 0:
                 continue
             self.__find_indexes(plt)
             max_y_list.append(plt.max(1))
@@ -594,8 +636,8 @@ class Dashboard(Axles):
         font.setBold(True)
         self._qp.setFont(font)
         qm = QFontMetrics(font)
-        tmp_str = f"{self.window_to_real_x(self.__selected_point.x - self._MIN_X):.2f}; " \
-                  f"{self.window_to_real_y(self.__selected_point.y - self._MIN_Y + self._OFFSET_Y_UP):.2f}"  # координаты
+        tmp_str = f"{self._window_to_real_x(self.__selected_point.x - self._MIN_X):.2f}; " \
+                  f"{self._window_to_real_y(self.__selected_point.y - self._MIN_Y + self._OFFSET_Y_UP):.2f}"  # координаты
         text_width = qm.size(0, tmp_str).width()
 
         self._qp.setBrush(QColor(0, 162, 232, alpha=255))
@@ -636,7 +678,7 @@ class Dashboard(Axles):
 
         # если первая точка уже выбрана, нарисуем линию на её месте
         if len(points) == 1:
-            x = self.real_to_window_x(points[0].x)
+            x = self._real_to_window_x(points[0].x)
             self._qp.setPen(QColor(0, 0, 0, alpha=255))
             self._qp.drawLine(QLineF(x, self._MIN_Y, x, self._MAX_Y))
             self._qp.setPen(QColor(0, 0, 0, alpha=0))
@@ -646,21 +688,21 @@ class Dashboard(Axles):
             i0 = min(points[0].i, self.__selected_point.i)
             ik = max(points[0].i, self.__selected_point.i) + 1
 
-            x_p = self.real_to_window_x(graph_x[self.__selected_point.i])
-            points_list = [QPointF(max(x, x_p), min(self.real_to_window_y(0), self._MAX_Y + 1)) if i == i0 - 2
-                           else QPointF(min(x, x_p), min(self.real_to_window_y(0),
+            x_p = self._real_to_window_x(graph_x[self.__selected_point.i])
+            points_list = [QPointF(max(x, x_p), min(self._real_to_window_y(0), self._MAX_Y + 1)) if i == i0 - 2
+                           else QPointF(min(x, x_p), min(self._real_to_window_y(0),
                                                                self._MAX_Y + 1)) if i == i0 - 1
-                           else QPointF(max(x, x_p), min(self.real_to_window_y(0), self._MAX_Y + 1)) if i == ik
-                           else QPointF(self.real_to_window_x(graph_x[i]), self.real_to_window_y(graph_y[i]))
+                           else QPointF(max(x, x_p), min(self._real_to_window_y(0), self._MAX_Y + 1)) if i == ik
+                           else QPointF(self._real_to_window_x(graph_x[i]), self._real_to_window_y(graph_y[i]))
                            for i in range(i0 - 2, ik + 1)]
             self._qp.drawPolygon(QPolygonF(points_list))
 
     def __find_point_coords(self, x_win):
-        x_real = self.window_to_real_x(x_win)
+        x_real = self._window_to_real_x(x_win)
         i = self._selectingPointGraph
         _, indx = self.__plots[i].get_nearest(x_real)[0]
-        self.__selected_point.x = self.real_to_window_x(self.__plots[i].X[indx])
-        self.__selected_point.y = self.real_to_window_y(self.__plots[i].Y[indx])
+        self.__selected_point.x = self._real_to_window_x(self.__plots[i].X[indx])
+        self.__selected_point.y = self._real_to_window_y(self.__plots[i].Y[indx])
         self.__selected_point.i = indx
 
     def _recalculate_window_coords(self) -> None:
@@ -722,7 +764,7 @@ class Dashboard(Axles):
         if plt.is_hist:
             width = Xwin[1] - Xwin[0]
             half_width = width * .5
-            y_zero = self.real_to_window_y(0)
+            y_zero = self._real_to_window_y(0)
             plt.rects = [QRectF(x - half_width, y, width, y_zero - y) for x, y in zip(Xwin, Ywin)]
         else:
             if plt.draw_line and plt.pen.style() == Qt.PenStyle.SolidLine:
@@ -732,13 +774,13 @@ class Dashboard(Axles):
 
     def __recalculate_plot_x(self, plt: Plot, step):
         if self._x_axle.logarithmic:
-            return [self.real_to_window_x(plt.X[i]) for i in range(plt.index0, plt.index1, step)]
+            return [self._real_to_window_x(plt.X[i]) for i in range(plt.index0, plt.index1, step)]
         return c_recalculate_window_x(list(plt.X), self._MIN_X, self._get_width(), self._real_width, self._xstart, plt.index0, plt.index1, step)       # type: ignore
     
     def __recalculate_plot_y(self, plt: Plot, step):
         if self._y_axle.logarithmic:
-            return [self.real_to_window_y(plt.Y[i]) for i in range(plt.index0, plt.index1, step)]
-        return c_recalculate_window_y(list(plt.Y), self._MIN_Y, self._get_heignt(), self._real_height, self._ystop, plt.index0, plt.index1 + 1, step)       # type: ignore
+            return [self._real_to_window_y(plt.Y[i]) for i in range(plt.index0, plt.index1, step)]
+        return c_recalculate_window_y(list(plt.Y), self._MIN_Y, self._get_heignt(), self._real_height, self._ystop, plt.index0, plt.index1, step)       # type: ignore
     
     def set_plot_linestyle(self, name: str, linestyle: Qt.PenStyle):
         for plt in self.__plots:
@@ -809,8 +851,8 @@ class Dashboard(Axles):
             if self._selectingPointGraph >= 0:     # выделение точки на графике
                 self.__plots[self._selectingPointGraph].selectedPoints.append(
                     SelectedPoint(
-                        self.window_to_real_x(self.__selected_point.x - self._MIN_X),
-                        self.window_to_real_y(self.__selected_point.y + self._OFFSET_Y_UP),
+                        self._window_to_real_x(self.__selected_point.x - self._MIN_X),
+                        self._window_to_real_y(self.__selected_point.y + self._OFFSET_Y_UP),
                         self.__selected_point.i
                     )
                 )
@@ -930,10 +972,11 @@ class Dashboard(Axles):
         self.__points.clear()
 
     def draw_point(self, name: str, x: float, y: float, text=""):
-        self.__points[name].setX(self.real_to_window_x(x))
-        self.__points[name].setY(self.real_to_window_y(y))
-        self.__points[name].text = text
-        self._redraw_required = True
+        if name in self.__points:
+            self.__points[name].setX(x)
+            self.__points[name].setY(y)
+            self.__points[name].text = text
+            self._force_redraw()
 
     def __draw_points(self):
         font = QFont("consolas", 12)
@@ -942,10 +985,11 @@ class Dashboard(Axles):
 
         for point in self.__points.values():
             self._qp.setPen(point.pen)
-            self._qp.drawPoint(point)
+            xwin, ywin = self._real_to_window_x(point.x()), self._real_to_window_y(point.y())
+            self._qp.drawPoint(QPointF(xwin, ywin))
             text_width = metr.size(0, point.text).width()
             text_height = metr.size(0, point.text).height()
-            self._qp.drawText(QRectF(point.x() - text_width / 2, point.y() - text_height * 3 / 2, text_width, text_height),
+            self._qp.drawText(QRectF(xwin - text_width / 2, ywin - text_height * 3 / 2, text_width, text_height),
                                 Qt.AlignmentFlag.AlignCenter, point.text)
 
     @property

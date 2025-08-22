@@ -1,10 +1,10 @@
 import numpy as np
-
-__all__ = ['plot', 'animated_plot', 'add_point_to_animated_plot', 'add_plot_updater',
-           'histogram', 'pie_chart', 'subplot', 'figure', 'show', 'clear']
-
 from .console_plotter import _plotter
 from .plot_updater import PlotUpdater
+
+
+__all__ = ['plot', 'animated_plot', 'add_point_to_animated_plot', 'add_plot_updater',
+           'histogram', 'pie_chart', 'subplot', 'window', 'show', 'clear']
 
 
 def plot(x_arr, y_arr=None, x_name="X", y_name="Y", name='', linewidth=2, color="any", link_plots=True, axes=True):
@@ -42,8 +42,8 @@ def subplot(rows, cols, number, link_subplots=True, axes=True):
     _plotter.subplot(rows, cols, number, link_plots=link_subplots, axes=axes)
 
 
-def figure(num, name=""):
-    _plotter.window(num, name)
+def window(num, name="", x=100, y=100):
+    _plotter.window(num, name, x, y)
 
 
 def show():

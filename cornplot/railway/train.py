@@ -1,9 +1,4 @@
-try:
-    from PyQt6.QtCore import QRectF
-    from PyQt6.QtGui import QPainter, QColor, QPolygonF
-except ImportError:
-    from PyQt5.QtCore import QRectF, QPointF
-    from PyQt5.QtGui import QPainter, QColor
+from PyQt6.QtGui import QPainter, QColor
 
 
 class Train:
@@ -16,8 +11,10 @@ class Train:
         self.last_len = 0
         self.dark = dark
 
-    def update(self, coords):
-        self.X = coords
+    def update(self, first_car_coord_meters: float):
+        self.X[0] = first_car_coord_meters
+        for i in range(1, len(self.X)):
+            self.X[i] = self.X[i - 1] - self.L[i - 1]
 
     def draw(self, qp: QPainter, rects, compact=False):
         if self.dark:

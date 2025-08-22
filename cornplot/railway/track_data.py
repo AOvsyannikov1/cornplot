@@ -5,8 +5,8 @@ from .station import Station
 class TrackData:
 
     def __init__(self, widget):
-        self.semaphores = list()
-        self.stations = list()
+        self.semaphores: list[Semaphore] = list()
+        self.stations: list[Station] = list()
         self.__w = widget
 
     def add_semaphore(self, coord, name='', dark=False, four_digit=True):

@@ -170,6 +170,41 @@ def show_demo_plots_5():
     plt.show()
 
 
+def show_demo_animation():
+    import time
+    from .plot_updater import PlotUpdater
+
+    class Update(PlotUpdater):
+        def update_plot(self):
+            t = time.monotonic()
+            plt.add_point_to_animated_plot("Sin", t, np.sin(t))
+            plt.add_point_to_animated_plot("Cos", t, np.cos(t))
+            plt.add_point_to_animated_plot("SinSin", t, np.sin(2 * t))
+            plt.add_point_to_animated_plot("CosCos", t, np.cos(2 * t))
+
+
+    class Update1(PlotUpdater):
+        def update_plot(self):
+            t = time.monotonic()
+            plt.add_point_to_animated_plot("sinsinsin", t, np.sin(t) + 0.3 * np.cos(3.5 * t))
+
+    plt.window(1, name="Sin, cos")
+    plt.subplot(2, 1, 1, link_subplots=True)
+    plt.animated_plot("Sin")
+    plt.animated_plot("Cos")
+    plt.subplot(2, 1, 2, link_subplots=True)
+    plt.animated_plot("SinSin")
+    plt.animated_plot("CosCos")
+    plt.add_plot_updater(Update())
+
+    plt.window(2, name="Sinsin", x=500, y=200)
+    plt.animated_plot("sinsinsin")
+    updater = Update1()
+    updater.set_delay_ms(10)
+    plt.add_plot_updater(updater)
+    plt.show()
+
+
 def show_demo_pie_chart():
     perc = (78, 21, 1)
     cats = ("Азот", "Кислород", "Прочие газы")

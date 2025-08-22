@@ -8,9 +8,8 @@ except ImportError:
     pass
 from .filters import *
 from .tests import *
-from .animation_tests import *
 from .plot_updater import PlotUpdater
-from .utils import UPPER_INDEXES, LOWER_INDEXES
+from .utils import UPPER_INDEXES, LOWER_INDEXES, get_upper_index
 
 
 def _get_hook_dirs():

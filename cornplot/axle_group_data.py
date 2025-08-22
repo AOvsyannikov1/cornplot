@@ -1,12 +1,12 @@
-from PyQt6.QtCore import QObject, pyqtSignal
+from PyQt6.QtCore import QObject, pyqtSignal as Signal
 from .scanner_lines import VerticalLineList
 
 MAX_SCANNER_LINES = 3
 
 class AxleGroupData(QObject):
-    line_move_signal = pyqtSignal()
-    pause_signal = pyqtSignal(bool)
-    restart_signal = pyqtSignal(object)
+    line_move_signal = Signal()
+    pause_signal = Signal(bool)
+    restart_signal = Signal(object)
 
     def __init__(self):
         super().__init__()

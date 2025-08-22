@@ -5,9 +5,9 @@ from enum import Enum
 from math import sqrt
 
 import numpy as np
-from PyQt6.QtCore import pyqtSignal, pyqtSlot as Slot, Qt, QTimer
+from PyQt6.QtCore import pyqtSignal as Signal, pyqtSlot as Slot, Qt, QTimer
 from PyQt6.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QColorDialog, QFontDialog
-from PyQt6.QtGui import QIcon, QColor, QFont
+from PyQt6.QtGui import QIcon, QColor, QFont, QPainter, QAction
 
 from .cornplot_gui import Ui_CornplotGui
 from .deriv_window import DerivWindow
@@ -38,7 +38,7 @@ class MathOperation(Enum):
 
 
 class CornplotWindow(Ui_CornplotGui, QMainWindow):
-    point_selection_signal = pyqtSignal(int, int)
+    point_selection_signal = Signal(int, int)
 
     def __init__(self, dashboard):
         super().__init__()
@@ -86,6 +86,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.drawLabelsAction.setChecked(self.xLabelCheck.isChecked() and self.yLabelCheck.isChecked())
         self.drawTicksAction.setChecked(self.xTicks.isChecked() and self.yTicks.isChecked())
         self.drawOriginAction.setChecked(self.originCheckX.isChecked() and self.originCheckY.isChecked())
+        self.majorGridAction.setChecked(self.majorTicksCheckX.isChecked() and self.majorTicksCheckY.isChecked())
 
         for key, value in GRID_STYLES.items():
             if self.__dashboard.x_major_grid_style == value:
@@ -102,7 +103,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
 
         self.aboutProgramAction.triggered.connect(self.__show_about)
         self.saveGraphAction.triggered.connect(self.__save_plots_to_file)
-        self.newGraphJsonAction.triggered.connect(self.__load_plots_from_file)
+        self.openGraphAction.triggered.connect(self.__load_plots_from_file)
         self.newGraphEquationAction.triggered.connect(self.eqWin.show)
         self.exitAction.triggered.connect(self.close)
         self.plotName.currentTextChanged.connect(self.display_plot_info)
@@ -196,9 +197,25 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.acceptXdivisor.clicked.connect(lambda: self.__dashboard.set_x_divisor(self.xDivisor.value()))
         self.acceptYdivisor.clicked.connect(lambda: self.__dashboard.set_y_divisor(self.yDivisor.value()))
 
+        self.updateAction = QAction(self)
+        self.updateAction.setShortcut("F5")
+        self.updateAction.triggered.connect(self.display_plot_info)
+
         self.__fft_tmr = QTimer()
 
         self.__operation = MathOperation.ONE_POINT_DIFF
+
+        self.pltImage.paintEvent = self.label_paint_event
+
+    def label_paint_event(self, a0):
+        qp = QPainter()
+        qp.begin(self.pltImage)
+
+        plt = self.__plots[self.plotName.currentIndex()]
+        qp.setPen(plt.pen)
+        qp.drawLine(0, 10, self.pltImage.width(), 10)
+
+        qp.end()
 
     @Slot()
     def __select_font(self):
@@ -327,6 +344,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.minorTicksCheckX.setChecked(self.__dashboard.x_minor_ticks_enabled)
         self.majorTicksCheckY.setChecked(self.__dashboard.y_major_ticks_enabled)
         self.minorTicksCheckY.setChecked(self.__dashboard.y_minor_ticks_enabled)
+        self.majorGridAction.setChecked(self.majorTicksCheckX.isChecked() and self.majorTicksCheckY.isChecked())
 
         last_index = self.plotName.currentIndex()
 
@@ -337,6 +355,8 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         if new_len >= old_len and 0 <= last_index < self.plotName.count():
             self.plotName.setCurrentIndex(last_index)
 
+        self.pltImage.update()
+
     def __show_dialog(self):
         self.msgBox = QMessageBox()
         self.msgBox.setIcon(QMessageBox.Icon.Information)
@@ -346,6 +366,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.msgBox.setStandardButtons(QMessageBox.StandardButton.Ok)
         self.msgBox.show()
 
+    @Slot()
     def display_plot_info(self, plt_name: str = ''):
         if len(self.__plots) == 0:
             return
@@ -437,8 +458,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.tabWidget_2.setTabEnabled(4, not plot.is_hist and plot.x_ascending)
         self.filterGroup.setEnabled(not plot.is_hist)
 
-        # screen = self.__dashboard.take_plot_screenshot(self.plotName.currentText())
-        # self.pltImage.setPixmap(screen.scaledToWidth(self.deletePlotButton.width()))
+        self.pltImage.update()
 
     @Slot()
     def __delete_plot(self, plt_name):
@@ -670,18 +690,31 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
     def __start_periodical_fft(self, start: bool):
         if start:
             self.__fftWindow.show()
+            self.__fftWindow.close_signal.connect(lambda: self.__start_periodical_fft(False))
+            self.__fftWindow.dashboard_a.add_plot([0, 1], [0, 1], name='Амплитудный спектр', color="#f64a46", accurate=True)
+            self.__fftWindow.dashboard_f.add_plot([0, 1], [0, 1], name='Фазовый спектр', color="#1560bd", accurate=True)
+            self.__fftWindow.dashboard_source.add_plot([0, 1], [0, 1], name='Оригинал', color="#1560bd")
+            self.__fftWindow.setWindowTitle(f"Преобразование Фурье {self.plotName.currentText()}")
+            self.__fftWindow.show()
             self.__fft_tmr.timeout.connect(self.__periodical_fft)
             self.__fft_tmr.start(250)
         else:
-            self.__fftWindow.close()
-            self.__fft_tmr.stop()
-            self.__fft_tmr.timeout.disconnect()
+            if self.__fftWindow.isVisible():
+                try:
+                    self.__fftWindow.close_signal.disconnect()
+                except TypeError:
+                    pass
+                self.__fftWindow.close()
+                self.__fft_tmr.stop()
+                self.__fft_tmr.timeout.disconnect()
+                self.periodicalFft.setChecked(False)
 
     @Slot()
     def __periodical_fft(self):
         if self.__fftWindow.isVisible() and not self.__dashboard.is_paused() and self.periodicalFft.isChecked():
             plot = self.__plots[self.plotName.currentIndex()]
-            self.__fourier_transform(plot)
+            
+            self.__fourier_transform(plot, periodical=True)
 
     @Slot()
     def __begin_all_fourier_transform(self):
@@ -779,7 +812,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.hide()
         self.__operation = MathOperation.CURVE_LENGTH
 
-    def __fourier_transform(self, plot: Plot, i0=None, ik=None):
+    def __fourier_transform(self, plot: Plot, i0=None, ik=None, periodical=False):
         x_arr = [x for x in plot.X]
         y_arr = [y for y in plot.Y]
 
@@ -804,15 +837,20 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         F = list(np.rad2deg(np.flip(np.angle(spectr)[N // 2 + 1:])))
         F.insert(0, np.rad2deg(np.angle(spectr[0])))
 
-        self.__fftWindow.dashboard_a.delete_all_plots()
-        self.__fftWindow.dashboard_f.delete_all_plots()
-        self.__fftWindow.dashboard_source.delete_all_plots()
+        if periodical:
+            self.__fftWindow.dashboard_a.update_plot('Амплитудный спектр', right_freq, A, rescale_y=True)
+            self.__fftWindow.dashboard_f.update_plot('Фазовый спектр', right_freq, F, rescale_y=True)
+            self.__fftWindow.dashboard_source.update_plot('Оригинал', x_arr, y_arr)
+        else:
+            self.__fftWindow.dashboard_a.delete_all_plots()
+            self.__fftWindow.dashboard_f.delete_all_plots()
+            self.__fftWindow.dashboard_source.delete_all_plots()
 
-        self.__fftWindow.dashboard_a.add_plot(right_freq, A, name='Амплитудный спектр', color="#f64a46", accurate=True)
-        self.__fftWindow.dashboard_f.add_plot(right_freq, F, name='Фазовый спектр', color="#1560bd", accurate=True)
-        self.__fftWindow.dashboard_source.add_plot(x_arr, y_arr, name='Оригинал', color="#1560bd")
-        self.__fftWindow.setWindowTitle(f"Преобразование Фурье {plot.name}")
-        self.__fftWindow.open()
+            self.__fftWindow.dashboard_a.add_plot(right_freq, A, name='Амплитудный спектр', color="#f64a46", accurate=True)
+            self.__fftWindow.dashboard_f.add_plot(right_freq, F, name='Фазовый спектр', color="#1560bd", accurate=True)
+            self.__fftWindow.dashboard_source.add_plot(x_arr, y_arr, name='Оригинал', color="#1560bd")
+            self.__fftWindow.setWindowTitle(f"Преобразование Фурье {plot.name}")
+            self.__fftWindow.open()
 
     @Slot()
     def __filter_plot(self):
@@ -1040,3 +1078,4 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
     def closeEvent(self, a0):
         self.__derivWin.close()
         self.__fftWindow.close()
+        self.eqWin.close()

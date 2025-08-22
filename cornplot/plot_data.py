@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import QCheckBox
 from PyQt6.QtGui import QPen, QPalette, QFont, QFontMetrics
-from PyQt6.QtCore import QObject, pyqtSignal
+from PyQt6.QtCore import QObject, pyqtSignal as Signal
 
 from .array_utils import *
 from array import array
@@ -10,7 +10,7 @@ from array import array
 
 
 class Plot(QObject):
-    redraw_signal = pyqtSignal()
+    redraw_signal = Signal()
 
     def __init__(self, widget, x_arr, y_arr, pen: QPen, is_dotted=False, name="",
                  accurate=False, hist=False, heatmap=False, animated=False, x_size=10, checkbox_x=0):
@@ -100,7 +100,7 @@ class Plot(QObject):
         self.__checkbox.setGeometry(x, self.__checkbox.y(), self.__checkbox.width(), self.__checkbox.height())
 
     def __len__(self):
-        return self.length
+        return len(self.X)
     
     def set_checkbox_state(self, state: bool):
         self.__checkbox.setChecked(state)
@@ -182,7 +182,7 @@ class Plot(QObject):
         return self.X[index], self.Y[index]
 
     def get_nearest(self, x_real):
-        X = self.X[self.index0:self.index1+1].tolist()
+        X = list(self.X[self.index0:self.index1+1])
         if self.x_ascending:
             x, indx = c_get_nearest_value(X, x_real)        # type: ignore
             indx += self.index0
@@ -218,6 +218,16 @@ class Plot(QObject):
         self.X = array("d")
         self.Y = array("d")
         self.length = 0
+
+    def update_x_array(self, x):
+        self.X = x
+        self.maximums[0] = max(x)
+        self.minimums[0] = min(x)
+
+    def update_y_array(self, y):
+        self.Y = y
+        self.maximums[1] = max(y)
+        self.minimums[1] = min(y)
 
     def min(self, axis):
         return self.minimums[axis]

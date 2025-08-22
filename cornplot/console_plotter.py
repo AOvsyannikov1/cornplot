@@ -148,24 +148,25 @@ class CornPlotter:
         self.__current_col = 1
         self.__datasets: dict[str, int] = dict()
 
-    def window(self, num, name=""):
+    def window(self, num, name="", x=100, y=100):
         self.__current_window_index = num - 1
         if len(self.__windows) < num:
-            self.__windows.append(PlotWindow())
+            self.__windows.append(PlotWindow(x=x, y=y))
             if name == "":
                 name = f"Окно {len(self.__windows)}"
             self.__windows[-1].setWindowTitle(name)
+
         self.__current_row = 1
         self.__current_col = 1
 
-    def subplot(self, rows, cols, number, link_plots=False, axes=False, pie_chart=False):
+    def subplot(self, rows, cols, number, link_subplots=False, axes=False, pie_chart=False):
         if len(self.__windows) == 0:
             self.__windows.append(PlotWindow())
             self.__windows[-1].setWindowTitle(f"Окно {len(self.__windows)}")
         self.__current_col = np.ceil(number / rows)
         self.__current_row = number - (self.__current_col - 1) * rows
         self.__windows[self.__current_window_index].add_axes(self.__current_row, self.__current_col, rows, cols,
-                                                             link_plots=link_plots, draw_axes=axes, pie_chart=pie_chart)
+                                                             link_plots=link_subplots, draw_axes=axes, pie_chart=pie_chart)
 
     def plot(self, x_arr, y_arr, x_name="X", y_name="Y", name='',
              linewidth=2, linestyle='solid', color='any', link_plots=True, axes=False):
@@ -179,7 +180,7 @@ class CornPlotter:
         self.__windows[self.__current_window_index].add_plot(self.__current_row, self.__current_col, x_arr, y_arr,
                                                              name, linewidth, linestyle, color)
         
-    def animated_plot(self, name, x_size, x_name="X", y_name="Y", linewidth=2, linestyle='solid', color='any', link_plots=True, axes=False):
+    def animated_plot(self, name: str, x_size=30, x_name="X", y_name="Y", linewidth=2, linestyle='solid', color='any', link_plots=True, axes=False):
         if len(self.__windows) == 0:
             self.__windows.append(PlotWindow())
             self.__windows[-1].setWindowTitle(f"Окно {len(self.__windows)}")

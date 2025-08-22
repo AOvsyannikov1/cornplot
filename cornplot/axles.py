@@ -47,8 +47,6 @@ class Axles(QFrame):
 
         self.__MAXIMUM_X_WIDTH = -1
 
-        self.__Y_STOP_COEFF = 1  # увеличение максимума У
-
         self._xstart = 0
         self._xstop = 10
         self._x_axis_min = 0
@@ -129,8 +127,8 @@ class Axles(QFrame):
         self.__btn_group.more_button.clicked.connect(self._show_extended_window)
         self.__btn_group.pause_button.clicked.connect(lambda: self.pause(not self.__paused))
         self.__btn_group.restart_button.clicked.connect(lambda: self.restart_animation(signal=True))
+        self.__btn_group.fix_button.clicked.connect(lambda: self.fix_y_zero(not self.__zero_y_fixed))
 
-        self.__Y_STOP_COEFF = 0
         self._value_rect_max_y = self._MAX_Y
 
         self._update_step_x()
@@ -161,8 +159,8 @@ class Axles(QFrame):
         self._qp.drawRect(self._OFFSET_X, self._OFFSET_Y_UP, self.__w, self.__h)  # поле графика
 
         # оси координат по необходимости
-        x = self.real_to_window_x(0)
-        y = self.real_to_window_y(0)
+        x = self._real_to_window_x(0)
+        y = self._real_to_window_y(0)
         if self._x_axle.draw_ax and self._MIN_Y <= y <= self._MAX_Y:
             self._qp.setPen(self._x_axle.origin_pen)
             self._qp.drawLine(QLineF(self._MIN_X, y, self._MAX_X, y))
@@ -371,8 +369,8 @@ class Axles(QFrame):
             return
         # увеличиваем график между двуми вертикальными линиями
         line_coords = [self._get_line_window_coord(line) - self._MIN_X for line in self.__scale_lines]
-        x0 = self.window_to_real_x(min(line_coords))
-        x1 = self.window_to_real_x(max(line_coords))
+        x0 = self._window_to_real_x(min(line_coords))
+        x1 = self._window_to_real_x(max(line_coords))
 
         if x1 - x0 > 0.02 * self._real_width:
             self.__action_buffer.add_action(self._xstart, self._xstop, self._ystart, self._ystop)
@@ -396,7 +394,7 @@ class Axles(QFrame):
             self._set_x_start(self._x_axis_min)
             self._set_x_stop(self._x_axis_max)
         else:
-            x_center = self.window_to_real_x(round(self._MAX_X / 2))
+            x_center = self._window_to_real_x(round(self._MAX_X / 2))
             self._set_x_start(max(self._x_axis_min, round(x_center - self.__MAXIMUM_X_WIDTH / 2)))
             self._set_x_stop(min(self._x_axis_max, round(x_center + self.__MAXIMUM_X_WIDTH / 2)))
         self._update_step_x()
@@ -556,19 +554,20 @@ class Axles(QFrame):
                     return
 
                 # движение графика при нажатой клавише ctrl
-                tmpX = self.window_to_real_x(self.__initial_x) - self.window_to_real_x(pos.x())
+                tmpX = self._window_to_real_x(self.__initial_x) - self._window_to_real_x(pos.x())
                 new_xstart = max(min(tmpX, self._x_axis_max - self._real_width), self._x_axis_min)
                 if self._x_axle.logarithmic and new_xstart <= 0:
                     new_xstart = self._xstart
                 self._xstart = new_xstart
                 self._xstop = self._xstart + self._real_width
 
-                tmpY = self.__initial_y - self.window_to_real_y(pos.y())
+                tmpY = self.__initial_y - self._window_to_real_y(pos.y())
                 self._ystart += tmpY
                 min_possible_y = (0 if self.__zero_y_fixed and self._y_axis_min >= 0
-                                    else self._y_axis_min - self.__Y_STOP_COEFF)
+                                    else self._y_axis_min - self._Y_STOP_RATIO)
                 max_possible_y = self._y_axis_max + (0 if (self.__zero_y_fixed and self._y_axis_max <= 0)
-                                                        else self.__Y_STOP_COEFF)
+                                                        else self._Y_STOP_RATIO)
+                print(min_possible_y, max_possible_y)
                 if self._ystart < min_possible_y:
                     self._ystart = min_possible_y
                 if self._ystart + self._real_height > max_possible_y:
@@ -616,9 +615,9 @@ class Axles(QFrame):
         if pos.y() < self._OFFSET_Y_UP:
             return
         
-        self.__initial_x = pos.x() + self._MIN_X - self.real_to_window_x(self._x_axis_min if self._x_axle.logarithmic else 0)
+        self.__initial_x = pos.x() + self._MIN_X - self._real_to_window_x(self._x_axis_min if self._x_axle.logarithmic else 0)
         # расстояние от точки касания до осей в пикселях
-        self.__initial_y = self.window_to_real_y(pos.y())
+        self.__initial_y = self._window_to_real_y(pos.y())
 
         self.__touch_x = pos.x()
         self.__touch_y = pos.y()
@@ -683,10 +682,10 @@ class Axles(QFrame):
                                 self.__group.line_move_signal.emit()
                         else:
                             if abs(self.__scaling_rect.width()) > 10 and abs(self.__scaling_rect.height()) > 10:
-                                x0 = self.window_to_real_x(min(self.__scaling_rect.left(), self.__scaling_rect.right()))
-                                x1 = self.window_to_real_x(max(self.__scaling_rect.left(), self.__scaling_rect.right()))
-                                y0 = self.window_to_real_y(max(self.__scaling_rect.top(), self.__scaling_rect.bottom()) + self._OFFSET_Y_UP)
-                                y1 = self.window_to_real_y(min(self.__scaling_rect.top(), self.__scaling_rect.bottom()) + self._OFFSET_Y_UP)
+                                x0 = self._window_to_real_x(min(self.__scaling_rect.left(), self.__scaling_rect.right()))
+                                x1 = self._window_to_real_x(max(self.__scaling_rect.left(), self.__scaling_rect.right()))
+                                y0 = self._window_to_real_y(max(self.__scaling_rect.top(), self.__scaling_rect.bottom()) + self._OFFSET_Y_UP)
+                                y1 = self._window_to_real_y(min(self.__scaling_rect.top(), self.__scaling_rect.bottom()) + self._OFFSET_Y_UP)
                                 self.__action_buffer.add_action(self._xstart, self._xstop, self._ystart, self._ystop)
                                 self._set_x_start(x0)
                                 self._set_x_stop(x1)
@@ -798,7 +797,7 @@ class Axles(QFrame):
                 self.__ctrl_pressed = False
                 set_default_cursor()
 
-    def real_to_window_x(self, x: float) -> float:
+    def _real_to_window_x(self, x: float) -> float:
         """Перевод реальных координат оси х в оконные"""
         return c_real_to_window_x(x, self._MIN_X, self.__w, self._real_width, self._xstart) # type: ignore
     
@@ -808,7 +807,7 @@ class Axles(QFrame):
     def __real_to_window_x_log(self, x: float) -> float:
         return c_real_to_window_x_log(x, self._MIN_X, self.__w, self._xstart, self._xstop) # type: ignore
 
-    def real_to_window_y(self, y: float) -> int:
+    def _real_to_window_y(self, y: float) -> int:
         """Перевод реальных координат оси у в оконные"""
         return c_real_to_window_y(y, self._MIN_Y, self.__h, self._real_height, self._ystop) # type: ignore
     
@@ -818,7 +817,7 @@ class Axles(QFrame):
     def __real_to_window_y_log(self, y: float) -> int:
         return c_real_to_window_y_log(y, self._MIN_Y, self._MAX_Y, self.__h, self._ystart, self._ystop) # type: ignore
 
-    def window_to_real_x(self, x: float) -> float:
+    def _window_to_real_x(self, x: float) -> float:
         """Перевод оконных координат оси х в реальные"""
         return c_window_to_real_x(x, self.__w, self._real_width, self._xstart) # type: ignore
     
@@ -828,7 +827,7 @@ class Axles(QFrame):
     def __window_to_real_x_log(self, x: float) -> float:
         return c_window_to_real_x_log(x, self.__w, self._xstart, self._xstop) # type: ignore
 
-    def window_to_real_y(self, y: float) -> float:
+    def _window_to_real_y(self, y: float) -> float:
         return c_window_to_real_y(y, self.__h, self._real_height, self._ystop, self._OFFSET_Y_UP) # type: ignore
     
     def __window_to_real_y_linear(self, y: float) -> float:
@@ -894,7 +893,7 @@ class Axles(QFrame):
                 log_width = log10(self._xstop) - log10(self._xstart)
                 x_w = self.__w / log_width * (log10(x) - log10(self._xstart)) + self._MIN_X
             else:
-                x_w = self.real_to_window_x(x)  # оконная координата метки
+                x_w = self._real_to_window_x(x)  # оконная координата метки
             
             if self._MIN_X < x_w < self._MAX_X:
                 if not (x == 0 and self.__draw_origin) and self._x_axle.draw_major_grid:
@@ -946,7 +945,7 @@ class Axles(QFrame):
             else:
                 continue
             x_min = arange(x0_minor, xk_minor + xstep_minor / 2, xstep_minor)
-            x_minor = [self.real_to_window_x(x_m) for x_m in x_min]
+            x_minor = [self._real_to_window_x(x_m) for x_m in x_min]
             self._qp.setPen(self._x_axle.pen_minor)
             for x_m in x_minor:
                 if self._MIN_X < x_m < self._MAX_X and x_w != x_m:
@@ -990,7 +989,7 @@ class Axles(QFrame):
         first = True
 
         for y in y_metki_coords:
-            y_w = self.real_to_window_y(y)
+            y_w = self._real_to_window_y(y)
 
             if self._y_axle.logarithmic:
                 self.__step_grid_y = y
@@ -1040,7 +1039,7 @@ class Axles(QFrame):
                 continue
 
             y_min = arange(y0_minor, yk_minor + ystep_minor / 2, ystep_minor)
-            y_minor = [self.real_to_window_y(y_m) for y_m in y_min]
+            y_minor = [self._real_to_window_y(y_m) for y_m in y_min]
             self._qp.setPen(self._y_axle.pen_minor)
             for y_m in y_minor:
                 if self._MIN_Y <= y_m <= self._MAX_Y and y_w != y_m:
@@ -1069,7 +1068,7 @@ class Axles(QFrame):
                 continue
 
             x_win = self._get_line_window_coord(line)
-            x_real = self.window_to_real_x(x_win - self._MIN_X)
+            x_real = self._window_to_real_x(x_win - self._MIN_X)
 
             if self._xstart < x_real < self._xstop:
                 x_real /= self._x_axle.divisor
@@ -1178,7 +1177,7 @@ class Axles(QFrame):
             # x_win = line.x()
             # x_real = self.window_to_real_x(x_win)
             x_win = self._get_line_window_coord(line)
-            x_real = self.window_to_real_x(x_win - self._MIN_X)
+            x_real = self._window_to_real_x(x_win - self._MIN_X)
             
             self._qp.drawLine(QLineF(x_win, self._MIN_Y, x_win, self._MAX_Y))
 
@@ -1554,11 +1553,11 @@ class Axles(QFrame):
                     self._set_x_start(0.01)
                     self._x_axis_min = 0
                 self.disable_human_time_display()
-                self.real_to_window_x = self.__real_to_window_x_log
-                self.window_to_real_x = self.__window_to_real_x_log
+                self._real_to_window_x = self.__real_to_window_x_log
+                self._window_to_real_x = self.__window_to_real_x_log
             else:
-                self.real_to_window_x = self.__real_to_window_x_linear
-                self.window_to_real_x = self.__window_to_real_x_linear
+                self._real_to_window_x = self.__real_to_window_x_linear
+                self._window_to_real_x = self.__window_to_real_x_linear
             self._x_axle.logarithmic = log
             self._recalculate_window_coords()
             self._update_step_x()
@@ -1575,11 +1574,11 @@ class Axles(QFrame):
                     return False
                 else:
                     self._set_y_start(self._y_axis_min)
-                self.real_to_window_y = self.__real_to_window_y_log
-                self.window_to_real_y = self.__window_to_real_y_log
+                self._real_to_window_y = self.__real_to_window_y_log
+                self._window_to_real_y = self.__window_to_real_y_log
             else:
-                self.real_to_window_y = self.__real_to_window_y_linear
-                self.window_to_real_y = self.__window_to_real_y_linear
+                self._real_to_window_y = self.__real_to_window_y_linear
+                self._window_to_real_y = self.__window_to_real_y_linear
                 self._calculate_y_parameters()
             self._y_axle.logarithmic = log
             self._recalculate_window_coords()

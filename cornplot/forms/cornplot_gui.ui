@@ -1095,7 +1095,7 @@
              <enum>QTabWidget::Rounded</enum>
             </property>
             <property name="currentIndex">
-             <number>1</number>
+             <number>0</number>
             </property>
             <widget class="QWidget" name="tab">
              <property name="autoFillBackground">
@@ -1537,6 +1537,12 @@
                 </item>
                 <item>
                  <widget class="QLabel" name="pltImage">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>30</height>
+                   </size>
+                  </property>
                   <property name="text">
                    <string/>
                   </property>
@@ -2320,7 +2326,7 @@
               <item row="1" column="1">
                <widget class="QGroupBox" name="groupBox_14">
                 <property name="title">
-                 <string> </string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -3079,9 +3085,7 @@
     <property name="title">
      <string>Файл</string>
     </property>
-    <addaction name="newGraphEquationAction"/>
-    <addaction name="separator"/>
-    <addaction name="newGraphJsonAction"/>
+    <addaction name="openGraphAction"/>
     <addaction name="saveGraphAction"/>
     <addaction name="separator"/>
     <addaction name="exitAction"/>
@@ -3096,8 +3100,9 @@
     <property name="title">
      <string>График</string>
     </property>
-    <addaction name="exportToCSV"/>
     <addaction name="importFromCSV"/>
+    <addaction name="exportToCSV"/>
+    <addaction name="newGraphEquationAction"/>
     <addaction name="separator"/>
     <addaction name="deletePlotAction"/>
    </widget>
@@ -3111,6 +3116,9 @@
     <addaction name="drawOriginAction"/>
     <addaction name="drawTicksAction"/>
     <addaction name="drawLabelsAction"/>
+    <addaction name="separator"/>
+    <addaction name="majorGridAction"/>
+    <addaction name="minorGridAction"/>
    </widget>
    <addaction name="menu"/>
    <addaction name="menu_4"/>
@@ -3122,15 +3130,24 @@
    <property name="text">
     <string>Ввести уравнение</string>
    </property>
-  </action>
-  <action name="newGraphJsonAction">
-   <property name="text">
-    <string>Импорт из файла...</string>
+   <property name="shortcut">
+    <string>Shift+E</string>
    </property>
   </action>
   <action name="saveGraphAction">
    <property name="text">
-    <string>Экспорт в файл...</string>
+    <string>Сохранить</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="openGraphAction">
+   <property name="text">
+    <string>Открыть</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
    </property>
   </action>
   <action name="aboutProgramAction">
@@ -3145,17 +3162,26 @@
   </action>
   <action name="exportToCSV">
    <property name="text">
-    <string>Экспорт в CSV...</string>
+    <string>Экспорт в CSV</string>
+   </property>
+   <property name="shortcut">
+    <string>Shift+S</string>
    </property>
   </action>
   <action name="importFromCSV">
    <property name="text">
-    <string>Импорт из CSV...</string>
+    <string>Импорт из CSV</string>
+   </property>
+   <property name="shortcut">
+    <string>Shift+O</string>
    </property>
   </action>
   <action name="deletePlotAction">
    <property name="text">
     <string>Удалить текущий график</string>
+   </property>
+   <property name="shortcut">
+    <string>Shift+Del</string>
    </property>
   </action>
   <action name="backgroundColorAction">
@@ -3190,6 +3216,52 @@
   <action name="fontAction">
    <property name="text">
     <string>Шрифт...</string>
+   </property>
+  </action>
+  <action name="minorGridAction">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Побочная сетка</string>
+   </property>
+  </action>
+  <action name="gridSolidAction">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Сплошная</string>
+   </property>
+  </action>
+  <action name="dotGridAction">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Пунктирная</string>
+   </property>
+  </action>
+  <action name="dashGridAction">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Штриховая</string>
+   </property>
+  </action>
+  <action name="majorGridAction">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Основная сетка</string>
    </property>
   </action>
  </widget>
@@ -3666,8 +3738,8 @@
    <slot>setChecked(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>194</x>
-     <y>519</y>
+     <x>-1</x>
+     <y>-1</y>
     </hint>
     <hint type="destinationlabel">
      <x>194</x>
@@ -3682,8 +3754,8 @@
    <slot>setChecked(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>194</x>
-     <y>519</y>
+     <x>-1</x>
+     <y>-1</y>
     </hint>
     <hint type="destinationlabel">
      <x>544</x>
@@ -3698,8 +3770,8 @@
    <slot>setChecked(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>211</x>
-     <y>150</y>
+     <x>-1</x>
+     <y>-1</y>
     </hint>
     <hint type="destinationlabel">
      <x>197</x>
@@ -3714,8 +3786,8 @@
    <slot>setChecked(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>211</x>
-     <y>150</y>
+     <x>-1</x>
+     <y>-1</y>
     </hint>
     <hint type="destinationlabel">
      <x>573</x>
@@ -3730,8 +3802,8 @@
    <slot>setChecked(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>577</x>
-     <y>150</y>
+     <x>-1</x>
+     <y>-1</y>
     </hint>
     <hint type="destinationlabel">
      <x>320</x>
@@ -3746,12 +3818,76 @@
    <slot>setChecked(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>577</x>
-     <y>150</y>
+     <x>-1</x>
+     <y>-1</y>
     </hint>
     <hint type="destinationlabel">
      <x>696</x>
      <y>237</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>minorGridAction</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>minorTicksCheckX</receiver>
+   <slot>setChecked(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>81</x>
+     <y>365</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>minorGridAction</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>minorTicksCheckY</receiver>
+   <slot>setChecked(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>457</x>
+     <y>365</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>majorGridAction</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>majorTicksCheckX</receiver>
+   <slot>setChecked(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>81</x>
+     <y>337</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>majorGridAction</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>majorTicksCheckY</receiver>
+   <slot>setChecked(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>457</x>
+     <y>337</y>
     </hint>
    </hints>
   </connection>

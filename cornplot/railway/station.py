@@ -1,13 +1,8 @@
-try:
-    from PyQt6.QtGui import QPainter, QColor, QPolygonF, QFont, QFontMetrics
-    from PyQt6.QtCore import QRectF, QPointF, Qt
-except ImportError:
-    from PyQt5.QtGui import QPainter, QColor, QPolygonF, QFont, QFontMetrics
-    from PyQt5.QtCore import QRectF, QPointF, Qt
+from PyQt6.QtGui import QPainter, QColor, QPolygonF, QFont, QFontMetrics
+from PyQt6.QtCore import QRectF, Qt
 
 
 class Station:
-
     def __init__(self, coord, length, name, dark=False):
         self.__x = coord
         self.__l = length
