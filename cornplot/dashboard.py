@@ -380,6 +380,8 @@ class Dashboard(Axles):
         self._draw_x_slider()
         if self.is_animated() and not self.is_paused():
             self._force_redraw()
+        else:
+            self._redraw_required = False
         
         self.__redraw_time = time.time() - t0
 
@@ -404,17 +406,6 @@ class Dashboard(Axles):
             y /= self._y_axle.divisor
 
             tmp_str = round_value(y, digits_count)
-
-            # if y == 0:
-            #     tmp_str = "0.00"
-            # elif abs(y) < 0.001:
-            #     tmp_str = f"{y:.3e}"
-            # elif abs(y) < 0.01:
-            #     tmp_str = f"{y:.3f}"
-            # elif abs(y) > 9999:
-            #     tmp_str = f"{y:.2E}"
-            # else:
-            #     tmp_str = f"{y:4.2f}"
 
             text_width = QFontMetrics(VALUE_FONT).horizontalAdvance(tmp_str)
 
@@ -628,15 +619,15 @@ class Dashboard(Axles):
                 min_y = 0
             if max_y < 0:
                 max_y = 0
-        self.__Y_STOP_COEFF = (max_y - min_y) / self._Y_STOP_RATIO
+        self._Y_STOP_COEFF = (max_y - min_y) / self._Y_STOP_RATIO
 
         if not self._y_scaled:
             if self._y_axle.logarithmic:
                 self._set_y_start(self._y_axis_min)
                 self._set_y_stop(self._y_axis_max)
             else:
-                ystart = min_y if self.__zero_y_fixed and min_y == 0 else min_y - self.__Y_STOP_COEFF
-                ystop = max_y if self.__zero_y_fixed and max_y == 0 else max_y + self.__Y_STOP_COEFF
+                ystart = min_y if self.__zero_y_fixed and min_y == 0 else min_y - self._Y_STOP_COEFF
+                ystop = max_y if self.__zero_y_fixed and max_y == 0 else max_y + self._Y_STOP_COEFF
                 self._set_y_start(ystart)
                 self._set_y_stop(ystop)
         

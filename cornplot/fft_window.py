@@ -8,8 +8,8 @@ class FFTWindow(PlotterWindow):
 
     def __init__(self):
         super().__init__()
-        self.setGeometry(50, 50, 1530, 900)
         self.setMinimumSize(700, 600)
+        self.setGeometry(50, 50, 800, 600)
 
         from .dashboard import Dashboard
         self.dashboard_a = Dashboard(self, 90, 30, 1400, 400)

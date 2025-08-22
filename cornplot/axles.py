@@ -2,8 +2,8 @@ import os, time, warnings
 from math import log10, floor, ceil, pow
 
 from PyQt6.QtCore import Qt, QLineF, QRectF, pyqtSlot as Slot, QRect, QTimer
-from PyQt6.QtGui import QPen, QColor, QPainter, QFont, QFontMetrics 
-from PyQt6.QtWidgets import QFileDialog, QWidget
+from PyQt6.QtGui import QPen, QColor, QPainter, QFont, QFontMetrics
+from PyQt6.QtWidgets import QFileDialog, QWidget, QGestureEvent, QPinchGesture, QPanGesture, QTapGesture, QTapAndHoldGesture
 
 from .utils import *
 
@@ -23,9 +23,11 @@ class Axles(QWidget):
     _OFFSET_Y_DOWN = 25
     _OFFSET_X = 100
     _Y_STOP_RATIO = 20
+    _Y_STOP_COEFF = 0.05
 
     def __init__(self, widget, x: int, y: int, w: int, h: int):
         super().__init__()
+        self._widget = widget
         self.setParent(widget)
         self.__group = AxleGroupData()
         self.__scale_lines = self.__group.scale_lines
@@ -128,6 +130,11 @@ class Axles(QWidget):
         self.__btn_group.fix_button.clicked.connect(lambda: self.fix_y_zero(not self.__zero_y_fixed))
 
         self._value_rect_max_y = self._MAX_Y
+
+        self.grabGesture(Qt.GestureType.PinchGesture)
+        self.grabGesture(Qt.GestureType.PanGesture)
+        # self.grabGesture(Qt.GestureType.TapGesture)
+        self.grabGesture(Qt.GestureType.TapAndHoldGesture)
 
         self._update_step_x()
         self._update_step_y()
@@ -570,9 +577,9 @@ class Axles(QWidget):
                 tmpY = self.__initial_y - self._window_to_real_y(pos.y())
                 self._ystart += tmpY
                 min_possible_y = (0 if self.__zero_y_fixed and self._y_axis_min >= 0
-                                    else self._y_axis_min - self._Y_STOP_RATIO)
+                                    else self._y_axis_min - self._Y_STOP_COEFF)
                 max_possible_y = self._y_axis_max + (0 if (self.__zero_y_fixed and self._y_axis_max <= 0)
-                                                        else self._Y_STOP_RATIO)
+                                                        else self._Y_STOP_COEFF)
                 if self._ystart < min_possible_y:
                     self._ystart = min_possible_y
                 if self._ystart + self._real_height > max_possible_y:
@@ -612,9 +619,6 @@ class Axles(QWidget):
                                     self.__slider.y <= pos.y() <= self.__slider.y + self.__slider.h)
 
     def mousePressEvent(self, a0):
-        if not self.__mouse_on:
-            return
-        
         pos = a0.pos()
         
         if pos.y() < self._OFFSET_Y_UP:
@@ -798,6 +802,145 @@ class Axles(QWidget):
             case Qt.Key.Key_Control:
                 self.__ctrl_pressed = False
                 set_default_cursor()
+
+    def event(self, a0):
+        if isinstance(a0, QGestureEvent):
+            for gesture in a0.gestures():
+                if isinstance(gesture, QPinchGesture):
+                    self.__pinch_gesture_event(gesture)
+                elif isinstance(gesture, QPanGesture):
+                    self.__pan_gesture_event(gesture)
+                elif isinstance(gesture, QTapGesture):
+                    self.__tap_gesture_event(gesture)
+                elif isinstance(gesture, QTapAndHoldGesture):
+                    self.__tap_and_hold_gesture_event(gesture)
+            a0.accept()
+            return True
+        return super().event(a0)
+    
+    def __pinch_gesture_event(self, gesture: QPinchGesture):
+        """Увеличение или уменьшение масштаба двумя пальцами"""
+        if gesture.state() == Qt.GestureState.GestureStarted:
+            ...
+        elif gesture.state() == Qt.GestureState.GestureUpdated:
+            center = gesture.centerPoint()
+            center.setX(center.x() - self.parent().x())
+            center.setY(center.y() - self.parent().y())
+            center_x = self._window_to_real_x(center.x() - self.x() - self._MIN_X)
+            center_y = self._window_to_real_y(center.y() - self.y() - self._MIN_Y)
+
+            scale_factor_x = gesture.scaleFactor()# (1 - gesture.scaleFactor()) * abs(np.cos(angle))
+            scale_factor_y = gesture.scaleFactor()# (1 - gesture.scaleFactor()) * abs(np.sin(angle))
+            
+            if scale_factor_x > 0:
+                left_size = abs(center_x - self._xstart) /(scale_factor_x)
+                right_size = abs(self._xstop - center_x) / (scale_factor_x)
+            else:
+                left_size = abs(center_x - self._xstart) / (abs(scale_factor_x))
+                right_size = abs(self._xstop - center_x) / (abs(scale_factor_x))
+
+            self._xstart = center_x - left_size
+            self._xstop = center_x + right_size
+            recalc = False
+            if self._xstart < self._x_axis_min and self._xstop > self._x_axis_max:
+                self._xstart = self._x_axis_min
+                self._xstop = self._x_axis_max
+            elif self._xstop > self._x_axis_max:
+                self._xstop = self._x_axis_max
+                self._update_step_x()
+                recalc = True
+            elif self._xstart < self._x_axis_min:
+                self._xstart = self._x_axis_min
+                self._update_step_x()
+                recalc = True
+            else:
+                self._update_step_x()
+                recalc = True
+            self._real_width = self._xstop - self._xstart
+            self._update_x_borders(self._xstart, self._xstop)
+
+            down_size = abs(center_y - self._ystart) / scale_factor_y
+            up_size = abs(self._ystop - center_y) / scale_factor_y
+
+            ystart_new = center_y - down_size
+            ystop_new = center_y + up_size
+            ymax = self._y_axis_max + self._Y_STOP_COEFF
+            ymin = self._y_axis_min - self._Y_STOP_COEFF
+            if ystart_new < ymin and ystop_new > ymax:
+                self._ystart = ymin
+                self._ystop = ymax
+            elif ystop_new > ymax:
+                self._ystop = ymax
+                self._ystart = ystart_new
+                self._update_step_y()
+                recalc = True
+            elif ystart_new < ymin:
+                self._ystart = ymin
+                self._ystop = ystop_new
+                self._update_step_y()
+                recalc = True
+            elif ystop_new - ystart_new < self._Y_STOP_COEFF:
+                pass
+            else:
+                self._update_step_y()
+                recalc = True
+                self._ystart = ystart_new
+                self._ystop = ystop_new
+            self._real_height = self._ystop - self._ystart
+            if recalc:
+                self._recalculate_window_coords()
+        elif gesture.state() == Qt.GestureState.GestureFinished:
+            pass
+
+    def __pan_gesture_event(self, gesture: QPanGesture):
+        if gesture.state() == Qt.GestureState.GestureStarted:
+           pass
+        elif gesture.state() == Qt.GestureState.GestureUpdated:
+            dx, dy = gesture.delta().x(), gesture.delta().y()
+            dx_real = -dx / (self._MAX_X - self._MIN_X) * self._real_width
+            dy_real = dy / (self._MAX_Y - self._MIN_Y) * self._real_height
+            
+            xstart_new = self._xstart + dx_real
+            xstop_new = self._xstop + dx_real
+            recalc = False
+            if xstart_new > self._x_axis_min and xstop_new < self._x_axis_max:
+                self._set_x_start(xstart_new)
+                self._set_x_stop(xstop_new)
+                self._update_x_borders(self._xstart, self._xstop)
+                recalc = True
+
+            ystart_new = self._ystart + dy_real
+            ystop_new = self._ystop + dy_real
+            ymax = self._y_axis_max + self._Y_STOP_COEFF
+            ymin = self._y_axis_min - self._Y_STOP_COEFF
+            if ystart_new >= ymin and ystop_new <= ymax:
+                self._set_y_start(ystart_new)
+                self._set_y_stop(ystop_new)
+                recalc = True
+            
+            if recalc:
+                self._recalculate_window_coords()
+        elif gesture.state() == Qt.GestureState.GestureFinished:
+            pass
+
+    def __tap_gesture_event(self, gesture: QTapGesture):
+        if gesture.state() == Qt.GestureState.GestureStarted:
+            pass
+        elif gesture.state() == Qt.GestureState.GestureUpdated:
+            pass
+        elif gesture.state() == Qt.GestureState.GestureCanceled:
+            pass
+        elif gesture.state() == Qt.GestureState.GestureFinished:
+            pass
+
+    def __tap_and_hold_gesture_event(self, gesture: QTapAndHoldGesture):
+        if gesture.state() == Qt.GestureState.GestureStarted:
+            self._zoom_out()
+            self.__deselect_all_lines()
+        elif gesture.state() == Qt.GestureState.GestureUpdated:
+            pass
+        elif gesture.state() == Qt.GestureState.GestureFinished:
+            pass
 
     def _real_to_window_x(self, x: float) -> float:
         """Перевод реальных координат оси х в оконные"""
