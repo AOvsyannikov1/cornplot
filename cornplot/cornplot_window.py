@@ -7,7 +7,7 @@ from math import sqrt
 import numpy as np
 from PyQt6.QtCore import pyqtSignal as Signal, pyqtSlot as Slot, Qt, QTimer
 from PyQt6.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QColorDialog, QFontDialog
-from PyQt6.QtGui import QIcon, QColor, QFont, QPainter, QAction
+from PyQt6.QtGui import QIcon, QColor, QFont, QPainter, QAction, QActionGroup, QShortcut, QKeySequence
 
 from .cornplot_gui import Ui_CornplotGui
 from .deriv_window import DerivWindow
@@ -197,15 +197,35 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.acceptXdivisor.clicked.connect(lambda: self.__dashboard.set_x_divisor(self.xDivisor.value()))
         self.acceptYdivisor.clicked.connect(lambda: self.__dashboard.set_y_divisor(self.yDivisor.value()))
 
-        self.updateAction = QAction(self)
-        self.updateAction.setShortcut("F5")
-        self.updateAction.triggered.connect(self.display_plot_info)
+        self.__updateAction = QAction(self)
+        self.__updateAction.setShortcut(QKeySequence("F5"))
+        self.__updateAction.triggered.connect(lambda: self.display_plot_info(self.plotName.currentText()))
+        self.addAction(self.__updateAction)
+
+        self.__digitsActionGroup = QActionGroup(self)
+        self.__digitsActionGroup.addAction(self.action0)
+        self.__digitsActionGroup.addAction(self.action1)
+        self.__digitsActionGroup.addAction(self.action2)
+        self.__digitsActionGroup.addAction(self.action3)
+        self.__digitsActionGroup.addAction(self.action4)
+        self.__digitsActionGroup.addAction(self.action5)
+        self.__digitsActionGroup.addAction(self.action6)
+        self.__digitsActionGroup.addAction(self.digitsAuto)
+        self.__digitsActionGroup.triggered.connect(self.__change_digits_count)
 
         self.__fft_tmr = QTimer()
 
         self.__operation = MathOperation.ONE_POINT_DIFF
 
         self.pltImage.paintEvent = self.label_paint_event
+
+    @Slot(QAction)
+    def __change_digits_count(self, action: QAction):
+        if action.text() == "Авто":
+            count = -1
+        else:
+            count = int(action.text())
+        self.__dashboard.set_digits_count(count)
 
     def label_paint_event(self, a0):
         qp = QPainter()
@@ -360,7 +380,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
     def __show_dialog(self):
         self.msgBox = QMessageBox()
         self.msgBox.setIcon(QMessageBox.Icon.Information)
-        self.msgBox.setFont(QFont('consolas', 12))
+        self.msgBox.setFont(QFont("Consolas, Courier New", 12))
         self.msgBox.setText(self.__equation)
         self.msgBox.setWindowTitle("Уравнение")
         self.msgBox.setStandardButtons(QMessageBox.StandardButton.Ok)
@@ -370,7 +390,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
     def display_plot_info(self, plt_name: str = ''):
         if len(self.__plots) == 0:
             return
-        
+
         plot: Plot | None = None
         
         if plt_name == '':

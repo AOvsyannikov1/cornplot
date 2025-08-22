@@ -1,7 +1,7 @@
 import math as mt
 from collections.abc import Iterable
 
-from PyQt6.QtGui import QPolygonF, QPen, QColor
+from PyQt6.QtGui import QPolygonF, QPen, QColor, QFont
 from PyQt6.QtCore import QPointF, QRectF, Qt, QLineF
 
 from .dashboard import Dashboard
@@ -33,6 +33,8 @@ try:
 
             if kilometers:
                 self._x_div = 1000
+
+            self.__km = kilometers
 
             self._Y_STOP_RATIO = 4
 
@@ -78,7 +80,7 @@ try:
         def update_train(self, number: str, first_car_coord_m: float):
             self.__train_data.update_train(number, first_car_coord_m)
 
-        def __redraw_train(self):
+        def __redraw_trains(self):
             coord_changed = False
             if self.__profile_data is None:
                 return
@@ -113,17 +115,17 @@ try:
                 ydown = []
 
                 n_cars = len(train.X)
-
+                self._qp.setFont(QFont("Consolas, Courier New", 10))
                 if abs(self._real_to_window_x(train.X[0]) - self._real_to_window_x(train.X[-1])) <= 15:
                     x = self._real_to_window_x(X[0])
                     y = self._real_to_window_y(self.__profile_data.get_absolute_height(X[0]))
                     adder = (self._ystop - self._ystart) / (self._MAX_Y - self._MIN_Y) * 5
                     ydown.append(y)
                     y -= adder
-
                     self._qp.setPen(QPen(QColor(128, 128, 128), 1, Qt.PenStyle.DashDotDotLine))
                     self._qp.drawLine(QLineF(x, y, x, self._MAX_Y))
-                    self._qp.drawText(QPointF(x + 5, self._MAX_Y - 2), str(num))
+                    self._qp.drawText(QPointF(x + 5, self._MAX_Y - 14), str(num))
+                    self._qp.drawText(QPointF(x + 5, self._MAX_Y - 2), f"x = {X[0] / self._x_axle.divisor:.2f} {'км' if self.__km else 'м'}")
                     self._qp.setPen(QPen(QColor(0xFF8000), 10, cap=Qt.PenCapStyle.SquareCap))
                     self._qp.drawPoint(QPointF(x, y))
 
@@ -196,7 +198,9 @@ try:
                                 first_car = False
                                 self._qp.setPen(QPen(QColor(128, 128, 128), 1, Qt.PenStyle.DashDotDotLine))
                                 self._qp.drawLine(QLineF(xwink, ywin0, xwink, self._MAX_Y))
-                                self._qp.drawText(QPointF(xwink + 5, self._MAX_Y - 2), str(num))
+
+                                self._qp.drawText(QPointF(xwink + 5, self._MAX_Y - 14), str(num))
+                                self._qp.drawText(QPointF(xwink + 5, self._MAX_Y - 2), f"x = {X[0] / self._x_axle.divisor:.2f} {'км' if self.__km else 'м'}")
 
                     train.draw(self._qp, coords, compact=abs(self._real_to_window_x(X[0]) - self._real_to_window_x(X[-1])) / n_cars < 2)
 
@@ -298,7 +302,7 @@ try:
             super()._redraw()
             self._qp.setClipRect(QRectF(self._MIN_X, self._MIN_Y - 1, self.width(), self.height() - self._OFFSET_Y_UP - self._OFFSET_Y_DOWN + 1))
             self.__redraw_track_data()
-            self.__redraw_train()
+            self.__redraw_trains()
             self._qp.setClipRect(QRectF(0, 0, self.width(), self.height()))
             self.__manage_semaphores()
 

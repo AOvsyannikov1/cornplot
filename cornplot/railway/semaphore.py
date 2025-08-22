@@ -54,7 +54,7 @@ class Semaphore:
         else:
             qp.drawLine(QLineF(x, y, x, y + h))
         qp.setPen(QPen(QColor(0, 0, 0, 0), 1))
-        qp.setFont(QFont("bahnschrift", 9))
+        qp.setFont(QFont("Bahnschrift, Arial", 9))
 
         x = round(x - r / 2)
         if up:

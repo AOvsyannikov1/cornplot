@@ -16,7 +16,7 @@ from .array_utils import *
 
 
 FULL_VERSION = True
-VALUE_FONT = QFont("consolas", 10)
+VALUE_FONT = QFont("Consolas, Courier New", 10)
 VALUE_FONT.setBold(True)
 
 
@@ -33,6 +33,7 @@ class Dashboard(Axles):
         self.__window: CornplotWindow | None = None
 
         self._pointsToSelect = 0
+        self._selectingPointGraph = -1
         self.__selected_point = SelectedPoint(0, 0, -1)
 
         self.__points: dict[str, Point] = dict()
@@ -354,9 +355,10 @@ class Dashboard(Axles):
                 self.__redraw_plot(plt)
     
                 for i in range(n_scanners):
-                    rect = self.__create_value_pointer(scanner_coords[i], plt)
-                    if rect:
-                        value_rects[i].append(rect)
+                    rects = self.__create_value_pointer(scanner_coords[i], plt)
+                    if rects:
+                        for rect in rects:
+                            value_rects[i].append(rect)
 
         self.__draw_points()
         self._qp.setClipRect(QRectF(0, 0, self.width(), self.height()))
@@ -364,8 +366,12 @@ class Dashboard(Axles):
         for rects in value_rects:
             for i_fixed in range(len(rects)):
                 for i_mobile in range(i_fixed + 1, len(rects)):
-                    if rects[i_mobile].intersects(rects[i_fixed]):
+                    if not rects[i_mobile].intersects(rects[i_fixed]):
+                        continue
+                    if rects[i_mobile].move_left:
                         rects[i_mobile].moveLeft(rects[i_fixed].x() - rects[i_mobile].width() - 5)
+                    else:
+                        rects[i_mobile].moveLeft(rects[i_mobile].x() + rects[i_fixed].width() + 5)
         
         self._draw_scale_lines()
         self._draw_scaling_rect()
@@ -381,32 +387,51 @@ class Dashboard(Axles):
         if len(plt.Y) <= 1:
             return None
         x_real = self._window_to_real_x(xwin - self._MIN_X)
-        _, i = plt.get_nearest(x_real)[0]
-        y = plt.Y[i]
-        ywin = max(self._real_to_window_y(y), self._MIN_Y)
-        ywin = min(ywin, self._MAX_Y)
+        nearest = plt.get_nearest(x_real)
 
-        if y == 0:
-            tmp_str = "0.00"
-        elif abs(y) < 0.001:
-            tmp_str = f"{y:.3e}"
-        elif abs(y) < 0.01:
-            tmp_str = f"{y:.3f}"
-        elif abs(y) > 9999:
-            tmp_str = f"{y:.2E}"
-        else:
-            tmp_str = f"{y:4.2f}"
+        res = tuple()
+        for _, i in nearest:
+            y = plt.Y[i]
+            ywin = max(self._real_to_window_y(y), self._MIN_Y)
+            ywin = min(ywin, self._MAX_Y)
 
-        text_width = QFontMetrics(VALUE_FONT).horizontalAdvance(tmp_str)
+            if len(nearest) > 1 and (y > self._ystop or y < self._ystart):
+                continue
 
-        yrect = ywin
-        wrect = text_width + 10
-        xrect = xwin - wrect - 10
-        hrect = 18
+            digits_count = get_digit_count_after_dot(self._step_grid_y) + 1
+            if self._step_grid_y <= 1.0:
+                digits_count = max(3, digits_count)
+            y /= self._y_axle.divisor
 
-        yrect = min(yrect, self._value_rect_max_y)
+            tmp_str = round_value(y, digits_count)
 
-        return ValueRectangle(xrect, yrect, wrect, hrect, tmp_str, plt.pen.color(), QPointF(xwin, ywin))
+            # if y == 0:
+            #     tmp_str = "0.00"
+            # elif abs(y) < 0.001:
+            #     tmp_str = f"{y:.3e}"
+            # elif abs(y) < 0.01:
+            #     tmp_str = f"{y:.3f}"
+            # elif abs(y) > 9999:
+            #     tmp_str = f"{y:.2E}"
+            # else:
+            #     tmp_str = f"{y:4.2f}"
+
+            text_width = QFontMetrics(VALUE_FONT).horizontalAdvance(tmp_str)
+
+            yrect = ywin
+            wrect = text_width + 10
+            if xwin < self.width() / 2:
+                xrect = xwin + 10
+            else:
+                xrect = xwin - wrect - 10
+            hrect = 18
+
+            yrect = min(yrect, self._value_rect_max_y)
+
+            res += ValueRectangle(xrect, yrect, wrect, hrect, tmp_str, plt.pen.color(), QPointF(xwin, ywin), xwin > self.width() / 2),
+            if len(res) > 4:
+                break
+        return res
 
     def _resize_frame(self):
         super()._resize_frame()
@@ -501,7 +526,7 @@ class Dashboard(Axles):
             self._qp.drawRect(x, y, w, h)
 
             self._qp.setPen(QColor(210, 210, 210) if self.dark else QColor(0, 0, 0))
-            self._qp.setFont(QFont("bahnschrift", 8))
+            self._qp.setFont(QFont("Consolas, Arial", 8))
             self._qp.drawText(x, y + h + 10, str(min(plt.Y)))
             self._qp.drawText(x + w - 15, y + h + 10, str(max(plt.Y)))
 
@@ -632,7 +657,7 @@ class Dashboard(Axles):
         self._qp.drawEllipse(QPointF(self.__selected_point.x, self.__selected_point.y), 5, 5)
 
         # возня с прямоугольником со значением
-        font = QFont("consolas", 10)
+        font = QFont("Consolas, Courier New", 10)
         font.setBold(True)
         self._qp.setFont(font)
         qm = QFontMetrics(font)
@@ -979,7 +1004,7 @@ class Dashboard(Axles):
             self._force_redraw()
 
     def __draw_points(self):
-        font = QFont("consolas", 12)
+        font = QFont("Consolas, Courier New", 12)
         self._qp.setFont(font)
         metr = QFontMetrics(font)
 

@@ -20,41 +20,41 @@ def show_demo_plots_1():
     plt.plot(X, Y4, name="Sigmoid")
 
     plt.window(2)
-    plt.subplot(2, 3, 1, link_plots=True)
+    plt.subplot(2, 3, 1, link_subplots=True)
     plt.plot(X, Y1, name="Sin x")
 
-    plt.subplot(2, 3, 2, link_plots=True)
+    plt.subplot(2, 3, 2, link_subplots=True)
     plt.plot(X, Y2, name="Cos x")
 
-    plt.subplot(2, 3, 3, link_plots=True)
+    plt.subplot(2, 3, 3, link_subplots=True)
     plt.plot(X, Y3, name="Гауссоида")
 
-    plt.subplot(2, 3, 4, link_plots=True)
+    plt.subplot(2, 3, 4, link_subplots=True)
     plt.plot(X, Y4, name="Логистическая кривая")
 
     plt.subplot(2, 3, 5)
     plt.plot(X, Y5, name="1 / sqrt(1 + x^2)")
 
-    plt.subplot(2, 3, 6, link_plots=True)
+    plt.subplot(2, 3, 6, link_subplots=True)
     plt.plot(X, Y6, name="Сигмоида")
 
     plt.window(3)
-    plt.subplot(6, 1, 1, link_plots=True)
+    plt.subplot(6, 1, 1, link_subplots=True)
     plt.plot(X, Y1, name="Sin x")
 
-    plt.subplot(6, 1, 2, link_plots=True)
+    plt.subplot(6, 1, 2, link_subplots=True)
     plt.plot(X, Y2, name="Cos x")
 
-    plt.subplot(6, 1, 3, link_plots=True)
+    plt.subplot(6, 1, 3, link_subplots=True)
     plt.plot(X, Y3, name="Гауссоида")
 
-    plt.subplot(6, 1, 4, link_plots=True)
+    plt.subplot(6, 1, 4, link_subplots=True)
     plt.plot(X, Y4, name="Логистическая кривая")
 
-    plt.subplot(6, 1, 5, link_plots=True)
+    plt.subplot(6, 1, 5, link_subplots=True)
     plt.plot(X, Y5, name="1 / sqrt(1 + x^2)")
 
-    plt.subplot(6, 1, 6, link_plots=True)
+    plt.subplot(6, 1, 6, link_subplots=True)
     plt.plot(X, Y6, name="Сигмоида")
     plt.show()
 
@@ -71,26 +71,26 @@ def show_demo_plots_2():
     Y6 = np.tanh(X)
 
     plt.window(1)
-    plt.subplot(2, 2, 1, link_plots=True)
+    plt.subplot(2, 2, 1, link_subplots=True)
     plt.plot(X, Y1, name="Sin x")
 
-    plt.subplot(2, 2, 3, link_plots=True)
+    plt.subplot(2, 2, 3, link_subplots=True)
     plt.plot(X, Y2, name="Cos x")
 
-    plt.subplot(2, 1, 2, link_plots=True)
+    plt.subplot(2, 1, 2, link_subplots=True)
     plt.plot(X, Y3, name="Гауссоида")
 
     plt.window(2)
-    plt.subplot(1, 3, 1, link_plots=True)
+    plt.subplot(1, 3, 1, link_subplots=True)
     plt.plot(X, Y5, name="1 / sqrt(1 + x^2)")
 
-    plt.subplot(2, 3, 3, link_plots=True)
+    plt.subplot(2, 3, 3, link_subplots=True)
     plt.plot(X, Y1, name="Sin x")
 
-    plt.subplot(2, 3, 4, link_plots=True)
+    plt.subplot(2, 3, 4, link_subplots=True)
     plt.plot(X, Y4, name="Сигмоида 1")
 
-    plt.subplot(1, 3, 3, link_plots=True)
+    plt.subplot(1, 3, 3, link_subplots=True)
     plt.plot(X, Y6, name="Сигмоида 2")
     plt.show()
 
@@ -177,8 +177,8 @@ def show_demo_animation():
     class Update(PlotUpdater):
         def update_plot(self):
             t = time.monotonic()
-            plt.add_point_to_animated_plot("Sin", t, np.sin(t))
-            plt.add_point_to_animated_plot("Cos", t, np.cos(t))
+            plt.add_point_to_animated_plot("Sin", t, 100000*np.sin(t))
+            plt.add_point_to_animated_plot("Cos", t, 100000*np.cos(t))
             plt.add_point_to_animated_plot("SinSin", t, np.sin(2 * t))
             plt.add_point_to_animated_plot("CosCos", t, np.cos(2 * t))
 

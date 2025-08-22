@@ -180,3 +180,36 @@ def get_image_path(filename: str) -> Path:
             return Path(path)
     except:
         return filename
+    
+
+def get_digit_count_after_dot(num: float):
+    num = str(num)
+    if '.' in num:
+        return len(num.split('.')[-1])
+    return 0
+
+
+def round_value(num: float, digit_count=-1) -> str:
+    st = str(num)
+
+    if 'e' in st or 'E' in st:
+        return f"{num:.3e}"
+    
+    if '.' in st:
+        int_part, frac_part = st.split('.')
+        if '-' in int_part:
+            int_part = int_part[1:]
+        if len(int_part) > 4:
+            tmp_str = f"{num:.3E}"
+            val, power = tuple(map(float, tmp_str.split('E')))
+            return f"{val}×10{get_upper_index(int(power))}"
+
+        if digit_count < 0:
+            digit_count = len(frac_part)
+
+        if digit_count <= 4:
+            return f"{num:.{digit_count}f}"
+        else:
+            return f"{num:.3e}"
+    else:
+        return st

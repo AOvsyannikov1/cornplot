@@ -5,7 +5,7 @@ from PyQt6.QtCore import Qt, QLineF, QRectF, pyqtSlot as Slot, QRect, QTimer
 from PyQt6.QtGui import QPen, QColor, QPainter, QFont, QFontMetrics 
 from PyQt6.QtWidgets import QFrame, QFileDialog
 
-from .utils import convert_timestamp_to_human_time, round_custom, arange, set_cursor_shape, set_default_cursor, get_upper_index
+from .utils import *
 
 from .button_group import ButtonGroup
 from .axle_slider import AxleSlider
@@ -62,7 +62,7 @@ class Axles(QFrame):
         self._y_axis_min = 0
         self._y_axis_max = 1
         self._real_height = self._ystop - self._ystart  # длина оси У в реальных единицах
-        self.__step_grid_y = self._real_height / 2
+        self._step_grid_y = self._real_height / 2
 
         self.__scaling_rect = QRectF(0, 0, 0, 0)
 
@@ -84,8 +84,7 @@ class Axles(QFrame):
         self.__dark = False
         self.__visible = True
 
-        self._pointsToSelect = 0
-        self._selectingPointGraph = -1
+        self._digits_count = -1
 
         self._x_axle = CoordinateAx()
         self._y_axle = CoordinateAx()
@@ -99,7 +98,7 @@ class Axles(QFrame):
         self._y_axle.name = "Y"        
        
         self.__background_color = QColor(255, 255, 255)
-        self.__font = QFont("Bahnschrift", 11)
+        self.__font = QFont("Bahnschrift, Arial", 11)
 
         self.__touch_x = 0
         self.__touch_y = 0
@@ -154,7 +153,7 @@ class Axles(QFrame):
         self._draw_grid()
 
     def __draw_background(self):
-        self._qp.setPen(QColor(255, 255, 255, 0))
+        self._qp.setPen(QColor(0, 0, 0, 0))
         self._qp.setBrush(self.__background_color)
         self._qp.drawRect(self._OFFSET_X, self._OFFSET_Y_UP, self.__w, self.__h)  # поле графика
 
@@ -268,38 +267,41 @@ class Axles(QFrame):
             self._redraw_required = True
 
     def _update_step_x(self) -> None:
-        """Установка шага оси Х. Происходит с таким расчётом,
-        чтобы на оси было не более 10 меток"""
+        """Вычисление шага по оси Х"""
         if not self._x_axle.autoscale:
             return
         try:
-            self.__step_grid_x = 10 ** round(log10(self._real_width)) / 10
+            new_step = 10 ** (round(log10(self._real_width)) - 1)
         except ValueError:
-            self.__step_grid_x = 1.0
+            new_step = 1.0
 
-        if self._real_width / self.__step_grid_x > 10:
+        ticks_count = self._real_width / new_step
+        if ticks_count > 10:
             n = 3
-            while self._real_width / self.__step_grid_x > 10:
+            while (ticks_count := self._real_width / new_step) > 10:
                 n += 1
-                self.__step_grid_x *= (2.5 if n % 4 == 0 else 2)
+                new_step *= self.__get_factor(n)
         else:
             n = 0
-            while self._real_width / self.__step_grid_x < 10:
+            while (ticks_count := self._real_width / new_step) < 10:
                 n += 1
-                self.__step_grid_x /= (2.5 if n % 4 == 0 else 2)
-
-        while self.__step_grid_x / self._real_width * self.__w < self._x_axle.met_size + 10:
-            self.__step_grid_x *= (2.5 if n % 4 == 0 else 2)
+                new_step /= self.__get_factor(n)
+        tick_width_px = new_step / self._real_width * self.__w
+        while (tick_width_px := new_step / self._real_width * self.__w) < self._x_axle.met_size + 15:
+            new_step *= self.__get_factor(n)
             n += 1
 
-        if self.__step_grid_x / self._real_width * self.__w > 150:
-            self.__step_grid_x /= (2.5 if n % 4 == 0 else 2)
+        if 150 < tick_width_px:
+            new_step /= self.__get_factor(n)
 
-        if self.__step_grid_x == 0:
-            self.__step_grid_x = self._real_width / 1
+        if new_step == 0:
+            new_step = self._real_width / 1
+
+        self.__step_grid_x = new_step        
+        return new_step
 
     def _update_step_y(self) -> None:
-        """См. ось Х"""
+        """Вычисление шага по оси У"""
 
         if not self._y_axle.autoscale:
             return
@@ -309,26 +311,32 @@ class Axles(QFrame):
             self._ystop += 0.5
             self._real_height = 1
 
-        self.__step_grid_y = 10 ** round(log10(self._real_height)) / 10
+        try:
+            self._step_grid_y = 10 ** (round(log10(self._real_height)) - 1)
+        except ValueError:
+            self._step_grid_y = 1.0
         n = 0
 
-        if self._real_height / self.__step_grid_y >= 10:
+        if self._real_height / self._step_grid_y >= 10:
             n = 3
-            while self._real_height / self.__step_grid_y >= 10:
+            while self._real_height / self._step_grid_y >= 10:
                 n += 1
-                self.__step_grid_y *= (2.5 if n % 4 == 0 else 2)
+                self._step_grid_y *= self.__get_factor(n)
 
-        elif self._real_height / self.__step_grid_y < 8:
-            while self._real_height / self.__step_grid_y <= 10:
+        elif self._real_height / self._step_grid_y < 8:
+            while self._real_height / self._step_grid_y <= 10:
                 n += 1
-                self.__step_grid_y /= (2.5 if n % 4 == 0 else 2)
+                self._step_grid_y /= self.__get_factor(n)
 
-        while self.__step_grid_y / self._real_height * self.__h < 25:  # высота не менее 30 пикселей
+        while self._step_grid_y / self._real_height * self.__h < 25:  # высота не менее 30 пикселей
             n += 1
-            self.__step_grid_y *= (2.5 if n % 4 == 0 else 2)
+            self._step_grid_y *= self.__get_factor(n)
 
-        if self.__step_grid_y / self._real_height * self.__h > 100:
-            self.__step_grid_y /= (2.5 if n % 4 == 0 else 2)
+        if self._step_grid_y / self._real_height * self.__h > 100:
+            self._step_grid_y /= self.__get_factor(n)
+
+    def __get_factor(self, n):
+        return 2.5 if n % 4 == 0 else 2
 
     def _is_animated(self) -> bool:
         return self.__animated
@@ -353,7 +361,6 @@ class Axles(QFrame):
         self.__left_button_pressed = False
         self.__slider.set_mouse_on(False)
         self.__deselect_all_lines()
-        # set_cursor_shape(Qt.CursorShape.ArrowCursor)
 
     def enterEvent(self, a0):
         self.setFocus()
@@ -567,7 +574,6 @@ class Axles(QFrame):
                                     else self._y_axis_min - self._Y_STOP_RATIO)
                 max_possible_y = self._y_axis_max + (0 if (self.__zero_y_fixed and self._y_axis_max <= 0)
                                                         else self._Y_STOP_RATIO)
-                print(min_possible_y, max_possible_y)
                 if self._ystart < min_possible_y:
                     self._ystart = min_possible_y
                 if self._ystart + self._real_height > max_possible_y:
@@ -657,8 +663,6 @@ class Axles(QFrame):
         pos = a0.pos()
 
         if pos.y() < self._OFFSET_Y_UP and not self.__zoom_active:
-            return
-        if pos.x() < self._MIN_X:
             return
         
         match a0.button():
@@ -770,7 +774,6 @@ class Axles(QFrame):
 
         d = self._real_width * 0.05 * abs(delta / 120)
         w = self._real_width
-        old_x_start = self._xstart
         if delta > 0:
             self._set_x_stop(min(self._x_axis_max, self._xstop + d))
             self._set_x_start(self._xstop - w)
@@ -861,7 +864,7 @@ class Axles(QFrame):
         font.setBold(True)
         self._qp.setFont(font)
 
-        txt_pen = QPen(QColor(210, 210, 210)) if self.__dark else QPen(QColor(0, 0, 0))
+        txt_pen = QPen(0xD2D2D2) if self.__dark else QPen(0)
         self._qp.setPen(txt_pen)
 
         self._x_axle.label_size = QFontMetrics(font).horizontalAdvance(self._x_axle.name)
@@ -884,16 +887,18 @@ class Axles(QFrame):
             end_x_power = ceil(log10(self._xstop))
             x_metki_coords = [10 ** i for i in range(initial_x_power, end_x_power + 1)]
         else:
-            x_metki_coords = arange(x0, xk + self.__step_grid_x, self.__step_grid_x)
-        tmp_x_met = self._x_axle.met_size
+            x_metki_coords = np.round(arange(x0, xk + self.__step_grid_x, self.__step_grid_x), 15)
+        new_x_met_width = self._x_axle.met_size
         self._x_axle.met_size = 0
+
+        divised_step = self.__step_grid_x / self._x_axle.divisor
+        digit_count = max(get_digit_count_after_dot(x / self._x_axle.divisor) for x in x_metki_coords)
+        digit_count = max(get_digit_count_after_dot(divised_step), digit_count)
+        if divised_step < 0.5:
+            digit_count = max(2, digit_count)
         
         for x in x_metki_coords:
-            if self._x_axle.logarithmic:
-                log_width = log10(self._xstop) - log10(self._xstart)
-                x_w = self.__w / log_width * (log10(x) - log10(self._xstart)) + self._MIN_X
-            else:
-                x_w = self._real_to_window_x(x)  # оконная координата метки
+            x_w = self._real_to_window_x(x)  # оконная координата метки
             
             if self._MIN_X < x_w < self._MAX_X:
                 if not (x == 0 and self.__draw_origin) and self._x_axle.draw_major_grid:
@@ -905,26 +910,13 @@ class Axles(QFrame):
                     self._qp.setPen(txt_pen)
                     x = x / self._x_axle.divisor
                     if self.__convert_to_hhmmss and self._x_axis_min >= 0:
-                        tmp_str = convert_timestamp_to_human_time(x + self.__initial_timestamp, self.__step_grid_x / self._x_axle.divisor < 1)
+                        tmp_str = convert_timestamp_to_human_time(x + self.__initial_timestamp, divised_step < 1)
                     else:
                         if self._x_axle.logarithmic:
                             power_of_ten = int(log10(x))
                             tmp_str = "10" + get_upper_index(power_of_ten)
                         else:
-                            if self.__step_grid_x / self._x_axle.divisor < 0.001:
-                                tmp_str = f"{x:.3e}"
-                            elif self.__step_grid_x / self._x_axle.divisor < 0.01:
-                                tmp_str = f"{x:.4f}"
-                                if tmp_str[-1] == '0':
-                                    tmp_str = tmp_str[:-1]
-                            elif self.__step_grid_x / self._x_axle.divisor < 2.5:
-                                tmp_str = f"{x:.2f}"
-                            elif self.__step_grid_x / self._x_axle.divisor < 25:
-                                tmp_str = f"{x:.1f}"
-                            elif self.__step_grid_x / self._x_axle.divisor > 9999:
-                                tmp_str = f"{x:.2E}"
-                            else:
-                                tmp_str = f"{round(x)}"
+                            tmp_str = self.__get_rounded_tick(x, divised_step, digit_count if self._digits_count < 0 else self._digits_count)
 
                     tmp_str_width = QFontMetrics(font).horizontalAdvance(tmp_str)
                     if tmp_str_width > self._x_axle.met_size:
@@ -951,9 +943,16 @@ class Axles(QFrame):
                 if self._MIN_X < x_m < self._MAX_X and x_w != x_m:
                     self._qp.drawLine(QLineF(x_m, self._MAX_Y, x_m, self._MIN_Y))
         
-        if tmp_x_met != self._x_axle.met_size:
-            self._update_step_x()
-            self._redraw_required = True
+        if new_x_met_width != self._x_axle.met_size:
+            old_step = self.__step_grid_x
+            new_step = self._update_step_x()
+            old_width_px = new_step / self._real_width * self.__w
+            if old_step > new_step:
+                if old_width_px <= self._x_axle.met_size:
+                    self._redraw_required = True
+                    self.__step_grid_x = new_step
+                else:
+                    self.__step_grid_x = old_step
 
     def __draw_grid_y(self):
         font = QFont(self.__font)
@@ -961,7 +960,7 @@ class Axles(QFrame):
         self._qp.setFont(font)
         self._y_axle.label_size = QFontMetrics(font).height()
 
-        txt_pen = QPen(QColor(210, 210, 210)) if self.__dark else QPen(QColor(0, 0, 0))
+        txt_pen = QPen(0xD2D2D2) if self.__dark else QPen(0)
         self._qp.setPen(txt_pen)
 
         if self._y_axle.draw_label:
@@ -974,25 +973,31 @@ class Axles(QFrame):
         font.setBold(False)
         self._qp.setFont(font)
 
-        y0 = round_custom(self._ystart, self.__step_grid_y)
-        y_metki_coords = arange(y0, self._ystop + self.__step_grid_y, self.__step_grid_y)
+        y0 = round_custom(self._ystart, self._step_grid_y)
+        y_metki_coords = arange(y0, self._ystop + self._step_grid_y, self._step_grid_y)
 
         if self._y_axle.logarithmic:
             if y0 <= 0:
-                y0 += self.__step_grid_y
+                y0 += self._step_grid_y
             initial_y_power = floor(log10(self._ystart))
             end_y_power = ceil(log10(self._ystop))
             y_metki_coords = [10 ** i for i in range(initial_y_power, end_y_power + 1)]
         else:
-            y_metki_coords = arange(y0, self._ystop + self.__step_grid_y, self.__step_grid_y)
+            y_metki_coords = arange(y0, self._ystop + self._step_grid_y, self._step_grid_y)
 
         first = True
+
+        divised_step = self._step_grid_y / self._y_axle.divisor
+        digit_count = max(get_digit_count_after_dot(round(y / self._y_axle.divisor, 10)) for y in y_metki_coords)
+        digit_count = max(get_digit_count_after_dot(divised_step), digit_count)
+        if divised_step < 0.5:
+            digit_count = max(2, digit_count)
 
         for y in y_metki_coords:
             y_w = self._real_to_window_y(y)
 
             if self._y_axle.logarithmic:
-                self.__step_grid_y = y
+                self._step_grid_y = y
 
             if self._MIN_Y < y_w < self._MAX_Y:
                 if not (y == 0 and self.__draw_origin) and self._y_axle.draw_major_grid:
@@ -1005,16 +1010,7 @@ class Axles(QFrame):
                         power_of_ten = int(log10(y))
                         tmp_str = "10" + get_upper_index(power_of_ten)
                     else:
-                        if self.__step_grid_y / self._y_axle.divisor < 0.001:
-                            tmp_str = f"{y:.3e}"
-                        elif self.__step_grid_y / self._y_axle.divisor < 0.01:
-                            tmp_str = f"{y:.3f}"
-                        elif self.__step_grid_y / self._y_axle.divisor < 5:
-                            tmp_str = f"{y:.2f}"
-                        elif self.__step_grid_y / self._y_axle.divisor > 9999:
-                            tmp_str = f"{y:.2E}"
-                        else:
-                            tmp_str = f"{int(y)}"
+                        tmp_str = self.__get_rounded_tick(y, divised_step, digit_count if self._digits_count < 0 else self._digits_count)
 
                     tmp_str_width = QFontMetrics(font).horizontalAdvance(tmp_str) + 10
                     max_y_label_width = max(max_y_label_width, tmp_str_width)
@@ -1028,9 +1024,9 @@ class Axles(QFrame):
                 yk_minor = 10 * y
                 ystep_minor = y
             elif self._y_axle.draw_minor_grid:  # побочная сетка
-                y0_minor = y + self.__step_grid_y / self._y_axle.minor_step_ratio
-                yk_minor = y + self.__step_grid_y
-                ystep_minor = self.__step_grid_y / self._y_axle.minor_step_ratio
+                y0_minor = y + self._step_grid_y / self._y_axle.minor_step_ratio
+                yk_minor = y + self._step_grid_y
+                ystep_minor = self._step_grid_y / self._y_axle.minor_step_ratio
 
                 # if first:
                 #     first = False
@@ -1048,6 +1044,18 @@ class Axles(QFrame):
         if self._y_axle.met_size != max_y_label_width:
             self._y_axle.met_size = max_y_label_width
             self._resize_frame()
+
+    def __get_rounded_tick(self, val, step, digit_count):
+        if abs(val) < 1e-15:
+            val = 0.0
+        val = round(val, 10)
+        step = round(step, 10)
+        tmp_str = round_value(val, digit_count)
+        if step > 5 and 'e' not in tmp_str and 'E' not in tmp_str:
+            int_part, frac_part = tmp_str.split('.')
+            if step >= 10 and all(dig == '0' for dig in frac_part):
+                tmp_str = str(int_part)
+        return tmp_str
 
     def _resize_frame(self):
         self._OFFSET_X = self._y_axle.met_size
@@ -1075,75 +1083,64 @@ class Axles(QFrame):
                 if self.__convert_to_hhmmss:
                     tmp_str = convert_timestamp_to_human_time(x_real + self.__initial_timestamp, millis=True)
                 else:
-                    if self.__step_grid_x / self._x_axle.divisor < 0.001:
-                        tmp_str = f"{x_real:.3e}"
-                    elif self.__step_grid_x / self._x_axle.divisor > 9999:
-                        tmp_str = f"{x_real:.2E}"
-                    else:
-                        tmp_str = f"{x_real:.3f}"
+                    digit_count = get_digit_count_after_dot(self.__step_grid_x / self._x_axle.divisor) + 1
+                    tmp_str = f"{x_real:.{digit_count}f}"
 
-                font = QFont("consolas", 10)
+                font = QFont("Consolas, Courier New", 10)
                 font.setBold(True)
                 self._qp.setFont(font)
-                qm = QFontMetrics(font)
-                text_width = qm.size(0, tmp_str).width()  # измеряем текст
+                qm = self._qp.fontMetrics()
+                text_width = qm.horizontalAdvance(tmp_str)  # измеряем текст
 
-                self._qp.setPen(QPen(QColor(0, 0, 0, 0)))
-                self._qp.setBrush(QColor(0, 162, 232))
+                self._qp.setPen(QColor(0, 0, 0, 0))
+                self._qp.setBrush(0x00A2E8)
                 rectX = x_win - text_width - 15
                 if rectX < self._MIN_X:
                     rectX = x_win + 10
                 rectW = text_width + 10
-                rectH = 17
+                rectH = qm.height() + 2
                 rectY = self._MAX_Y - rectH - 3
                 if rectX + rectW > self._MAX_X - 200:
                     rectY -= 27
                 self._qp.drawRoundedRect(QRectF(rectX, rectY, rectW, rectH), 5, 5)
                 self._value_rect_max_y = rectY - 25
 
-                self._qp.setPen(QColor(255, 255, 255))
-
+                self._qp.setPen(0xFFFFFF)
                 self._qp.drawText(QRectF(rectX, rectY, rectW, rectH),
                                   Qt.AlignmentFlag.AlignCenter, tmp_str)  # значение по Х
 
                 if self.__dark:
-                    col = (102, 189, 108) if line.is_selected() else (200, 200, 200)
+                    col = 0x66BD6C if line.is_selected() else 0xC8C8C8
                 else:
-                    col = (102, 189, 108) if line.is_selected() else (0, 0, 0)
+                    col = 0x66BD6C if line.is_selected() else 0
                 th = 1 if False else 1
-                self._qp.setPen(QPen(QColor(*col), th, Qt.PenStyle.DashLine))
+                self._qp.setPen(QPen(QColor(col), th, Qt.PenStyle.DashLine))
                 self._qp.drawLine(QLineF(x_win, self._MIN_Y, x_win, self._MAX_Y))
 
                 if i > 0:
-                    self._qp.setPen(QColor(100, 100, 100))
                     y = self._MIN_Y + 2
-                    pen = QPen(QColor(0, 0, 0))
-                    pen.setStyle(Qt.PenStyle.DashLine)
+                    pen = QPen(0xFFFFFF if self.dark else 0)
+                    pen.setWidthF(1)
+                    pen.setStyle(Qt.PenStyle.DashDotLine)
                     self._qp.setPen(pen)
                     self._qp.drawLine(QLineF(x_win, y, prev_val_line_coord_xwin, y))
 
-                    self._qp.setPen(QColor(0, 0, 0, alpha=0))
-                    self._qp.setBrush(QColor(0, 102, 172, alpha=255))
+                    self._qp.setPen(QColor(0, 0, 0, 0))
 
                     dx = abs(x_real - prev_val_line_coord_xreal)
                     if self.__convert_to_hhmmss:
                         tmp_str = convert_timestamp_to_human_time(dx, millis=True)
                     else:
-                        if self.__step_grid_x / self._x_axle.divisor < 0.001:
-                            tmp_str = f"{dx:.3e}"
-                        elif self.__step_grid_x / self._x_axle.divisor > 9999:
-                            tmp_str = f"{dx:.2E}"
-                        else:
-                            tmp_str = f"{dx:.3f}"
-                    font = QFont("consolas", 9)
+                        digit_count = get_digit_count_after_dot(self.__step_grid_x / self._x_axle.divisor) + 1
+                        tmp_str = f"{dx:.{digit_count}f}"
+                    font = QFont("Consolas, Courier New", 10)
                     font.setBold(True)
-                    self._qp.setPen(QColor(100, 100, 100))
+                    self._qp.setPen(0xFFFFFF if self.dark else 0)
                     self._qp.setFont(font)
                     text_width = qm.size(0, tmp_str).width()
                     rectW = text_width + 10
                     rect_x = (min(prev_val_line_coord_xwin, (x_win)) +
                               (abs(prev_val_line_coord_xwin - (x_win)) - rectW) // 2)
-                    rectH = 15
                     rectY = y + 3
                     if abs(prev_val_line_coord_xwin - (x_win)) < rectW:
                         if rect_x > self.__w / 2:
@@ -1158,7 +1155,7 @@ class Axles(QFrame):
                 prev_val_line_coord_xreal = x_real
 
     def _draw_scale_lines(self):
-        self._qp.setFont(QFont('consolas', 10))
+        self._qp.setFont(QFont("Consolas, Courier New", 10))
         # вертикальные линии для масштабирования
         prev_val_line_coord_xwin = 0
         prev_val_line_coord_xreal = 0
@@ -1174,58 +1171,51 @@ class Axles(QFrame):
             pen = QPen(QColor(color), 1)
             self._qp.setPen(pen)
 
-            # x_win = line.x()
-            # x_real = self.window_to_real_x(x_win)
             x_win = self._get_line_window_coord(line)
             x_real = self._window_to_real_x(x_win - self._MIN_X)
             
             self._qp.drawLine(QLineF(x_win, self._MIN_Y, x_win, self._MAX_Y))
 
             # формируем подпись со значением Х, на котором стоит линия
+            x_real /= self._x_axle.divisor
+            digit_count = get_digit_count_after_dot(self.__step_grid_x / self._x_axle.divisor) + 1
             tmp_str = convert_timestamp_to_human_time(x_real + self.__initial_timestamp, millis=True) \
-                if self.__convert_to_hhmmss else f"{x_real:.2f}"
+                if self.__convert_to_hhmmss else f"{x_real:.{digit_count}f}"
 
-            font = QFont('bahnschrift', 10)
-            font.setBold(False)
+            font = QFont("Consolas, Courier New", 10)
+            font.setBold(True)
             self._qp.setFont(font)
             qm = QFontMetrics(font)
-            text_width = qm.size(0, tmp_str).width()  # измеряем текст
+            text_width = qm.horizontalAdvance(tmp_str)  # измеряем текст
+            text_height = qm.height()
 
             rectX = x_win - text_width - 15 if x_win > self.__w / 2 else x_win + 5
             rectY = self._MIN_Y + 18 + 20 * i
             rectW = text_width + 10
-            rectH = 15
-            self._qp.setPen(QColor(0, 0, 0, alpha=0))
-            self._qp.setBrush(QColor(0, 128, 128))
+            rectH = text_height + 2
+            self._qp.setPen(QColor(0, 0, 0, 0))
+            self._qp.setBrush(0x8080)
             self._qp.drawRoundedRect(QRectF(rectX, rectY, rectW, rectH), 5, 5)
-            self._qp.setPen(QColor(255, 255, 255, alpha=255))
-            self._qp.drawText(QRectF(rectX, rectY + 1, rectW, rectH), Qt.AlignmentFlag.AlignCenter, tmp_str)
+            self._qp.setPen(0xFFFFFF)
+            self._qp.drawText(QRectF(round(rectX), round(rectY), rectW, rectH), Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter, tmp_str)
 
             if i > 0:
-                self._qp.setPen(QColor(100, 100, 100))
                 y = self._MIN_Y + 2
                 if self.__dark:
-                    pen = QPen(QColor(200, 200, 200))
+                    pen = QPen(0xC8C8C8)
                 else:
-                    pen = QPen(QColor(0, 0, 0))
+                    pen = QPen(0)
                 pen.setStyle(Qt.PenStyle.DotLine)
                 self._qp.setPen(pen)
                 self._qp.drawLine(QLineF(x_win, y, prev_val_line_coord_xwin, y))
-
-                self._qp.setPen(QColor(0, 0, 0, alpha=0))
-                self._qp.setBrush(QColor(0, 102, 172, alpha=255))
 
                 dx = abs(x_real - prev_val_line_coord_xreal)
                 if self.__convert_to_hhmmss:
                     tmp_str = convert_timestamp_to_human_time(dx, millis=True)
                 else:
-                    if self.__step_grid_x < 0.001:
-                        tmp_str = f"{dx:.3e}"
-                    elif self.__step_grid_x > 9999:
-                        tmp_str = f"{dx:.2E}"
-                    else:
-                        tmp_str = f"{dx:.3f}"
-                font = QFont("consolas", 9)
+                    digit_count = get_digit_count_after_dot(self.__step_grid_x / self._x_axle.divisor) + 1
+                    tmp_str = f"{dx:.{digit_count}f}"
+                font = QFont("Consolas, Courier New", 9)
                 font.setBold(True)
                 if self.__dark:
                     self._qp.setPen(QColor(255, 255, 255))
@@ -1236,7 +1226,6 @@ class Axles(QFrame):
                 rectW = text_width + 10
                 rect_x = (min(prev_val_line_coord_xwin, x_win) +
                           (abs(prev_val_line_coord_xwin - x_win) - rectW) / 2)
-                rectH = 15
                 rectY = y + 3
                 if abs(prev_val_line_coord_xwin - x_win) < rectW:
                     if rect_x > self._MIN_X + self.__w / 2:
@@ -1283,10 +1272,10 @@ class Axles(QFrame):
         if self.__scaling_rect_drawing:
             # рисуем масштабирующий прямоугольничек
             if self.__dark:
-                self._qp.setPen(QPen(QColor(200, 200, 200), 1, Qt.PenStyle.DashLine))
+                self._qp.setPen(QPen(0xC8C8C8, 1, Qt.PenStyle.DashLine))
             else:
-                self._qp.setPen(QPen(QColor(0, 0, 0), 1, Qt.PenStyle.DashLine))
-            self._qp.setBrush(QColor(0, 0, 0, alpha=0))
+                self._qp.setPen(QPen(0, 1, Qt.PenStyle.DashLine))
+            self._qp.setBrush(QColor(0, 0, 0, 0))
             rect = QRectF(self.__scaling_rect)
             rect.setLeft(self.__scaling_rect.left() + self._MIN_X)
             rect.setRight(self.__scaling_rect.right() + self._MIN_X)
@@ -1344,9 +1333,9 @@ class Axles(QFrame):
         self._redraw_required = True
 
     def set_step_y(self, step: int):
-        if step <= 0 or step > self._real_height or step == self.__step_grid_y:
+        if step <= 0 or step > self._real_height or step == self._step_grid_y:
             return
-        self.__step_grid_y = step
+        self._step_grid_y = step
         self._redraw_required = True
 
     def set_x_borders(self, xmin: float, xmax: float):
@@ -1642,7 +1631,7 @@ class Axles(QFrame):
     
     @property
     def step_y(self):
-        return self.__step_grid_y
+        return self._step_grid_y
     
     @property
     def x_start(self):
@@ -1755,4 +1744,10 @@ class Axles(QFrame):
 
     def _get_line_real_coord(self, line):
         return self._xstart + self._real_width * line.x()
+    
+    def set_digits_count(self, count: int):
+        if count < 0:
+            self._digits_count = -1
+        count = min(count, 6)
+        self._digits_count = count
     

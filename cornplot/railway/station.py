@@ -30,7 +30,7 @@ class Station:
             qp.setBrush(QColor(100, 100, 100))
         qp.drawPolygon(self.polygon)
 
-        font = QFont("bahnschrift", 10)
+        font = QFont("Bahnschrift, Arial", 10)
         qp.setFont(font)
 
         metrics = QFontMetrics(font)

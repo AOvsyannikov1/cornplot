@@ -4,14 +4,15 @@ from PyQt6.QtGui import QColor
 
 class ValueRectangle(QRectF):
     
-    def __init__(self, x, y, w, h, text: str, color: QColor, point: QPointF):
+    def __init__(self, x, y, w, h, text: str, color: QColor, point: QPointF, move_left: bool):
         super().__init__(x, y, w, h)
         self.__text = text
         self.__color = color
         self.point = point
+        self.move_left = move_left
 
     def __contains__(self, other):
-        return self.intersects(other)# (self.y() >= other.y() and self.y() <= other.y() + other.height()) or (other.y() >= self.y() and other.y() <= self.y() + self.height())
+        return self.intersects(other)
     
     @property
     def text(self):

@@ -39,7 +39,7 @@ def pie_chart():
 
 
 def subplot(rows, cols, number, link_subplots=True, axes=True):
-    _plotter.subplot(rows, cols, number, link_plots=link_subplots, axes=axes)
+    _plotter.subplot(rows, cols, number, link_subplots=link_subplots, axes=axes)
 
 
 def window(num, name="", x=100, y=100):

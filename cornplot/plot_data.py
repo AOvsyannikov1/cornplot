@@ -59,7 +59,7 @@ class Plot(QObject):
             self.maximums = [max(x_arr), max(y_arr)]
             self.minimums = [min(x_arr), min(y_arr)]
 
-        font = QFont("consolas", 12)
+        font = QFont("Consolas, Courier New", 12)
         font.setBold(False)
         self.__chb_width = QFontMetrics(font).horizontalAdvance(self.name) + 30
 

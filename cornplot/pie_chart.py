@@ -50,7 +50,7 @@ class PieChart:
         self.__info_rect_geometry = list()
         self.__info_rect_data = list()
         self.__info_rect_fixed = list()
-        self.__info_rect_font = QtGui.QFont('bahnschrift', 10)
+        self.__info_rect_font = QtGui.QFont("Bahnschrift, Arial", 10)
 
     def needs_redrawing(self):
         return self.__redraw_flag
@@ -183,7 +183,7 @@ class PieChart:
         y0 = round(self.__y + self.__h / 2 + 10 - step * len(self.__cathegories) / 2)
 
         size = min(self.__w, self.__h) // 40
-        metrics = QtGui.QFontMetrics(QtGui.QFont('bahnschrift', size))
+        metrics = QtGui.QFontMetrics(QtGui.QFont("Bahnschrift, Arial", size))
         text_width = 0
 
         for i, cat in enumerate(self.__cathegories):
@@ -192,7 +192,7 @@ class PieChart:
             self.__qp.drawRect(x0, y0 + step * i, size + 3, size + 3)
 
             self.__qp.setPen(QtGui.QColor(0, 0, 0))
-            self.__qp.setFont(QtGui.QFont('bahnschrift', size))
+            self.__qp.setFont(QtGui.QFont("Bahnschrift, Arial", size))
             self.__qp.drawText(x0 + size + 7, y0 + step * i + size + 1, cat.name)
             try:
                 w = metrics.horizontalAdvance(cat.name)
@@ -221,7 +221,7 @@ class PieChart:
 
         self.__qp.setPen(QtGui.QColor(0, 0, 0))
         size = min(self.__w, self.__h) // 25
-        self.__qp.setFont(QtGui.QFont('bahnschrift', size))
+        self.__qp.setFont(QtGui.QFont("Bahnschrift, Arial", size))
         self.__qp.drawText(self.__x, self.__y, self.__w, int(2 * size),
                            QtCore.Qt.AlignmentFlag.AlignCenter, self.__name)
         self.__draw_legend()
