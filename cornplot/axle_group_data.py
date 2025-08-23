@@ -7,6 +7,7 @@ class AxleGroupData(QObject):
     line_move_signal = Signal()
     pause_signal = Signal(bool)
     restart_signal = Signal(object)
+    line_clear_signal = Signal(object)
 
     def __init__(self):
         super().__init__()

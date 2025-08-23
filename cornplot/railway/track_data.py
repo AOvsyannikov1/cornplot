@@ -1,4 +1,4 @@
-from .semaphore import Semaphore, SemaphoreColor
+from .semaphore import Semaphore
 from .station import Station
 
 

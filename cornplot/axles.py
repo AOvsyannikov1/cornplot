@@ -49,24 +49,24 @@ class Axles(QWidget):
 
         self.__MAXIMUM_X_WIDTH = -1
 
-        self._xstart = 0
-        self._xstop = 10
-        self._x_axis_min = 0
-        self._x_axis_max = 10
+        self._xstart = 0.0
+        self._xstop = 10.0
+        self._x_axis_min = 0.0
+        self._x_axis_max = 10.0
         self._real_width = self._xstop - self._xstart  # длина оси Х в реальных единицах
         self.__step_grid_x = self._real_width / 2
 
         self.__group.x_start = self._xstart
         self.__group.x_stop = self._xstop
 
-        self._ystart = 0
-        self._ystop = 1
-        self._y_axis_min = 0
-        self._y_axis_max = 1
+        self._ystart = 0.0
+        self._ystop = 1.0
+        self._y_axis_min = 0.0
+        self._y_axis_max = 1.0
         self._real_height = self._ystop - self._ystart  # длина оси У в реальных единицах
         self._step_grid_y = self._real_height / 2
 
-        self.__scaling_rect = QRectF(0, 0, 0, 0)
+        self.__scaling_rect = QRectF(0.0, 0.0, 0.0, 0.0)
 
         # флаги
         self.__convert_to_hhmmss = False    # конвертировать ли значения Х в ЧЧ:ММ:СС
@@ -224,6 +224,7 @@ class Axles(QWidget):
             line.hide()
         for line in self.__scanner_lines:
             line.hide()
+        self.__group.line_clear_signal.emit(self)
         self._redraw_required = True
 
     def _update_x_borders(self, x0, xk):
@@ -264,6 +265,11 @@ class Axles(QWidget):
         self.__group.line_move_signal.connect(self._force_redraw)
         self.__group.pause_signal.connect(self.__pause)
         self.__group.restart_signal.connect(self.__restart_animation)
+        self.__group.line_clear_signal.connect(self.__redraw_after_clear_lines)
+
+    def __redraw_after_clear_lines(self, sender: object):
+        if sender is not self:
+            self._redraw_required = True
 
     def fix_y_zero(self, fix: bool) -> None:
         if fix != self.__zero_y_fixed:
@@ -273,10 +279,10 @@ class Axles(QWidget):
             self._recalculate_window_coords()
             self._redraw_required = True
 
-    def _update_step_x(self) -> None:
+    def _update_step_x(self) -> float:
         """Вычисление шага по оси Х"""
         if not self._x_axle.autoscale:
-            return
+            return self.__step_grid_x
         try:
             new_step = 10 ** (round(log10(self._real_width)) - 1)
         except ValueError:
@@ -307,11 +313,11 @@ class Axles(QWidget):
         self.__step_grid_x = new_step        
         return new_step
 
-    def _update_step_y(self) -> None:
+    def _update_step_y(self) -> float:
         """Вычисление шага по оси У"""
 
         if not self._y_axle.autoscale:
-            return
+            return self._step_grid_y
 
         if self._ystart == self._ystop:
             self._ystart -= 0.5
@@ -341,6 +347,8 @@ class Axles(QWidget):
 
         if self._step_grid_y / self._real_height * self.__h > 100:
             self._step_grid_y /= self.__get_factor(n)
+
+        return self._step_grid_y
 
     def __get_factor(self, n):
         return 2.5 if n % 4 == 0 else 2
@@ -715,7 +723,7 @@ class Axles(QWidget):
                 if self.__animated and not self.__paused or self.__scale_lines.any_selected() or self.__scanner_lines.any_selected():
                     return
                 else:
-                    if not self._x_axle.logarithmic and not self._y_axle.logarithmic:
+                    if pos.x() > self._MIN_X and not self._x_axle.logarithmic and not self._y_axle.logarithmic:
                         if self.__scaling_rect.width() == 0 and self.__scaling_rect.height() == 0 and not self.__zoom_active:
                             if self.__touch_x == pos.x() and self.__touch_y == pos.y() and not self._point_added:
                                 self.__scale_lines.add_line((pos.x() - self._MIN_X) / (self._MAX_X - self._MIN_X))
@@ -1031,7 +1039,7 @@ class Axles(QWidget):
         
         # формируем метки по оси Х
         x0 = round_custom(self._xstart, self.__step_grid_x)
-        xk = min(self._x_axis_max, self._xstop)
+        xk = max(self._x_axis_max, self._xstop)
 
         if self._x_axle.logarithmic:
             if x0 <= 0:
@@ -1138,8 +1146,6 @@ class Axles(QWidget):
         else:
             y_metki_coords = arange(y0, self._ystop + self._step_grid_y, self._step_grid_y)
 
-        first = True
-
         divised_step = self._step_grid_y / self._y_axle.divisor
         digit_count = max(get_digit_count_after_dot(round(y / self._y_axle.divisor, 10)) for y in y_metki_coords)
         digit_count = max(get_digit_count_after_dot(divised_step), digit_count)
@@ -1180,16 +1186,22 @@ class Axles(QWidget):
                 y0_minor = y + self._step_grid_y / self._y_axle.minor_step_ratio
                 yk_minor = y + self._step_grid_y
                 ystep_minor = self._step_grid_y / self._y_axle.minor_step_ratio
-
-                # if first:
-                #     first = False
-                #     y0_minor = self._ystart + ystep_minor
             else:
                 continue
 
             y_min = arange(y0_minor, yk_minor + ystep_minor / 2, ystep_minor)
             y_minor = [self._real_to_window_y(y_m) for y_m in y_min]
             self._qp.setPen(self._y_axle.pen_minor)
+            for y_m in y_minor:
+                if self._MIN_Y <= y_m <= self._MAX_Y and y_w != y_m:
+                    self._qp.drawLine(QLineF(self._MIN_X, y_m, self._MAX_X, y_m))
+
+        if self._y_axle.draw_minor_grid:
+            y0_minor = self._ystart - self._step_grid_y
+            yk_minor = y_metki_coords[0]
+            ystep_minor = self._step_grid_y / self._y_axle.minor_step_ratio
+            y_min = arange(y0_minor, yk_minor + ystep_minor / 2, ystep_minor)
+            y_minor = [self._real_to_window_y(y_m) for y_m in y_min]
             for y_m in y_minor:
                 if self._MIN_Y <= y_m <= self._MAX_Y and y_w != y_m:
                     self._qp.drawLine(QLineF(self._MIN_X, y_m, self._MAX_X, y_m))
@@ -1905,9 +1917,13 @@ class Axles(QWidget):
     def _get_line_real_coord(self, line):
         return self._xstart + self._real_width * line.x()
     
+    @Slot(int)
     def set_digits_count(self, count: int):
+        if self._digits_count != count:
+            self._redraw_required = True
         if count < 0:
             self._digits_count = -1
         count = min(count, 6)
         self._digits_count = count
+            
     

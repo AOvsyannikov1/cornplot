@@ -25,7 +25,9 @@ class EquationWindow(Ui_Form, QWidget):
 
         self.button.clicked.connect(self.calculate_plot)
 
-    def keyPressEvent(self, a0: QKeyEvent):
+    def keyPressEvent(self, a0: QKeyEvent | None):
+        if a0 is None:
+            return
         if a0.key() == Qt.Key.Key_Return or a0.key() == Qt.Key.Key_Enter:
             self.calculate_plot()
 

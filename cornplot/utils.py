@@ -143,22 +143,22 @@ class SelectedPoint:
     i: int
 
 
-def get_image_path(filename: str) -> Path:
+def get_image_path(filename: str) -> str:
     """Получить путь к изображению из пакета"""
     try:
         return str(pkg_resources.files("cornplot.images") / filename)
     except AttributeError:
         with pkg_resources.path("cornplot.images", filename) as path:
-            return Path(path)
+            return str(Path(path))
     except:
         return filename
     
 
 def get_digit_count_after_dot(num: float):
     num = round(num, 12)
-    num = str(num)
-    if '.' in num:
-        return len(num.split('.')[-1])
+    num_st = str(num)
+    if '.' in num_st:
+        return len(num_st.split('.')[-1])
     return 0
 
 

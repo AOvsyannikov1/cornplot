@@ -42,6 +42,9 @@
          <property name="text">
           <string/>
          </property>
+         <property name="maxLength">
+          <number>32</number>
+         </property>
         </widget>
        </item>
       </layout>
@@ -62,6 +65,9 @@
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
+         </property>
+         <property name="maxLength">
+          <number>64</number>
          </property>
         </widget>
        </item>

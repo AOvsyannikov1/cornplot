@@ -1,4 +1,4 @@
-import csv
+import csv, pathlib
 from statistics import mean
 from functools import partial
 from enum import Enum
@@ -44,7 +44,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
     def __init__(self, dashboard):
         super().__init__()
         self.setupUi(self)
-        self.setWindowIcon(QIcon(get_image_path("more.png")))
+        self.setWindowIcon(QIcon(get_image_path("icon.png")))
         self.tabWidget.setTabIcon(0, QIcon(get_image_path("axles.png")))
         self.tabWidget.setTabIcon(1, QIcon(get_image_path("mathIcon.png")))
 
@@ -112,8 +112,8 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.xName.textChanged.connect(self.__dashboard.set_x_name)
         self.yName.textChanged.connect(self.__dashboard.set_y_name)
 
-        self.xAuto.toggled.connect(self.__dashboard.set_x_autoscale)
-        self.yAuto.toggled.connect(self.__dashboard.set_y_autoscale)
+        self.xAuto.toggled.connect(self.__x_autoscale_event)
+        self.yAuto.toggled.connect(self.__y_autoscale_event)
         self.xStep.valueChanged.connect(self.__dashboard.set_step_x)
         self.yStep.valueChanged.connect(self.__dashboard.set_step_y)
 
@@ -219,6 +219,28 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.__operation = MathOperation.ONE_POINT_DIFF
 
         self.pltImage.paintEvent = self.label_paint_event
+
+    @Slot(bool)
+    def __x_autoscale_event(self, val: bool):
+        self.__dashboard.set_x_autoscale(val)
+        self.xStep.setValue(self.__dashboard.step_x)
+        self.xMin.setValue(self.__dashboard.x_start)
+        self.xMax.setValue(self.__dashboard.x_stop)
+
+        self.xStep.setSingleStep(self.xStep.value() / 10)
+        self.xMin.setSingleStep(self.xStep.value() / 10)
+        self.xMax.setSingleStep(self.xStep.value() / 10)
+
+    @Slot(bool)
+    def __y_autoscale_event(self, val: bool):
+        self.__dashboard.set_y_autoscale(val)
+        self.yStep.setValue(self.__dashboard.step_y)            
+        self.yMin.setValue(self.__dashboard.y_start)
+        self.yMax.setValue(self.__dashboard.y_stop)
+
+        self.yStep.setSingleStep(self.yStep.value() / 10)
+        self.yMin.setSingleStep(self.yStep.value() / 10)
+        self.yMax.setSingleStep(self.yStep.value() / 10)
 
     @Slot(QAction)
     def __change_digits_count(self, action: QAction):
@@ -357,10 +379,18 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
             self.xStep.setValue(self.__dashboard.step_x)
             self.xMin.setValue(self.__dashboard.x_start)
             self.xMax.setValue(self.__dashboard.x_stop)
+
+            self.xStep.setSingleStep(self.xStep.value() / 10)
+            self.xMin.setSingleStep(self.xStep.value() / 10)
+            self.xMax.setSingleStep(self.xStep.value() / 10)
         if self.yAuto.isChecked():
-            self.yStep.setValue(self.__dashboard.step_y)
+            self.yStep.setValue(self.__dashboard.step_y)            
             self.yMin.setValue(self.__dashboard.y_start)
             self.yMax.setValue(self.__dashboard.y_stop)
+
+            self.yStep.setSingleStep(self.yStep.value() / 10)
+            self.yMin.setSingleStep(self.yStep.value() / 10)
+            self.yMax.setSingleStep(self.yStep.value() / 10)
         self.majorTicksCheckX.setChecked(self.__dashboard.x_major_ticks_enabled)
         self.minorTicksCheckX.setChecked(self.__dashboard.x_minor_ticks_enabled)
         self.majorTicksCheckY.setChecked(self.__dashboard.y_major_ticks_enabled)
@@ -387,7 +417,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.msgBox.setStandardButtons(QMessageBox.StandardButton.Ok)
         self.msgBox.show()
 
-    @Slot()
+    @Slot(str)
     def display_plot_info(self, plt_name: str = ''):
         if len(self.__plots) == 0:
             return
@@ -404,12 +434,12 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
 
         if plot is None:
             return
-
+        
         if len(plot.X) < 2:
-            min_x = 0
-            max_x = 0
-            max_y = 0
-            min_y = 0
+            min_x = 0.0
+            max_x = 0.0
+            max_y = 0.0
+            min_y = 0.0
         else:
             min_x = round(min(plot.X), 2)
             max_x = round(max(plot.X), 2)
@@ -613,8 +643,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         if len(y_ret) < len(x_to_diff):
             x_to_diff.append(x_to_diff[-1])
             y_ret.append(0.0)
-        color = plot.pen.color()
-        color = color.darker(150).name()
+        color = plot.pen.color().darker(150).name()
 
         y_ret[0] = y_ret[1]
 
@@ -643,9 +672,9 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         y_arr = plot.Y[i0:ik]
         Y = [0.0]
 
-        integral = 0
+        integral = 0.0
         for i in range(1, len(x_arr)):
-            integral += (x_arr[i] - x_arr[i - 1]) * (y_arr[i] + y_arr[i - 1]) / 2
+            integral += (x_arr[i] - x_arr[i - 1]) * (y_arr[i] + y_arr[i - 1]) / 2.0
             Y.append(integral)
 
         self.xIntegrBegin.setText(self.__param_to_string(x_arr[0]))
@@ -682,11 +711,11 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.__message("Среднее значение вычислено успешно.")
 
     def __find_curve_length(self, plot: Plot, i0, ik):
-        length = 0
+        length = 0.0
 
         x_arr = plot.X[i0:ik]
         y_arr = plot.Y[i0:ik]
-        prev_under_integral = 0
+        prev_under_integral = 0.0
 
         for i in range(len(x_arr)):
             if i == 0:
@@ -1087,7 +1116,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
                 self.__show_error("Файл не найден!")
             
             for i, y_arr in enumerate(y_arrays):
-                self.__dashboard.add_plot(x_arr, y_arr, name=f"CSV_{i + 1}")
+                self.__dashboard.add_plot(x_arr, y_arr, name=pathlib.Path(fileName).stem)
         
     def __show_error(self, error: str):
         self.__errBox = QMessageBox()

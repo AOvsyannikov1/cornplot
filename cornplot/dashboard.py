@@ -1,6 +1,7 @@
 import pickle
 from math import log2, floor
 from time import monotonic
+from typing import Any
 
 from PyQt6.QtCore import QPointF, QLineF, QRectF, pyqtSlot, QRect
 from PyQt6.QtWidgets import QMessageBox
@@ -36,6 +37,8 @@ class Dashboard(Axles):
         self._pointsToSelect = 0
         self._selectingPointGraph = -1
         self.__selected_point = SelectedPoint(0, 0, -1)
+
+        self.__msgBox: QMessageBox | None = None
 
         self.__points: dict[str, Point] = dict()
 
@@ -233,7 +236,7 @@ class Dashboard(Axles):
 
     def add_point_to_animated_plot(self, name, x: float, y: float) -> bool:
         if self.is_paused():
-            return
+            return False
         for plt in self.__plots:
             if plt.name == name:
                 if plt.animated:
@@ -391,7 +394,7 @@ class Dashboard(Axles):
         x_real = self._window_to_real_x(xwin - self._MIN_X)
         nearest = plt.get_nearest(x_real)
 
-        res = tuple()
+        res: tuple[ValueRectangle] = tuple()
         for _, i in nearest:
             y = plt.Y[i]
             ywin = max(self._real_to_window_y(y), self._MIN_Y)
@@ -508,42 +511,18 @@ class Dashboard(Axles):
             y = self._MIN_Y + 5
             w = int(self.width() * 0.2)
             h = 20
-            gradient = QLinearGradient(x, y, x + w, y + h)
-            gradient.setColorAt(0, QColor(68, 1, 84))
-            gradient.setColorAt(0.5, QColor(33, 141, 140))
-            gradient.setColorAt(1, QColor(253, 231, 36))
+            linear_gradient = QLinearGradient(x, y, x + w, y + h)
+            linear_gradient.setColorAt(0, QColor(68, 1, 84))
+            linear_gradient.setColorAt(0.5, QColor(33, 141, 140))
+            linear_gradient.setColorAt(1, QColor(253, 231, 36))
 
-            self._qp.setBrush(gradient)
+            self._qp.setBrush(linear_gradient)
             self._qp.drawRect(x, y, w, h)
 
             self._qp.setPen(QColor(210, 210, 210) if self.dark else QColor(0, 0, 0))
             self._qp.setFont(QFont("Consolas, Courier New", 8))
             self._qp.drawText(x, y + h + 10, str(min(plt.Y)))
             self._qp.drawText(x + w - 15, y + h + 10, str(max(plt.Y)))
-
-    def take_plot_screenshot(self, name: str):
-        if self.is_animated():
-            self.pause(True)
-        for plt in self.__plots:
-            if plt.name != name:
-                plt.set_checkbox_state(False)
-            else:
-                plt.set_checkbox_state(True)
-
-        major_enabled = self.major_ticks_enabled
-        minor_enabled = self.minor_ticks_enabled
-        self.enable_minor_grid(False)
-        self.enable_major_grid(False)
-        self._set_buttons_visible(False)
-        grab = self.grab(QRect(self._MIN_X, self._MIN_Y, self.width() - self._MIN_X, self.height() - 47))
-
-        for plt in self.__plots:
-            plt.set_checkbox_state(True)
-        self.enable_minor_grid(minor_enabled)
-        self.enable_major_grid(major_enabled)
-        self._set_buttons_visible(True)
-        
-        return grab
 
     def _calculate_x_parameters(self):
         if self.is_animated() and not self.is_paused():
@@ -638,14 +617,15 @@ class Dashboard(Axles):
         if self._selectingPointGraph < 0:
             return
 
-        self._qp.setPen(QColor(0, 0, 0, alpha=255))
-        # вертикальная линия у текущей выбираемой точки
-        self._qp.drawLine(QLineF(self.__selected_point.x, self._MIN_Y, self.__selected_point.x, self._MAX_Y))
+        if self.__selected_point.x >= self._MIN_X:
+            self._qp.setPen(0)
+            # вертикальная линия у текущей выбираемой точки
+            self._qp.drawLine(QLineF(self.__selected_point.x, self._MIN_Y, self.__selected_point.x, self._MAX_Y))
 
-        # сама точка
-        self._qp.setPen(QColor(0, 0, 0, alpha=0))
-        self._qp.setBrush(QColor(103, 103, 52, alpha=200))
-        self._qp.drawEllipse(QPointF(self.__selected_point.x, self.__selected_point.y), 5, 5)
+            # сама точка
+            self._qp.setPen(QColor(0, 0, 0, 0))
+            self._qp.setBrush(QColor(103, 103, 52, alpha=200))
+            self._qp.drawEllipse(QPointF(self.__selected_point.x, self.__selected_point.y), 5, 5)
 
         # возня с прямоугольником со значением
         font = QFont("Consolas, Courier New", 10)
@@ -831,13 +811,14 @@ class Dashboard(Axles):
         for plt in self.__plots:
             if plt.name == name and draw != plt.draw_line:
                 plt.draw_line = draw
+                self.__recalculate_plot_coords(plt)
                 self._force_redraw()
 
     def plot_draw_markers(self, name: str, draw: bool):
         for plt in self.__plots:
             if plt.name == name and draw != plt.draw_markers:
-                self._recalculate_window_coords()
                 plt.draw_markers = draw
+                self.__recalculate_plot_coords(plt)
                 self._force_redraw()
     
     def __update_extended_window(self):
@@ -894,7 +875,7 @@ class Dashboard(Axles):
         with open(path, "wb") as f:
             pickle.dump(data, f)
 
-    def import_from_file(self, path):
+    def import_from_file(self, path: str) -> None:
         if self.is_animated() and not self.__paused:
             return
 
@@ -905,17 +886,21 @@ class Dashboard(Axles):
             self.__msgBox.setWindowTitle("Импорт графиков")
             self.__msgBox.setStandardButtons(QMessageBox.StandardButton.Yes |
                                              QMessageBox.StandardButton.No)
-            self.__msgBox.button(QMessageBox.StandardButton.Yes).setText("Да")
-            self.__msgBox.button(QMessageBox.StandardButton.No).setText("Нет")
+            button = self.__msgBox.button(QMessageBox.StandardButton.Yes)
+            if button:
+                button.setText("Да")
+            button = self.__msgBox.button(QMessageBox.StandardButton.No)
+            if button:
+                button.setText("Нет")
 
-            button = self.__msgBox.exec()
-            if button == QMessageBox.StandardButton.No:
+            pressed_button = self.__msgBox.exec()
+            if pressed_button == QMessageBox.StandardButton.No:
                 self.__msgBox.deleteLater()
                 return
 
         try:
             with open(path, 'rb') as f:
-                data: dict[str] = pickle.load(f)
+                data: dict[str, Any] = pickle.load(f)
         except FileNotFoundError:
             return
         

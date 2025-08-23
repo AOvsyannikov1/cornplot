@@ -37,7 +37,7 @@ class PlotWindow(QWidget):
 
         self.__group_id = str(uuid.uuid4())
 
-    def add_axes(self, row=1, col=1, rows=1, cols=1, x_name='X', y_name='Y', animated=False, link_plots=True,
+    def add_axes(self, row=1, col=1, rows=1, cols=1, x_name='X', y_name='Y', link_plots=True,
                  draw_axes=False, pie_chart=False):
         if self.__pie_chart_only:
             return
@@ -204,7 +204,7 @@ class CornPlotter:
             self.__windows.append(PlotWindow())
             self.__windows[-1].setWindowTitle(f"Окно {len(self.__windows)}")
         self.__windows[self.__current_window_index].add_axes(self.__current_row, self.__current_col, 1, 1,
-                                                             x_name, y_name, False, link_plots, draw_axes=False)
+                                                             x_name=x_name, y_name=y_name, link_plots=link_plots, draw_axes=False)
         self.__windows[self.__current_window_index].dashboards[-1].set_x_name(x_name)
         self.__windows[self.__current_window_index].dashboards[-1].set_y_name(y_name)
         self.__windows[self.__current_window_index].add_histogram(self.__current_row, self.__current_col, data, intervals_count=intervals_count, name=name, color=color)

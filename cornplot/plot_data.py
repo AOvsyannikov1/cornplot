@@ -1,9 +1,10 @@
 from PyQt6.QtWidgets import QCheckBox
 from PyQt6.QtGui import QPen, QPalette, QFont, QFontMetrics
-from PyQt6.QtCore import QObject, pyqtSignal as Signal
+from PyQt6.QtCore import QObject, pyqtSignal as Signal, QLineF, QPointF, QRectF
 
 from .array_utils import *
 from array import array
+from .utils import SelectedPoint
 # В случае ошибки выполнить в терминале:
 # pip install setuptools
 # python cornplot/utils_setup.py build
@@ -18,9 +19,9 @@ class Plot(QObject):
         self.pen = pen
         self.animated = animated
 
-        self.lines = list()
-        self.points = list()
-        self.rects = list()
+        self.lines: list[QLineF] = list()
+        self.points: list[QPointF] = list()
+        self.rects: list[QRectF] = list()
 
         if self.animated:
             self.X = array("d")
@@ -48,7 +49,7 @@ class Plot(QObject):
         self.index0 = 0
         self.index1 = len(self.X) - 1
         self.accurate = accurate
-        self.selectedPoints = []
+        self.selectedPoints: list[SelectedPoint] = list()
 
         self.x_ascending = self.analyze_x_sequence()
         self.is_hist = hist

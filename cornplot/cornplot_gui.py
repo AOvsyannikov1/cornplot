@@ -205,15 +205,13 @@ class Ui_CornplotGui(object):
         self.minorTicksWidthX.setProperty("value", 0.5)
         self.minorTicksWidthX.setObjectName("minorTicksWidthX")
         self.horizontalLayout_10.addWidget(self.minorTicksWidthX)
-        self.minorTicksStepX = QtWidgets.QDoubleSpinBox(parent=self.gridGroup)
+        self.minorTicksStepX = QtWidgets.QSpinBox(parent=self.gridGroup)
         self.minorTicksStepX.setEnabled(False)
         self.minorTicksStepX.setWrapping(False)
         self.minorTicksStepX.setFrame(True)
-        self.minorTicksStepX.setDecimals(0)
-        self.minorTicksStepX.setMinimum(1.0)
-        self.minorTicksStepX.setMaximum(10.0)
-        self.minorTicksStepX.setSingleStep(1.0)
-        self.minorTicksStepX.setProperty("value", 5.0)
+        self.minorTicksStepX.setMinimum(2)
+        self.minorTicksStepX.setMaximum(10)
+        self.minorTicksStepX.setProperty("value", 5)
         self.minorTicksStepX.setObjectName("minorTicksStepX")
         self.horizontalLayout_10.addWidget(self.minorTicksStepX)
         self.verticalLayout_3.addLayout(self.horizontalLayout_10)
@@ -241,7 +239,7 @@ class Ui_CornplotGui(object):
         self.originWidthX.setMinimum(0.25)
         self.originWidthX.setMaximum(10.0)
         self.originWidthX.setSingleStep(0.25)
-        self.originWidthX.setProperty("value", 0.5)
+        self.originWidthX.setProperty("value", 1.0)
         self.originWidthX.setObjectName("originWidthX")
         self.horizontalLayout_13.addWidget(self.originWidthX)
         self.gridLayout_2.addLayout(self.horizontalLayout_13, 2, 0, 1, 1)
@@ -422,15 +420,13 @@ class Ui_CornplotGui(object):
         self.minorTicksWidthY.setProperty("value", 0.5)
         self.minorTicksWidthY.setObjectName("minorTicksWidthY")
         self.horizontalLayout_52.addWidget(self.minorTicksWidthY)
-        self.minorTicksStepY = QtWidgets.QDoubleSpinBox(parent=self.gridGroup_2)
+        self.minorTicksStepY = QtWidgets.QSpinBox(parent=self.gridGroup_2)
         self.minorTicksStepY.setEnabled(False)
         self.minorTicksStepY.setWrapping(False)
         self.minorTicksStepY.setFrame(True)
-        self.minorTicksStepY.setDecimals(0)
-        self.minorTicksStepY.setMinimum(1.0)
-        self.minorTicksStepY.setMaximum(10.0)
-        self.minorTicksStepY.setSingleStep(1.0)
-        self.minorTicksStepY.setProperty("value", 5.0)
+        self.minorTicksStepY.setMinimum(2)
+        self.minorTicksStepY.setMaximum(10)
+        self.minorTicksStepY.setProperty("value", 5)
         self.minorTicksStepY.setObjectName("minorTicksStepY")
         self.horizontalLayout_52.addWidget(self.minorTicksStepY)
         self.verticalLayout_14.addLayout(self.horizontalLayout_52)
@@ -458,7 +454,7 @@ class Ui_CornplotGui(object):
         self.originWidthY.setMinimum(0.25)
         self.originWidthY.setMaximum(10.0)
         self.originWidthY.setSingleStep(0.25)
-        self.originWidthY.setProperty("value", 0.5)
+        self.originWidthY.setProperty("value", 1.0)
         self.originWidthY.setObjectName("originWidthY")
         self.horizontalLayout_53.addWidget(self.originWidthY)
         self.gridLayout_7.addLayout(self.horizontalLayout_53, 2, 0, 1, 1)
@@ -1587,7 +1583,6 @@ class Ui_CornplotGui(object):
         self.majorTicksCheckX.toggled['bool'].connect(self.majorTicksWidthX.setEnabled) # type: ignore
         self.minorTicksCheckX.toggled['bool'].connect(self.minorTicksX.setEnabled) # type: ignore
         self.minorTicksCheckX.toggled['bool'].connect(self.minorTicksWidthX.setEnabled) # type: ignore
-        self.minorTicksCheckX.toggled['bool'].connect(self.minorTicksStepX.setEnabled) # type: ignore
         self.okButton.clicked.connect(CornplotGui.close) # type: ignore
         self.integralPlot.toggled['bool'].connect(self.integralPlotNewWindow.setEnabled) # type: ignore
         self.deleteConstantCheckbox.toggled['bool'].connect(self.deleteConstantPolynomOrder.setEnabled) # type: ignore
@@ -1596,7 +1591,6 @@ class Ui_CornplotGui(object):
         self.majorTicksCheckY.toggled['bool'].connect(self.majorTicksWidthY.setEnabled) # type: ignore
         self.minorTicksCheckY.toggled['bool'].connect(self.minorTicksY.setEnabled) # type: ignore
         self.minorTicksCheckY.toggled['bool'].connect(self.minorTicksWidthY.setEnabled) # type: ignore
-        self.minorTicksCheckY.toggled['bool'].connect(self.minorTicksStepY.setEnabled) # type: ignore
         self.originCheckX.toggled['bool'].connect(self.originWidthX.setEnabled) # type: ignore
         self.originCheckX.toggled['bool'].connect(self.label_14.setEnabled) # type: ignore
         self.originCheckY.toggled['bool'].connect(self.label_62.setEnabled) # type: ignore
@@ -1611,6 +1605,8 @@ class Ui_CornplotGui(object):
         self.minorGridAction.toggled['bool'].connect(self.minorTicksCheckY.setChecked) # type: ignore
         self.majorGridAction.toggled['bool'].connect(self.majorTicksCheckX.setChecked) # type: ignore
         self.majorGridAction.toggled['bool'].connect(self.majorTicksCheckY.setChecked) # type: ignore
+        self.minorTicksCheckY.toggled['bool'].connect(self.minorTicksStepY.setEnabled) # type: ignore
+        self.minorTicksCheckX.toggled['bool'].connect(self.minorTicksStepX.setEnabled) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(CornplotGui)
 
     def retranslateUi(self, CornplotGui):
@@ -1811,7 +1807,7 @@ class Ui_CornplotGui(object):
         self.deletePlotAction.setText(_translate("CornplotGui", "Удалить текущий график"))
         self.deletePlotAction.setShortcut(_translate("CornplotGui", "Shift+Del"))
         self.backgroundColorAction.setText(_translate("CornplotGui", "Цвет фона..."))
-        self.drawOriginAction.setText(_translate("CornplotGui", "Оси"))
+        self.drawOriginAction.setText(_translate("CornplotGui", "Рисовать оси"))
         self.drawTicksAction.setText(_translate("CornplotGui", "Подписи осей"))
         self.drawLabelsAction.setText(_translate("CornplotGui", "Назвагия осей"))
         self.fontAction.setText(_translate("CornplotGui", "Шрифт..."))

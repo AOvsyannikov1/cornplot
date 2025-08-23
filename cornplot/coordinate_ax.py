@@ -9,7 +9,7 @@ class CoordinateAx:
         self.pen_major.setStyle(Qt.PenStyle.SolidLine)
         self.pen_minor = QPen(QColor(145, 145, 145), 0.25)
         self.pen_minor.setStyle(Qt.PenStyle.SolidLine)
-        self.origin_pen = QPen(QColor(0, 0, 0), 0.5)
+        self.origin_pen = QPen(QColor(0, 0, 0), 1.0)
 
         self.minor_step_ratio = 5
 

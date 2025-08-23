@@ -1,11 +1,11 @@
 from time import monotonic
 
-from PyQt6.QtWidgets import QPushButton, QFrame
-from PyQt6.QtGui import QFont, QIcon
+from PyQt6.QtWidgets import QPushButton, QWidget
+from PyQt6.QtGui import QIcon, QEnterEvent
 from .utils import button_style, get_image_path
 
 class ButtonGroup:
-    def __init__(self, widget: QFrame, w, h):
+    def __init__(self, widget: QWidget, w, h):
         self.pause_button = QPushButton(widget)
         self.pause_button.setGeometry(w - 56, 22, 25, 25)
         self.pause_button.setIcon(QIcon(get_image_path("pause.png")))
@@ -144,7 +144,7 @@ class ButtonGroup:
         self.restart_button.setGeometry(button_x0, button_y0, button_size, button_size)
         self.pause_button.setGeometry(button_x0 - button_step, button_y0, button_size, button_size)
 
-    def __restart_timer(self, a0):
+    def __restart_timer(self, a0: QEnterEvent):
         self.__button_tmr = monotonic()
 
     def process_visibility(self):

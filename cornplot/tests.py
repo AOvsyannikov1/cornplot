@@ -13,13 +13,13 @@ def show_demo_plots_1():
     Y5 = (1 / np.sqrt(1 + X ** 2))
     Y6 = np.tanh(X)
 
-    plt.window(1)
+    plt.window(1, x=50, y=50)
     plt.plot(X, Y1, name="Sin x")
     plt.plot(X, Y2, name="Cos x")
     plt.plot(X, Y3, name="Gauss")
     plt.plot(X, Y4, name="Sigmoid")
 
-    plt.window(2)
+    plt.window(2, x=200, y=100)
     plt.subplot(2, 3, 1, link_subplots=True)
     plt.plot(X, Y1, name="Sin x")
 
@@ -38,7 +38,7 @@ def show_demo_plots_1():
     plt.subplot(2, 3, 6, link_subplots=True)
     plt.plot(X, Y6, name="Сигмоида")
 
-    plt.window(3)
+    plt.window(3, x=500, y=200)
     plt.subplot(6, 1, 1, link_subplots=True)
     plt.plot(X, Y1, name="Sin x")
 

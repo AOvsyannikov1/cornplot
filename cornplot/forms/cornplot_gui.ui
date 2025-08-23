@@ -418,7 +418,7 @@
                        </widget>
                       </item>
                       <item>
-                       <widget class="QDoubleSpinBox" name="minorTicksStepX">
+                       <widget class="QSpinBox" name="minorTicksStepX">
                         <property name="enabled">
                          <bool>false</bool>
                         </property>
@@ -428,20 +428,14 @@
                         <property name="frame">
                          <bool>true</bool>
                         </property>
-                        <property name="decimals">
-                         <number>0</number>
-                        </property>
                         <property name="minimum">
-                         <double>1.000000000000000</double>
+                         <number>2</number>
                         </property>
                         <property name="maximum">
-                         <double>10.000000000000000</double>
-                        </property>
-                        <property name="singleStep">
-                         <double>1.000000000000000</double>
+                         <number>10</number>
                         </property>
                         <property name="value">
-                         <double>5.000000000000000</double>
+                         <number>5</number>
                         </property>
                        </widget>
                       </item>
@@ -506,7 +500,7 @@
                        <double>0.250000000000000</double>
                       </property>
                       <property name="value">
-                       <double>0.500000000000000</double>
+                       <double>1.000000000000000</double>
                       </property>
                      </widget>
                     </item>
@@ -896,7 +890,7 @@
                        </widget>
                       </item>
                       <item>
-                       <widget class="QDoubleSpinBox" name="minorTicksStepY">
+                       <widget class="QSpinBox" name="minorTicksStepY">
                         <property name="enabled">
                          <bool>false</bool>
                         </property>
@@ -906,20 +900,14 @@
                         <property name="frame">
                          <bool>true</bool>
                         </property>
-                        <property name="decimals">
-                         <number>0</number>
-                        </property>
                         <property name="minimum">
-                         <double>1.000000000000000</double>
+                         <number>2</number>
                         </property>
                         <property name="maximum">
-                         <double>10.000000000000000</double>
-                        </property>
-                        <property name="singleStep">
-                         <double>1.000000000000000</double>
+                         <number>10</number>
                         </property>
                         <property name="value">
-                         <double>5.000000000000000</double>
+                         <number>5</number>
                         </property>
                        </widget>
                       </item>
@@ -984,7 +972,7 @@
                        <double>0.250000000000000</double>
                       </property>
                       <property name="value">
-                       <double>0.500000000000000</double>
+                       <double>1.000000000000000</double>
                       </property>
                      </widget>
                     </item>
@@ -3221,7 +3209,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Оси</string>
+    <string>Рисовать оси</string>
    </property>
   </action>
   <action name="drawTicksAction">
@@ -3602,22 +3590,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>minorTicksCheckX</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>minorTicksStepX</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>71</x>
-     <y>344</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>329</x>
-     <y>344</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>okButton</sender>
    <signal>clicked()</signal>
    <receiver>CornplotGui</receiver>
@@ -3741,22 +3713,6 @@
     </hint>
     <hint type="destinationlabel">
      <x>628</x>
-     <y>332</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>minorTicksCheckY</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>minorTicksStepY</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>455</x>
-     <y>332</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>705</x>
      <y>332</y>
     </hint>
    </hints>
@@ -3982,6 +3938,38 @@
     <hint type="destinationlabel">
      <x>457</x>
      <y>337</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>minorTicksCheckY</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>minorTicksStepY</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>457</x>
+     <y>365</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>709</x>
+     <y>365</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>minorTicksCheckX</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>minorTicksStepX</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>81</x>
+     <y>365</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>333</x>
+     <y>365</y>
     </hint>
    </hints>
   </connection>

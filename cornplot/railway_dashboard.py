@@ -50,7 +50,8 @@ try:
         def set_profile(self, profile: SlopeCreator):
             if self.__profile_data is not profile:
                 self.delete_all_plots()
-                self.add_plot(*profile.get_absolute_heights(), name="Высота пути", color=0x999999)
+                heights = profile.get_absolute_heights()
+                self.add_plot(heights[0], heights[1], name="Высота пути", color=0x999999)
                 self.__track_data.clear()
 
                 if profile.semaphores:

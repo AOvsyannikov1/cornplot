@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'eqGui.ui'
+# Form implementation generated from reading ui file './cornplot/forms/eqGui.ui'
 #
 # Created by: PyQt6 UI code generator 6.9.1
 #
@@ -30,6 +30,7 @@ class Ui_Form(object):
         sizePolicy.setHeightForWidth(self.eqName.sizePolicy().hasHeightForWidth())
         self.eqName.setSizePolicy(sizePolicy)
         self.eqName.setText("")
+        self.eqName.setMaxLength(32)
         self.eqName.setObjectName("eqName")
         self.horizontalLayout_2.addWidget(self.eqName)
         self.verticalLayout.addLayout(self.horizontalLayout_2)
@@ -44,6 +45,7 @@ class Ui_Form(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.eqLine.sizePolicy().hasHeightForWidth())
         self.eqLine.setSizePolicy(sizePolicy)
+        self.eqLine.setMaxLength(64)
         self.eqLine.setObjectName("eqLine")
         self.horizontalLayout.addWidget(self.eqLine)
         self.verticalLayout.addLayout(self.horizontalLayout)
