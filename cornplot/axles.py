@@ -2,8 +2,8 @@ import os, warnings
 from math import log10, floor, ceil, pow
 
 from PyQt6.QtCore import Qt, QLineF, QRectF, pyqtSlot as Slot, QRect, QTimer
-from PyQt6.QtGui import QPen, QColor, QPainter, QFont, QFontMetrics
-from PyQt6.QtWidgets import QFileDialog, QWidget, QGestureEvent, QPinchGesture, QPanGesture, QTapGesture, QTapAndHoldGesture
+from PyQt6.QtGui import QPen, QColor, QPainter, QFont, QFontMetrics, QContextMenuEvent
+from PyQt6.QtWidgets import QFileDialog, QWidget, QGestureEvent, QPinchGesture, QPanGesture, QTapGesture, QTapAndHoldGesture, QMenu
 
 from .utils import *
 
@@ -813,6 +813,18 @@ class Axles(QWidget):
         self.__group.update_x_borders(self._xstart, self._xstop)
         self._recalculate_window_coords()
         self._redraw_required = True
+
+    def contextMenuEvent(self, a0: QContextMenuEvent):
+        menu = QMenu(self)
+        add_scanner = menu.addAction("Добавить линию-сканер")
+        zoom_out = menu.addAction("Исходный масштаб")
+        clear = menu.addAction("Очистить оси")
+
+        add_scanner.triggered.connect(self.__add_scanner)
+        zoom_out.triggered.connect(self._zoom_out)
+        clear.triggered.connect(self.__clear_axles)
+
+        menu.exec(a0.globalPos())
 
     def event(self, a0):
         if isinstance(a0, QGestureEvent):
