@@ -7,7 +7,4 @@ class PlotterWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowIcon(QIcon(get_image_path("icon.png")))
-
-    def open(self):
-        self.show()
     

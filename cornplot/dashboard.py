@@ -1,5 +1,6 @@
-import pickle, time
+import pickle
 from math import log2, floor
+from time import monotonic
 
 from PyQt6.QtCore import QPointF, QLineF, QRectF, pyqtSlot, QRect
 from PyQt6.QtWidgets import QMessageBox
@@ -108,7 +109,7 @@ class Dashboard(Axles):
         self._force_redraw()
         return True
     
-    def update_plot(self, name: str, x_arr, y_arr=None, rescale_x=False, rescale_y=False):
+    def update_plot(self, name: str, x_arr, y_arr=None, rescale_y=False):
         if not hasattr(x_arr, "__iter__"):
             return False
         if y_arr is None:
@@ -343,7 +344,7 @@ class Dashboard(Axles):
     def _redraw(self):
         if not self.visible:
             return
-        t0 = time.time()
+        t0 = monotonic()
         super()._redraw()
 
         scanner_coords = self._scanner_coords()
@@ -382,8 +383,7 @@ class Dashboard(Axles):
         if not self.is_animated() or self.is_paused():
             self._redraw_required = False
         
-        
-        self.__redraw_time = time.time() - t0
+        self.__redraw_time = monotonic() - t0
 
     def __create_value_pointer(self, xwin, plt: Plot):
         if len(plt.Y) <= 1:
@@ -517,7 +517,7 @@ class Dashboard(Axles):
             self._qp.drawRect(x, y, w, h)
 
             self._qp.setPen(QColor(210, 210, 210) if self.dark else QColor(0, 0, 0))
-            self._qp.setFont(QFont("Consolas, Arial", 8))
+            self._qp.setFont(QFont("Consolas, Courier New", 8))
             self._qp.drawText(x, y + h + 10, str(min(plt.Y)))
             self._qp.drawText(x + w - 15, y + h + 10, str(max(plt.Y)))
 

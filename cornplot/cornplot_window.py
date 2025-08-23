@@ -429,7 +429,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
 
         try:
             self.colorButton.clicked.disconnect()
-        except:
+        except TypeError:
             pass
         self.colorButton.clicked.connect(lambda: self.__open_color_dialog(plot))
         self.colorButton.setStyleSheet(f"""QPushButton
@@ -459,7 +459,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
 
         try:
             self.deletePlotButton.clicked.disconnect()
-        except:
+        except TypeError:
             pass
             
         self.nPoints.setText(str(len(plot.X)))
@@ -572,9 +572,6 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
                 self.__find_curve_length(plot, i0, ik)
 
     def __find_derivative_in_point(self, plot: Plot, i):
-        # if not self.__derivWinFirst:
-        #     self.__derivWin.open()
-
         x_arr = plot.X
         y_arr = plot.Y
         if self.__dashboard.is_animated() and x_arr[0] > 0:
@@ -631,7 +628,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
             else:
                 self.__derivWin.dashboard.disable_human_time_display()
             self.__derivWin.dashboard.set_initial_timestamp(x_to_diff[0] + self.__dashboard.get_initial_timestamp())
-            self.__derivWin.open()
+            self.__derivWin.show()
             self.__derivWinFirst = False
         else:
             self.__dashboard.delete_plot(f"{self.plotName.currentText()} (производная)")
@@ -666,7 +663,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
                 else:
                     self.__derivWin.dashboard.disable_human_time_display()
                 self.__derivWin.dashboard.set_initial_timestamp(x_arr[0] + self.__dashboard.get_initial_timestamp())
-                self.__derivWin.open()
+                self.__derivWin.show()
                 self.__derivWinFirst = False
             else:
                 color = plot.pen.color().darker(160).name()
@@ -720,6 +717,9 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
             self.__fft_tmr.timeout.connect(self.__periodical_fft)
             self.__fft_tmr.start(250)
         else:
+            self.__fftWindow.dashboard_a.delete_all_plots()
+            self.__fftWindow.dashboard_f.delete_all_plots()
+            self.__fftWindow.dashboard_source.delete_all_plots()
             if self.__fftWindow.isVisible():
                 try:
                     self.__fftWindow.close_signal.disconnect()
@@ -727,7 +727,10 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
                     pass
                 self.__fftWindow.close()
                 self.__fft_tmr.stop()
-                self.__fft_tmr.timeout.disconnect()
+                try:
+                    self.__fft_tmr.timeout.disconnect()
+                except TypeError:
+                    pass
                 self.periodicalFft.setChecked(False)
 
     @Slot()
@@ -859,9 +862,9 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         F.insert(0, np.rad2deg(np.angle(spectr[0])))
 
         if periodical:
-            self.__fftWindow.dashboard_a.update_plot('Амплитудный спектр', right_freq, A, rescale_y=True, rescale_x=True)
-            self.__fftWindow.dashboard_f.update_plot('Фазовый спектр', right_freq, F, rescale_y=True, rescale_x=True)
-            self.__fftWindow.dashboard_source.update_plot('Оригинал', x_arr, y_arr, rescale_x=True, rescale_y=True)
+            self.__fftWindow.dashboard_a.update_plot('Амплитудный спектр', right_freq, A, rescale_y=True)
+            self.__fftWindow.dashboard_f.update_plot('Фазовый спектр', right_freq, F, rescale_y=True)
+            self.__fftWindow.dashboard_source.update_plot('Оригинал', x_arr, y_arr, rescale_y=True)
         else:
             self.__fftWindow.dashboard_a.delete_all_plots()
             self.__fftWindow.dashboard_f.delete_all_plots()
@@ -871,7 +874,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
             self.__fftWindow.dashboard_f.add_plot(right_freq, F, name='Фазовый спектр', color="#1560bd", accurate=True)
             self.__fftWindow.dashboard_source.add_plot(x_arr, y_arr, name='Оригинал', color="#1560bd")
             self.__fftWindow.setWindowTitle(f"Преобразование Фурье {plot.name}")
-            self.__fftWindow.open()
+            self.__fftWindow.show()
 
     @Slot()
     def __filter_plot(self):

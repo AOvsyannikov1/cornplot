@@ -1,7 +1,4 @@
-
-
 class AxleSlider:
-
     def __init__(self):
         self.__mouse_on = False
         self.__x = -1

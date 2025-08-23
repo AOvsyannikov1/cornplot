@@ -1,4 +1,4 @@
-import os, time, warnings
+import os, warnings
 from math import log10, floor, ceil, pow
 
 from PyQt6.QtCore import Qt, QLineF, QRectF, pyqtSlot as Slot, QRect, QTimer
@@ -13,6 +13,7 @@ from .action_buffer import ActionBuffer
 from .array_utils import *
 from .axle_group_data import AxleGroupData, MAX_SCANNER_LINES
 from .coordinate_ax import CoordinateAx
+from .scanner_lines import VerticalLineList
 
 
 axle_groups: dict[str, AxleGroupData] = dict()
@@ -30,8 +31,8 @@ class Axles(QWidget):
         self._widget = widget
         self.setParent(widget)
         self.__group = AxleGroupData()
-        self.__scale_lines = self.__group.scale_lines
-        self.__scanner_lines = self.__group.scanner_lines
+        self.__scale_lines: VerticalLineList = self.__group.scale_lines
+        self.__scanner_lines: VerticalLineList = self.__group.scanner_lines
 
         self.__slider = AxleSlider()
         self.__action_buffer = ActionBuffer()
@@ -140,7 +141,7 @@ class Axles(QWidget):
         self._update_step_y()
         self.__recalculate_slider_coords()
 
-        set_default_cursor()
+        self.setCursor(Qt.CursorShape.ArrowCursor)
 
         self.tmr = QTimer(self)
         self.tmr.timeout.connect(self.__timer_callback)
@@ -359,19 +360,6 @@ class Axles(QWidget):
         self._y_axle.name = name
         self._redraw_required = True
 
-    def leaveEvent(self, a0):
-        self.clearFocus()
-        self.__mouse_on = False
-        self.__ctrl_pressed = False
-        self.__shift_pressed = False
-        self.__left_button_pressed = False
-        self.__slider.set_mouse_on(False)
-        self.__deselect_all_lines()
-
-    def enterEvent(self, a0):
-        self.setFocus()
-        self.__mouse_on = True
-
     @Slot()
     def _zoom_in(self):
         if self.__scale_lines.line_count() < 2:
@@ -397,7 +385,7 @@ class Axles(QWidget):
             self._redraw_required = True
 
         self.__delete_scale_lines()
-        set_default_cursor()
+        self.setCursor(Qt.CursorShape.ArrowCursor)
         
     def _zoom_out(self):
         if self._x_axle.logarithmic or self._y_axle.logarithmic:
@@ -523,10 +511,46 @@ class Axles(QWidget):
         self._recalculate_window_coords()
         self._redraw_required = True
 
+    def _recalculate_window_coords(self):
+        self.__recalculate_slider_coords()
+
+    def _calculate_x_parameters(self):
+        pass
+
+    def _calculate_y_parameters(self):
+        pass
+
+    def __save_picture(self):
+        if self.__animated:
+            self.pause(True)
+        self.__btn_group.set_buttons_visible(False)
+        grab = self.grab(QRect(0, 0, self.width() + 10, self.height()))
+        fileName, _ = QFileDialog.getSaveFileName(self, "Сохранить картинку", "",
+                                                            "PNG Files (*.png)")
+        if len(fileName) > 0:
+            grab.save(fileName, 'png')
+            os.startfile(fileName)
+        self.__btn_group.set_buttons_visible(True)
+        if self.__animated:
+            self.pause(False)
+
+    def leaveEvent(self, a0):
+        self.clearFocus()
+        self.__mouse_on = False
+        self.__ctrl_pressed = False
+        self.__shift_pressed = False
+        self.__left_button_pressed = False
+        self.__slider.set_mouse_on(False)
+        self.__deselect_all_lines()
+        self.setCursor(Qt.CursorShape.ArrowCursor)
+
+    def enterEvent(self, a0):
+        self.setFocus()
+        self.__mouse_on = True
+
     def mouseMoveEvent(self, a0):
         pos = a0.pos()
         if pos.y() < self._MIN_Y and not self.__zoom_active:
-            set_default_cursor()
             self.__slider.release()
         
         pos_x = pos.x() - self._MIN_X
@@ -562,7 +586,7 @@ class Axles(QWidget):
                             self.__group.line_move_signal.emit()
 
         if self.__left_button_pressed:
-            if self.__mouse_on and self.__ctrl_pressed:
+            if self.__ctrl_pressed:
                 if self.__animated and not self.__paused:
                     return
 
@@ -634,6 +658,10 @@ class Axles(QWidget):
         match a0.button():
             case Qt.MouseButton.LeftButton:
                 self.__left_button_pressed = True
+
+                if self.__ctrl_pressed:
+                    self.setCursor(Qt.CursorShape.ClosedHandCursor)
+
                 if not self.__scanner_lines.any_selected() and not self.__scale_lines.any_selected():
                     if self.__animated and not self.__paused:
                         return
@@ -672,6 +700,11 @@ class Axles(QWidget):
             case Qt.MouseButton.LeftButton:
                 self.__left_button_pressed = False
                 self.__scaling_rect_drawing = False
+
+                if self.__ctrl_pressed:
+                    self.setCursor(Qt.CursorShape.OpenHandCursor)
+                else:
+                    self.setCursor(Qt.CursorShape.ArrowCursor)
 
                 if self.__slider.is_pressed():
                     self.__slider.release()
@@ -713,31 +746,7 @@ class Axles(QWidget):
                 if self._point_added:
                     self._point_added = False
 
-    def _recalculate_window_coords(self):
-        self.__recalculate_slider_coords()
-
-    def _calculate_x_parameters(self):
-        pass
-
-    def _calculate_y_parameters(self):
-        pass
-
-    def __save_picture(self):
-        if self.__animated:
-            self.pause(True)
-        self.__btn_group.set_buttons_visible(False)
-        grab = self.grab(QRect(0, 0, self.width() + 10, self.height()))
-        fileName, _ = QFileDialog.getSaveFileName(self, "Сохранить картинку", "",
-                                                            "PNG Files (*.png)")
-        if len(fileName) > 0:
-            grab.save(fileName, 'png')
-            os.startfile(fileName)
-        self.__btn_group.set_buttons_visible(True)
-        if self.__animated:
-            self.pause(False)
-
     def mouseDoubleClickEvent(self, a0):
-        set
         if a0.pos().y() < self._OFFSET_Y_UP or self.__slider.is_pressed():
             return
         match a0.button():
@@ -759,18 +768,28 @@ class Axles(QWidget):
                 if not self.__slider.mouse_on():
                     if not self._x_axle.logarithmic and not self._y_axle.logarithmic:
                         self.__shift_pressed = True
-                        set_cursor_shape(Qt.CursorShape.CrossCursor)
+                        self.setCursor(Qt.CursorShape.CrossCursor)
                 self.__ctrl_pressed = False
             case Qt.Key.Key_Control:
                 if not self.__slider.mouse_on():
                     self.__ctrl_pressed = True
-                    set_cursor_shape(Qt.CursorShape.SizeAllCursor)
+                    self.setCursor(Qt.CursorShape.OpenHandCursor)
                 self.__shift_pressed = False
             case Qt.Key.Key_Plus:
                 if self.__scale_lines.line_count() == 2:
                     self._zoom_in()
             case Qt.Key.Key_Minus:
                 self._zoom_out()
+
+    def keyReleaseEvent(self, a0):
+        match a0.key():
+            case Qt.Key.Key_Shift:
+                self.__scaling_rect_drawing = False
+                self.__shift_pressed = False
+                self.setCursor(Qt.CursorShape.ArrowCursor)
+            case Qt.Key.Key_Control:
+                self.__ctrl_pressed = False
+                self.setCursor(Qt.CursorShape.ArrowCursor)
 
     def wheelEvent(self, a0):
         delta = a0.angleDelta().y()
@@ -786,22 +805,6 @@ class Axles(QWidget):
         self.__group.update_x_borders(self._xstart, self._xstop)
         self._recalculate_window_coords()
         self._redraw_required = True
-
-    def _get_width(self):
-        return self.__w
-    
-    def _get_heignt(self):
-        return self.__h
-
-    def keyReleaseEvent(self, a0):
-        match a0.key():
-            case Qt.Key.Key_Shift:
-                self.__scaling_rect_drawing = False
-                self.__shift_pressed = False
-                set_default_cursor()
-            case Qt.Key.Key_Control:
-                self.__ctrl_pressed = False
-                set_default_cursor()
 
     def event(self, a0):
         if isinstance(a0, QGestureEvent):
@@ -826,23 +829,18 @@ class Axles(QWidget):
             ...
         elif gesture.state() == Qt.GestureState.GestureUpdated:
             center = gesture.centerPoint()
-            center.setX(center.x() - self.parent().x())
-            center.setY(center.y() - self.parent().y())
-            center_x = self._window_to_real_x(center.x() - self.x() - self._MIN_X)
-            center_y = self._window_to_real_y(center.y() - self.y() - self._MIN_Y)
+            center = self.mapFromGlobal(center)
+            center.setX(self._window_to_real_x(center.x() - self._MIN_X))
+            center.setY(self._window_to_real_y(center.y() - self._MIN_Y))
 
-            scale_factor_x = gesture.scaleFactor()# (1 - gesture.scaleFactor()) * abs(np.cos(angle))
-            scale_factor_y = gesture.scaleFactor()# (1 - gesture.scaleFactor()) * abs(np.sin(angle))
+            scale_factor_x = gesture.scaleFactor()
+            scale_factor_y = gesture.scaleFactor()
             
-            if scale_factor_x > 0:
-                left_size = abs(center_x - self._xstart) /(scale_factor_x)
-                right_size = abs(self._xstop - center_x) / (scale_factor_x)
-            else:
-                left_size = abs(center_x - self._xstart) / (abs(scale_factor_x))
-                right_size = abs(self._xstop - center_x) / (abs(scale_factor_x))
+            left_size = abs(center.x() - self._xstart) /(scale_factor_x)
+            right_size = abs(self._xstop - center.x()) / (scale_factor_x)
 
-            self._xstart = center_x - left_size
-            self._xstop = center_x + right_size
+            self._xstart = center.x() - left_size
+            self._xstop = center.x() + right_size
             recalc = False
             if self._xstart < self._x_axis_min and self._xstop > self._x_axis_max:
                 self._xstart = self._x_axis_min
@@ -861,11 +859,11 @@ class Axles(QWidget):
             self._real_width = self._xstop - self._xstart
             self._update_x_borders(self._xstart, self._xstop)
 
-            down_size = abs(center_y - self._ystart) / scale_factor_y
-            up_size = abs(self._ystop - center_y) / scale_factor_y
+            down_size = abs(center.y() - self._ystart) / scale_factor_y
+            up_size = abs(self._ystop - center.y()) / scale_factor_y
 
-            ystart_new = center_y - down_size
-            ystop_new = center_y + up_size
+            ystart_new = center.y() - down_size
+            ystop_new = center.y() + up_size
             ymax = self._y_axis_max + self._Y_STOP_COEFF
             ymin = self._y_axis_min - self._Y_STOP_COEFF
             if ystart_new < ymin and ystop_new > ymax:
@@ -948,6 +946,12 @@ class Axles(QWidget):
             pass
         elif gesture.state() == Qt.GestureState.GestureFinished:
             pass
+    
+    def _get_width(self):
+        return self.__w
+    
+    def _get_heignt(self):
+        return self.__h
 
     def _real_to_window_x(self, x: float) -> float:
         """Перевод реальных координат оси х в оконные"""
@@ -1019,7 +1023,7 @@ class Axles(QWidget):
         self._x_axle.label_size = QFontMetrics(font).horizontalAdvance(self._x_axle.name)
           
         if self._x_axle.draw_label:
-            self._qp.drawText(self._MAX_X - 500, self._MAX_Y + 3, 500, 20,
+            self._qp.drawText(self._MAX_X - self._x_axle.label_size, self._MAX_Y + 3, self._x_axle.label_size, 20,
                               Qt.AlignmentFlag.AlignRight, self._x_axle.name)  # имя оси Х
         
         font.setBold(False)
@@ -1217,10 +1221,10 @@ class Axles(QWidget):
         self.update()
 
     def _draw_scanner_lines(self):
-        prev_val_line_coord_xwin = 0
-        prev_val_line_coord_xreal = 0
+        line_real_coords = list()
+        line_window_coords = list()
 
-        for i, line in enumerate(self.__scanner_lines):
+        for line in self.__scanner_lines:
             if not line.is_visible():
                 continue
 
@@ -1266,42 +1270,49 @@ class Axles(QWidget):
                 self._qp.setPen(QPen(QColor(col), th, Qt.PenStyle.DashLine))
                 self._qp.drawLine(QLineF(x_win, self._MIN_Y, x_win, self._MAX_Y))
 
-                if i > 0:
-                    y = self._MIN_Y + 2
-                    pen = QPen(0xFFFFFF if self.dark else 0)
-                    pen.setWidthF(1)
-                    pen.setStyle(Qt.PenStyle.DashDotLine)
-                    self._qp.setPen(pen)
-                    self._qp.drawLine(QLineF(x_win, y, prev_val_line_coord_xwin, y))
+                line_real_coords.append(x_real)
+                line_window_coords.append(x_win)
+            
+        if len(line_real_coords) > 1:
+            line_real_coords.sort()
+            line_window_coords.sort()
 
-                    self._qp.setPen(QColor(0, 0, 0, 0))
+            for i, (x_win, x_real) in enumerate(zip(line_window_coords, line_real_coords)):
+                if i == 0:
+                    continue
 
-                    dx = abs(x_real - prev_val_line_coord_xreal)
-                    if self.__convert_to_hhmmss:
-                        tmp_str = convert_timestamp_to_human_time(dx, millis=True)
+                y = self._MIN_Y + 2
+                pen = QPen(0xFFFFFF if self.dark else 0)
+                pen.setWidthF(1)
+                pen.setStyle(Qt.PenStyle.DashDotLine)
+                self._qp.setPen(pen)
+                self._qp.drawLine(QLineF(x_win, y, line_window_coords[i - 1], y))
+
+                self._qp.setPen(QColor(0, 0, 0, 0))
+
+                dx = abs(x_real - line_real_coords[i - 1])
+                if self.__convert_to_hhmmss:
+                    tmp_str = convert_timestamp_to_human_time(dx, millis=True)
+                else:
+                    digit_count = get_digit_count_after_dot(self.__step_grid_x / self._x_axle.divisor) + 1
+                    tmp_str = f"{dx:.{digit_count}f}"
+                font = QFont("Consolas, Courier New", 10)
+                font.setBold(True)
+                self._qp.setPen(0xFFFFFF if self.dark else 0)
+                self._qp.setFont(font)
+                text_width = qm.size(0, tmp_str).width()
+                rectW = text_width + 10
+                rect_x = (min(line_window_coords[i - 1], (x_win)) +
+                          (abs(line_window_coords[i - 1] - (x_win)) - rectW) // 2)
+                rectY = y + 3
+                if abs(line_window_coords[i - 1] - (x_win)) < rectW:
+                    if rect_x > self.__w / 2:
+                        rect_x -= rectW
                     else:
-                        digit_count = get_digit_count_after_dot(self.__step_grid_x / self._x_axle.divisor) + 1
-                        tmp_str = f"{dx:.{digit_count}f}"
-                    font = QFont("Consolas, Courier New", 10)
-                    font.setBold(True)
-                    self._qp.setPen(0xFFFFFF if self.dark else 0)
-                    self._qp.setFont(font)
-                    text_width = qm.size(0, tmp_str).width()
-                    rectW = text_width + 10
-                    rect_x = (min(prev_val_line_coord_xwin, (x_win)) +
-                              (abs(prev_val_line_coord_xwin - (x_win)) - rectW) // 2)
-                    rectY = y + 3
-                    if abs(prev_val_line_coord_xwin - (x_win)) < rectW:
-                        if rect_x > self.__w / 2:
-                            rect_x -= rectW
-                        else:
-                            rect_x += rectW
+                        rect_x += rectW
 
-                    self._qp.drawText(QRectF(rect_x, rectY, rectW, rectH),
-                                      Qt.AlignmentFlag.AlignCenter, tmp_str)
-
-                prev_val_line_coord_xwin = x_win
-                prev_val_line_coord_xreal = x_real
+                self._qp.drawText(QRectF(rect_x, rectY, rectW, rectH),
+                                  Qt.AlignmentFlag.AlignCenter, tmp_str)
 
     def _draw_scale_lines(self):
         self._qp.setFont(QFont("Consolas, Courier New", 10))

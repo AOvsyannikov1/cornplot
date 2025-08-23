@@ -62,34 +62,6 @@ def get_upper_index(number):
         return ("⁻" if number < 0 else "") + UPPER_INDEXES[ones]
     else:
         return ("⁻" if number < 0 else "") + UPPER_INDEXES[dozens] + UPPER_INDEXES[ones]
-    
-
-def set_cursor_shape(shape: Qt.CursorShape):
-    QGuiApplication.setOverrideCursor(QCursor(shape))
-
-
-def set_default_cursor():
-    QGuiApplication.restoreOverrideCursor()
-
-
-def set_open_hand_cursor():
-    QGuiApplication.setOverrideCursor(QCursor(Qt.CursorShape.OpenHandCursor))
-
-
-def set_grab_cursor():
-    QGuiApplication.setOverrideCursor(QCursor(Qt.CursorShape.ClosedHandCursor))
-
-
-def set_crossed_cursor():
-    QGuiApplication.setOverrideCursor(QCursor(Qt.CursorShape.CrossCursor))
-
-
-def set_pointing_cursor():
-    QGuiApplication.setOverrideCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-
-
-def set_split_cursor():
-    QGuiApplication.setOverrideCursor(QCursor(Qt.CursorShape.SplitHCursor))
 
 
 def arabic_to_romanian(number):
@@ -183,6 +155,7 @@ def get_image_path(filename: str) -> Path:
     
 
 def get_digit_count_after_dot(num: float):
+    num = round(num, 12)
     num = str(num)
     if '.' in num:
         return len(num.split('.')[-1])

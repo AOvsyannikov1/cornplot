@@ -27,10 +27,10 @@ class VerticalLine:
         self.__selected = val
 
 
-class VerticalLineList(list):
+class VerticalLineList(list[VerticalLine]):
 
     def __init__(self, n):
-        for i in range(n):
+        for _ in range(n):
             self.append(VerticalLine())
 
         self.last_line = 0

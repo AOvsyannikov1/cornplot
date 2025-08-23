@@ -79,6 +79,7 @@ try:
 
         def update_train(self, number: str, first_car_coord_m: float):
             self.__train_data.update_train(number, first_car_coord_m)
+            self._force_redraw()
 
         def __redraw_trains(self):
             coord_changed = False
@@ -125,7 +126,7 @@ try:
                     self._qp.setPen(QPen(QColor(128, 128, 128), 1, Qt.PenStyle.DashDotDotLine))
                     self._qp.drawLine(QLineF(x, y, x, self._MAX_Y))
                     self._qp.drawText(QPointF(x + 5, self._MAX_Y - 14), str(num))
-                    self._qp.drawText(QPointF(x + 5, self._MAX_Y - 2), f"x = {X[0] / self._x_axle.divisor:.2f} {'км' if self.__km else 'м'}")
+                    self._qp.drawText(QPointF(x + 5, self._MAX_Y - 2), f"x = {X[0] / self._x_axle.divisor:.2f} {'км' if self.__km else 'м'}; v = {train.speed:3.1f} км/ч")
                     self._qp.setPen(QPen(QColor(0xFF8000), 10, cap=Qt.PenCapStyle.SquareCap))
                     self._qp.drawPoint(QPointF(x, y))
 
@@ -200,7 +201,7 @@ try:
                                 self._qp.drawLine(QLineF(xwink, ywin0, xwink, self._MAX_Y))
 
                                 self._qp.drawText(QPointF(xwink + 5, self._MAX_Y - 14), str(num))
-                                self._qp.drawText(QPointF(xwink + 5, self._MAX_Y - 2), f"x = {X[0] / self._x_axle.divisor:.2f} {'км' if self.__km else 'м'}")
+                                self._qp.drawText(QPointF(xwink + 5, self._MAX_Y - 2), f"x = {X[0] / self._x_axle.divisor:.2f} {'км' if self.__km else 'м'}; v = {train.speed:3.1f} км/ч")
 
                     train.draw(self._qp, coords, compact=abs(self._real_to_window_x(X[0]) - self._real_to_window_x(X[-1])) / n_cars < 2)
 
