@@ -1195,10 +1195,10 @@ class Axles(QWidget):
                     self._qp.drawLine(QLineF(self._MIN_X, y_m, self._MAX_X, y_m))
 
         if self._y_axle.draw_minor_grid:
-            y0_minor = self._ystart - self._step_grid_y
-            yk_minor = y_metki_coords[0]
+            y0_minor = y_metki_coords[0]
+            yk_minor = self._ystart - self._step_grid_y
             ystep_minor = self._step_grid_y / self._y_axle.minor_step_ratio
-            y_min = arange(y0_minor, yk_minor + ystep_minor / 2, ystep_minor)
+            y_min = arange(y0_minor, yk_minor + ystep_minor / 2, -ystep_minor)
             y_minor = [self._real_to_window_y(y_m) for y_m in y_min]
             for y_m in y_minor:
                 if self._MIN_Y <= y_m <= self._MAX_Y and y_w != y_m:
