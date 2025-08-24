@@ -119,7 +119,13 @@ def round_value(num: float, digit_count=-1) -> str:
     st = str(num)
 
     if 'e' in st or 'E' in st:
-        return f"{num:.3e}"
+        if 'e' in st:
+            val, power = st.split('e')
+        else:
+            val, power = st.split('E')
+        val = float(val)
+        power = int(power)
+        return f"{val:.3f}×10{get_upper_index(int(power))}"
     
     if '.' in st:
         int_part, frac_part = st.split('.')
@@ -136,6 +142,8 @@ def round_value(num: float, digit_count=-1) -> str:
         if digit_count <= 4:
             return f"{num:.{digit_count}f}"
         else:
+            if num == 0:
+                return f"{num:.{digit_count}f}"
             return f"{num:.3e}"
     else:
         return st

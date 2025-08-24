@@ -51,8 +51,12 @@ def logatirhmic_curve(x, a, b):
     return a * np.log(x) + b
 
 
-def exp_curve(x, a, b, d):
+def exp_curve_var1(x, a, b, d):
     return a * np.exp(b * np.array(x)) + d
+
+
+def exp_curve_var2(x, a, b):
+    return a * (1 - np.exp(b * np.array(x)))
 
 
 def exponential_curve(x, a, b, c, e):
@@ -1029,13 +1033,17 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         # экспоненциальная аппроксимация
         elif self.expApprox.isChecked():
             try:
-                params = curve_fit(exp_curve, X_array, Y_array)[0]
+                params = curve_fit(exp_curve_var1, X_array, Y_array)[0]
+                func = exp_curve_var1
             except RuntimeError:
-                self.__show_error("Экспоненциальная аппроксимация не может быть выполнена!")
-                return
+                try:
+                    params = curve_fit(exp_curve_var2, X_array, Y_array)[0]
+                    func = exp_curve_var2
+                except RuntimeError:
+                    self.__show_error("Экспоненциальная аппроксимация не может быть выполнена!")
+                    return
             X = np.arange(X_array[0], X_array[-1], 0.1)
-            Y = [exp_curve(x, *params) for x in X]
-            print(X)
+            Y = [func(x, *params) for x in X]
             if float("inf") in Y:
                 self.__show_error("Экспоненциальная аппроксимация не может быть выполнена!")
                 return
