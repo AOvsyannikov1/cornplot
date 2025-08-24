@@ -36,11 +36,11 @@ setup(
     },
     install_requires=[
         "scipy>=1.16.1",
-        "PyQt5"
+        "PyQt6>=6.9.0"
     ],
     
     author="Ovsyannikov Andrey",
     author_email="andsup108@gmail.com",
     keywords="plot pyqt math",
-    python_requires='>=3.10'
+    python_requires='>=3.11'
 )
