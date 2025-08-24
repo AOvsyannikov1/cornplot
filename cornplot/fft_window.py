@@ -29,9 +29,9 @@ class FFTWindow(PlotterWindow):
 
     def resizeEvent(self, a0) -> None:
         h = (self.height() - 150) // 3
-        self.dashboard_a.set_geometry(90, 30, self.width() - 140, h)
-        self.dashboard_f.set_geometry(90, h + 70, self.width() - 140, h)
-        self.dashboard_source.set_geometry(90, 2 * h + 100, self.width() - 140, h)
+        self.dashboard_a.setGeometry(90, 30, self.width() - 140, h)
+        self.dashboard_f.setGeometry(90, h + 70, self.width() - 140, h)
+        self.dashboard_source.setGeometry(90, 2 * h + 100, self.width() - 140, h)
 
     def closeEvent(self, a0):
         self.close_signal.emit()

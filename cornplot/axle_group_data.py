@@ -1,4 +1,5 @@
 from PyQt6.QtCore import QObject, pyqtSignal as Signal
+    
 from .scanner_lines import VerticalLineList
 
 MAX_SCANNER_LINES = 3

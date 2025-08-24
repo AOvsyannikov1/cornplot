@@ -5,20 +5,21 @@ from enum import Enum
 from math import sqrt
 
 import numpy as np
-from PyQt6.QtCore import pyqtSignal as Signal, pyqtSlot as Slot, Qt, QTimer
-from PyQt6.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QColorDialog, QFontDialog
-from PyQt6.QtGui import QIcon, QColor, QFont, QPainter, QAction, QActionGroup, QShortcut, QKeySequence
 
+from PyQt6.QtCore import pyqtSignal as Signal, pyqtSlot as Slot, Qt, QTimer, QMetaMethod
+from PyQt6.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QColorDialog, QFontDialog
+from PyQt6.QtGui import QIcon, QColor, QFont, QPainter, QAction, QActionGroup, QKeySequence
 from .cornplot_gui import Ui_CornplotGui
+
 from .deriv_window import DerivWindow
 from .fft_window import FFTWindow
-from .plot_data import Plot
+from .plot import Plot
 from .equation_enter_window import EquationWindow
 from .color_generator import ColorGenerator
 from .filters import MovingAverageFilter, ExponentialFilter, MedianFilter
 from scipy.optimize import curve_fit
 from scipy.fft import fft, fftfreq
-from .utils import *
+from .utils import get_image_path, get_upper_index, SelectedPoint
 from .version import *
 
 
@@ -36,6 +37,26 @@ class MathOperation(Enum):
     APPROX = 4
     MEAN = 5
     CURVE_LENGTH = 6
+
+
+def polynom(x, *coeffs):
+    n = len(coeffs)
+    ret = 0
+    for i in range(n):
+        ret += coeffs[i] * x ** (n - i - 1)
+    return ret
+
+
+def logatirhmic_curve(x, a, b):
+    return a * np.log(x) + b
+
+
+def exp_curve(x, a, b, d):
+    return a * np.exp(b * np.array(x)) + d
+
+
+def exponential_curve(x, a, b, c, e):
+    return a * np.power(b, (c * np.array(x))) + e
 
 
 class CornplotWindow(Ui_CornplotGui, QMainWindow):
@@ -188,7 +209,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.exportToCSV.triggered.connect(self.__export_plot_to_csv)
         self.importFromCSV.triggered.connect(self.__import_plot_from_csv)
 
-        self.periodicalFft.toggled.connect(self.__start_periodical_fft)
+        self.periodicalFft.clicked.connect(self.__start_periodical_fft)
 
         self.deletePlotAction.triggered.connect(self.deletePlotButton.click)
         self.backgroundColorAction.triggered.connect(self.__choose_background_color)
@@ -458,8 +479,9 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.pltYmax.setText(max_y_str)
 
         try:
-            self.colorButton.clicked.disconnect()
-        except TypeError:
+            if self.colorButton.isSignalConnected(QMetaMethod.fromSignal(self.colorButton.clicked)):
+                self.colorButton.clicked.disconnect()
+        except (TypeError, AttributeError):
             pass
         self.colorButton.clicked.connect(lambda: self.__open_color_dialog(plot))
         self.colorButton.setStyleSheet(f"""QPushButton
@@ -488,8 +510,9 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
                                         }}""")
 
         try:
-            self.deletePlotButton.clicked.disconnect()
-        except TypeError:
+            if self.deletePlotButton.isSignalConnected(QMetaMethod.fromSignal(self.deletePlotButton.clicked)):
+                self.deletePlotButton.clicked.disconnect()
+        except (TypeError, AttributeError):
             pass
             
         self.nPoints.setText(str(len(plot.X)))
@@ -658,7 +681,6 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
                 self.__derivWin.dashboard.disable_human_time_display()
             self.__derivWin.dashboard.set_initial_timestamp(x_to_diff[0] + self.__dashboard.get_initial_timestamp())
             self.__derivWin.show()
-            self.__derivWinFirst = False
         else:
             self.__dashboard.delete_plot(f"{self.plotName.currentText()} (производная)")
             self.__dashboard.add_plot(x_to_diff, y_ret, name=f"{self.plotName.currentText()} (производная)", color=color, linestyle="dash-dot-dot")
@@ -733,40 +755,41 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
 
         self.__message("Длина дуги кривой вычислена успешно.")
 
-    @Slot(bool)
-    def __start_periodical_fft(self, start: bool):
-        if start:
-            self.__fftWindow.show()
-            self.__fftWindow.close_signal.connect(lambda: self.__start_periodical_fft(False))
-            self.__fftWindow.dashboard_a.add_plot([0, 1], [0, 1], name='Амплитудный спектр', color="#f64a46", accurate=True)
-            self.__fftWindow.dashboard_f.add_plot([0, 1], [0, 1], name='Фазовый спектр', color="#1560bd", accurate=True)
-            self.__fftWindow.dashboard_source.add_plot([0, 1], [0, 1], name='Оригинал', color="#1560bd")
-            self.__fftWindow.setWindowTitle(f"Преобразование Фурье {self.plotName.currentText()}")
-            self.__fftWindow.show()
-            self.__fft_tmr.timeout.connect(self.__periodical_fft)
-            self.__fft_tmr.start(250)
-        else:
-            self.__fftWindow.dashboard_a.delete_all_plots()
-            self.__fftWindow.dashboard_f.delete_all_plots()
-            self.__fftWindow.dashboard_source.delete_all_plots()
-            if self.__fftWindow.isVisible():
-                try:
-                    self.__fftWindow.close_signal.disconnect()
-                except TypeError:
-                    pass
-                self.__fftWindow.close()
-                self.__fft_tmr.stop()
-                try:
-                    self.__fft_tmr.timeout.disconnect()
-                except TypeError:
-                    pass
-                self.periodicalFft.setChecked(False)
+    @Slot()
+    def __start_periodical_fft(self):
+        self.__fftWindow.show()
+        self.__fftWindow.close_signal.connect(self.__end_periodical_fft)
+        self.__fftWindow.dashboard_a.add_plot([0, 1], [0, 1], name='Амплитудный спектр', color="#f64a46", accurate=True)
+        self.__fftWindow.dashboard_f.add_plot([0, 1], [0, 1], name='Фазовый спектр', color="#1560bd", accurate=True)
+        self.__fftWindow.dashboard_source.add_plot([0, 1], [0, 1], name='Оригинал', color="#1560bd")
+        
+        self.__fftWindow.setWindowTitle(f"Преобразование Фурье {self.plotName.currentText()}")
+        self.__fftWindow.show()
+        self.__fft_tmr.timeout.connect(self.__periodical_fft)
+        self.__fft_tmr.start(250)
+
+    @Slot()
+    def __end_periodical_fft(self):
+        self.__fftWindow.dashboard_a.delete_all_plots()
+        self.__fftWindow.dashboard_f.delete_all_plots()
+        self.__fftWindow.dashboard_source.delete_all_plots()
+        if self.__fftWindow.isVisible():
+            try:
+                self.__fftWindow.close_signal.disconnect()
+            except TypeError:
+                pass
+            self.__fftWindow.close()
+            self.__fft_tmr.stop()
+            try:
+                self.__fft_tmr.timeout.disconnect()
+            except TypeError:
+                pass
+            self.periodicalFft.setChecked(False)
 
     @Slot()
     def __periodical_fft(self):
-        if self.__fftWindow.isVisible() and not self.__dashboard.is_paused() and self.periodicalFft.isChecked():
+        if self.__fftWindow.isVisible() and not self.__dashboard.is_paused():
             plot = self.__plots[self.plotName.currentIndex()]
-            
             self.__fourier_transform(plot, periodical=True)
 
     @Slot()
@@ -881,7 +904,10 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         N = len(x_arr)
         T = (x_arr[0] - x_arr[1])
         spectr = fft(y_arr)
-        freq = fftfreq(N, T)
+        try:
+            freq = fftfreq(N, T)
+        except ZeroDivisionError:
+            self.__message("Ошибка выполнения преобразования Фурье")
         right_freq = list(np.flip(freq[N // 2 + 1:]))
         right_freq.insert(0, 0.0)
         A = list(np.flip(np.abs(spectr)[N // 2 + 1:]) / (N / 2))
@@ -889,6 +915,9 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
 
         F = list(np.rad2deg(np.flip(np.angle(spectr)[N // 2 + 1:])))
         F.insert(0, np.rad2deg(np.angle(spectr[0])))
+
+        max_index = np.argmax(right_freq)
+        self.fftMaximums.setText(f"f = {F[max_index]:.4f}, A = {A[max_index]:.4f}")
 
         if periodical:
             self.__fftWindow.dashboard_a.update_plot('Амплитудный спектр', right_freq, A, rescale_y=True)
@@ -1011,6 +1040,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
                 return
             X = np.arange(X_array[0], X_array[-1], 0.1)
             Y = [exp_curve(x, *params) for x in X]
+            print(X)
             if float("inf") in Y:
                 self.__show_error("Экспоненциальная аппроксимация не может быть выполнена!")
                 return

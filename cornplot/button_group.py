@@ -1,8 +1,34 @@
 from time import monotonic
 
-from PyQt6.QtWidgets import QPushButton, QWidget
+from PyQt6.QtWidgets import QPushButton, QWidget, QGraphicsOpacityEffect
 from PyQt6.QtGui import QIcon, QEnterEvent
-from .utils import button_style, get_image_path
+    
+from .utils import get_image_path
+
+
+def button_style(dark):
+    return (f"""QPushButton
+            {{
+                background-color : {'rgba(255, 255, 255, 0.7)' if not dark else 'rgba(180, 180, 180, 0.8)'}; 
+                border-style : outset;
+                border-radius : 5px;
+                border-width : 1px;
+                border-color: "black";
+            }}
+            QPushButton::hover
+            {{
+                background-color : lightblue;
+                border-style : outset;
+                border-color: rgba(0, 0, 0, 0);
+            }}
+            QPushButton::pressed
+            {{
+                background-color : lightblue;
+                border-style : inset;
+                border-width : 2px;
+                border-color : #777777;
+            }}""")
+
 
 class ButtonGroup:
     def __init__(self, widget: QWidget, w, h):
@@ -24,14 +50,6 @@ class ButtonGroup:
 
         self.__button_tmr = monotonic()
         self.__buttons_visible = False
-
-        self.arrow_button = QPushButton(widget)
-        self.arrow_button.setIcon(QIcon(get_image_path("show.png")))
-        self.arrow_button.clicked.connect(self.__arrow_btn_proc)
-        self.arrow_button.show()
-        self.arrow_button.setStyleSheet(button_style(False))
-        self.arrow_button.setEnabled(True)
-        self.arrow_button.setVisible(False)
 
         self.more_button = QPushButton(widget)
         self.more_button.show()
@@ -86,7 +104,7 @@ class ButtonGroup:
         self.fix_button.enterEvent = self.__restart_timer
 
         self.lower_buttons = (
-            self.arrow_button, self.more_button, self.save_button, self.back_button, 
+            self.more_button, self.save_button, self.back_button, 
             self.zoom_button, self.add_vert_button, self.clear_button, self.fix_button
         )
 
@@ -100,8 +118,7 @@ class ButtonGroup:
         self.__animated = False
         self.__visible = True
         self.__dark = False
-
-        self.set_geometry(0, 0, w, h)
+        self.setGeometry(0, 0, w, h)
 
     def set_animated(self, animated: bool):
         self.__animated = animated
@@ -111,34 +128,19 @@ class ButtonGroup:
 
     def set_buttons_visible(self, visible):
         self.__visible = visible
-        self.arrow_button.setVisible(visible and not self.__buttons_visible)
-        self.more_button.setVisible(visible)
-        self.save_button.setVisible(visible)
-        self.back_button.setVisible(visible)
-        self.zoom_button.setVisible(visible)
-        self.add_vert_button.setVisible(visible)
-        self.clear_button.setVisible(visible)
-        self.fix_button.setVisible(visible)
+        for button in self.lower_buttons:
+            button.setVisible(visible)
 
         self.pause_button.setVisible(visible and self.__animated)
         self.restart_button.setVisible(visible and self.__animated)
 
-    def __arrow_btn_proc(self):
-        self.__button_tmr = monotonic()
-
-    def set_geometry(self, offset_x, offset_y, ax_w, ax_h):
+    def setGeometry(self, offset_x, offset_y, ax_w, ax_h):
         button_x0 = offset_x + ax_w - 28
         button_step = 28
         button_y0 = offset_y + ax_h - 7
         button_size = 25
-        self.arrow_button.setGeometry(button_x0, button_y0, button_size, button_size)
-        self.more_button.setGeometry(button_x0, button_y0, button_size, button_size)
-        self.save_button.setGeometry(button_x0 - button_step, button_y0, button_size, button_size)
-        self.back_button.setGeometry(button_x0 - button_step * 2, button_y0, button_size, button_size)
-        self.zoom_button.setGeometry(button_x0 - button_step * 3, button_y0, button_size, button_size)
-        self.add_vert_button.setGeometry(button_x0 - button_step * 4, button_y0, button_size, button_size)
-        self.clear_button.setGeometry(button_x0 - button_step * 5, button_y0, button_size, button_size)
-        self.fix_button.setGeometry(button_x0 - button_step * 6, button_y0, button_size, button_size)
+        for i, button in enumerate(self.lower_buttons):
+            button.setGeometry(button_x0 - button_step * i, button_y0, button_size, button_size)
 
         button_y0 = 22
         self.restart_button.setGeometry(button_x0, button_y0, button_size, button_size)
@@ -148,42 +150,28 @@ class ButtonGroup:
         self.__button_tmr = monotonic()
 
     def process_visibility(self):
-        TIMEOUT = 5
+        TIMEOUT = 2
         T = monotonic() - self.__button_tmr
         if T <= TIMEOUT and not self.__buttons_visible:
-            self.clear_button.setVisible(True)
-            self.add_vert_button.setVisible(True)
-            self.fix_button.setVisible(True)
-            self.back_button.setVisible(True)
-            self.save_button.setVisible(True)
-            self.zoom_button.setVisible(True)
-            self.more_button.setVisible(True)
-            self.arrow_button.setVisible(False)
+            for button in self.lower_buttons:
+                opacity = QGraphicsOpacityEffect(button)
+                opacity.setOpacity(1.0)
+                button.setGraphicsEffect(opacity)
 
             self.__buttons_visible = True
 
         elif T > TIMEOUT and self.__buttons_visible:
-            self.clear_button.setVisible(False)
-            self.add_vert_button.setVisible(False)
-            self.fix_button.setVisible(False)
-            self.back_button.setVisible(False)
-            self.save_button.setVisible(False)
-            self.zoom_button.setVisible(False)
-            self.more_button.setVisible(False)
-            self.arrow_button.setVisible(True)
+            for button in self.lower_buttons:
+                opacity = QGraphicsOpacityEffect(button)
+                opacity.setOpacity(0.2)
+                button.setGraphicsEffect(opacity)
 
             self.__buttons_visible = False
 
     def set_dark(self, dark: bool):
         if self.__dark != dark:
-            self.arrow_button.setStyleSheet(button_style(dark))
-            self.more_button.setStyleSheet(button_style(dark))
-            self.save_button.setStyleSheet(button_style(dark))
-            self.back_button.setStyleSheet(button_style(dark))
-            self.zoom_button.setStyleSheet(button_style(dark))
-            self.add_vert_button.setStyleSheet(button_style(dark))
-            self.clear_button.setStyleSheet(button_style(dark))
-            self.fix_button.setStyleSheet(button_style(dark))
+            for button in self.lower_buttons:
+                button.setStyleSheet(button_style(dark))
 
             self.pause_button.setStyleSheet(button_style(dark))
             self.restart_button.setStyleSheet(button_style(dark))

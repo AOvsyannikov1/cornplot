@@ -1,4 +1,4 @@
-import numpy as np
+from statistics import median
 
 
 class MovingAverageFilter:
@@ -29,7 +29,7 @@ class MedianFilter:
         self.current_index += 1
         if self.current_index >= self.order:
             self.current_index = 0
-        return np.median(self.buffer)
+        return median(self.buffer)
 
 
 class ExponentialFilter:

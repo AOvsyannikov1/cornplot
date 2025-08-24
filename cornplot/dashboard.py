@@ -3,14 +3,14 @@ from math import log2, floor
 from time import monotonic
 from typing import Any
 
-from PyQt6.QtCore import QPointF, QLineF, QRectF, pyqtSlot, QRect
-from PyQt6.QtWidgets import QMessageBox
-from PyQt6.QtGui import QPainter, QPen, QColor, QFont, QFontMetrics, QPolygonF, QLinearGradient
+from PyQt6.QtCore import QPointF, QLineF, QRectF, pyqtSlot as Slot, Qt                              # type: ignore
+from PyQt6.QtWidgets import QMessageBox                                                             # type: ignore
+from PyQt6.QtGui import QPainter, QPen, QColor, QFont, QFontMetrics, QPolygonF, QLinearGradient     # type: ignore
 
 from .axles import Axles
 from .utils import *
 from .color_generator import ColorGenerator
-from .plot_data import Plot
+from .plot import Plot
 from .value_rectangle import ValueRectangle
 from .cornplot_window import CornplotWindow
 from .point import Point
@@ -262,7 +262,7 @@ class Dashboard(Axles):
 
         return False
     
-    @pyqtSlot()
+    @Slot()
     def __process_checkbox_press(self):
         self._calculate_y_parameters()
         self._update_step_y()
@@ -336,7 +336,7 @@ class Dashboard(Axles):
 
         self.update()
 
-    @pyqtSlot(int, int)
+    @Slot(int, int)
     def __begin_point_selection(self, plt_num, n_points=1):
         if plt_num >= len(self.__plots) or self.is_animated() and not self.is_paused():
             return
@@ -929,14 +929,22 @@ class Dashboard(Axles):
             self._real_width = x_size
             self._update_step_x()
 
-    @pyqtSlot()
+    @Slot()
     def restart_animation(self, **kwargs) -> None:
         super().restart_animation(**kwargs)
         x_size = 10
 
+        self._zoom_out()
+        plots_to_delete = list()
         for plt in self.__plots:
-            x_size = plt.x_size
+            if not plt.animated:
+                plots_to_delete.append(plt.name)
+            else:
+                x_size = plt.x_size
             plt.remove_all()
+
+        for plt in plots_to_delete:
+            self.delete_plot(plt)
         self._xstart = 0
         self._real_width = x_size
         self._xstop = self._xstart + self._real_width

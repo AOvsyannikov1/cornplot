@@ -1,43 +1,16 @@
-import os, sys
 import dataclasses
+from math import log, exp, pow
 from array import array
 from datetime import datetime, timezone
 import importlib.resources as pkg_resources
 from pathlib import Path
 
 from PyQt6.QtGui import QColor
-from PyQt6.QtGui import QCursor, QGuiApplication, QColor
-from PyQt6.QtCore import Qt
 import numpy as np
 
 
 UPPER_INDEXES = ('⁰', '¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹')
 LOWER_INDEXES = ('₀', '₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈', '₉')
-
-
-def button_style(dark):
-    return (f"""QPushButton
-            {{
-                background-color : {'rgba(255, 255, 255, 0.7)' if not dark else 'rgba(180, 180, 180, 0.8)'}; 
-                color: {'rgb(150, 150, 150)' if dark else 'black'};
-                border-style : outset;
-                border-radius : 5px;
-                border-width : 1px;
-                border-color: "black";
-            }}
-            QPushButton::hover
-            {{
-                background-color : lightblue;
-                border-style : outset;
-                border-color: rgba(0, 0, 0, 0);
-            }}
-            QPushButton::pressed
-            {{
-                background-color : lightblue;
-                border-style : inset;
-                border-width : 2px;
-                border-color : #777777;
-            }}""")
 
 
 def interpolate(x, x_arr, y_arr):
@@ -82,26 +55,6 @@ def convert_timestamp_to_human_time(timestamp, millis=False):
         return datetime.fromtimestamp(timestamp, timezone.utc).time().strftime("%H:%M:%S.%f")[:-3]
     else:
         return datetime.fromtimestamp(int(timestamp), timezone.utc).time().strftime("%H:%M:%S")
-
-
-def polynom(x, *coeffs):
-    n = len(coeffs)
-    ret = 0
-    for i in range(n):
-        ret += coeffs[i] * x ** (n - i - 1)
-    return ret
-
-
-def logatirhmic_curve(x, a, b):
-    return a * np.log(x) + b
-
-
-def exp_curve(x, a, b, d):
-    return a * np.exp(b * np.array(x)) + d
-
-
-def exponential_curve(x, a, b, c, e):
-    return a * np.power(b, (c * np.array(x))) + e
 
 
 def round_custom(num, step):

@@ -1,8 +1,9 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QWidget, QMessageBox
 from PyQt6.QtGui import QKeyEvent, QIcon
-from .utils import LOWER_INDEXES
 from .eq_gui import Ui_Form
+
+from .utils import LOWER_INDEXES
 from math import exp, sqrt, sin, cos, tan, sinh, cosh, tanh, asin, acos, atan, asinh, acosh, atanh, log
 from math import log10, log2, pi, e
 from .utils import arange, get_image_path

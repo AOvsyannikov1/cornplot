@@ -1,7 +1,9 @@
 import sys, uuid
 
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QWidget, QApplication
 from PyQt6.QtGui import QIcon
+
 import numpy as np
 
 from .dashboard import Dashboard
@@ -51,7 +53,7 @@ class PlotWindow(QWidget):
         if pie_chart:
             self.dashboards.append(PieChart(self, 100, 100, 500, name="Содержание газов в воздухе"))
         else:
-            dashboard = Dashboard(self, self.x0, self.y0, self.width() - 200, self.height() - 100)
+            dashboard = Dashboard(self, 0, 0, self.width() - 200, self.height() - 100)
             dashboard.set_y_name(y_name)
             dashboard.set_x_name(x_name)
             dashboard.enable_origin_drawing_x(draw_axes)
@@ -111,7 +113,7 @@ class PlotWindow(QWidget):
             else:
                 w = self.width() - 200
 
-            dash.set_geometry(x, y, w, h)
+            dash.setGeometry(x, y, w, h)
 
         for pc, loc, size in zip(self.pie_charts, self.dashboard_locations, self.dashboard_sizes):
             step_x = self.step_x
@@ -127,7 +129,7 @@ class PlotWindow(QWidget):
                 w = int(0.92 * (step_x * col_size) + 0.08 * step_x * (col_size - 1))
             else:
                 w = self.width() - 250
-            pc.set_geometry(x, y, w, h)
+            pc.setGeometry(x, y, w, h)
 
     def showEvent(self, a0):
         for updater in self.__plt_updaters:
@@ -141,7 +143,7 @@ class PlotWindow(QWidget):
 class CornPlotter:
 
     def __init__(self):
-        self.app: QApplication | None = QApplication(sys.argv)
+        self.app: QApplication | None = None
         self.__windows: list[PlotWindow] = list()
         self.__current_window_index = 0
         self.__current_row = 1
@@ -149,6 +151,7 @@ class CornPlotter:
         self.__datasets: dict[str, int] = dict()
 
     def window(self, num, name="", x=100, y=100):
+        self.__create_qapp()
         self.__current_window_index = num - 1
         if len(self.__windows) < num:
             self.__windows.append(PlotWindow(x=x, y=y))
@@ -160,6 +163,7 @@ class CornPlotter:
         self.__current_col = 1
 
     def subplot(self, rows, cols, number, link_subplots=False, axes=False, pie_chart=False):
+        self.__create_qapp()
         if len(self.__windows) == 0:
             self.__windows.append(PlotWindow())
             self.__windows[-1].setWindowTitle(f"Окно {len(self.__windows)}")
@@ -170,6 +174,7 @@ class CornPlotter:
 
     def plot(self, x_arr, y_arr, x_name="X", y_name="Y", name='',
              linewidth=2, linestyle='solid', color='any', link_plots=True, axes=False):
+        self.__create_qapp()
         if len(self.__windows) == 0:
             self.__windows.append(PlotWindow())
             self.__windows[-1].setWindowTitle(f"Окно {len(self.__windows)}")
@@ -181,6 +186,7 @@ class CornPlotter:
                                                              name, linewidth, linestyle, color)
         
     def animated_plot(self, name: str, x_size=30, x_name="X", y_name="Y", linewidth=2, linestyle='solid', color='any', link_plots=True, axes=False):
+        self.__create_qapp()
         if len(self.__windows) == 0:
             self.__windows.append(PlotWindow())
             self.__windows[-1].setWindowTitle(f"Окно {len(self.__windows)}")
@@ -193,13 +199,17 @@ class CornPlotter:
         self.__datasets[name] = self.__current_window_index
         
     def add_plot_updater(self, updater: PlotUpdater):
+        if len(self.__windows) == 0:
+            raise AttributeError("Window has not been created.")
         self.__windows[self.__current_window_index].add_animated_plot_updater(updater)
         
     def add_point_to_animated_plot(self, name, x, y):
+        self.__create_qapp()
         index = self.__datasets[name]
         self.__windows[index].add_point_to_dataset(name, x, y)
 
     def histogram(self, data, intervals_count=0, x_name="X", y_name="Y", name="", color='any', link_plots=False):
+        self.__create_qapp()
         if len(self.__windows) == 0:
             self.__windows.append(PlotWindow())
             self.__windows[-1].setWindowTitle(f"Окно {len(self.__windows)}")
@@ -210,6 +220,7 @@ class CornPlotter:
         self.__windows[self.__current_window_index].add_histogram(self.__current_row, self.__current_col, data, intervals_count=intervals_count, name=name, color=color)
 
     def pie_chart(self, percentages, category_names, category_descriptions=None):
+        self.__create_qapp()
         if len(self.__windows) == 0:
             self.__windows.append(PlotWindow())
             self.__windows[-1].setWindowTitle(f"Окно {len(self.__windows)}")
@@ -235,6 +246,10 @@ class CornPlotter:
         self.__current_window_index = 0
         self.__current_row = 1
         self.__current_col = 1
+
+    def __create_qapp(self):
+        if self.app is None:
+            self.app = QApplication(sys.argv)
 
 
 _plotter = CornPlotter()

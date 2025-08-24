@@ -14,4 +14,4 @@ class DerivWindow(PlotterWindow):
 
     def resizeEvent(self, a0) -> None:
         h = self.height() - 80
-        self.dashboard.set_geometry(100, 30, self.width() - 140, h)
+        self.dashboard.setGeometry(100, 30, self.width() - 140, h)

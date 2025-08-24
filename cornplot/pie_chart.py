@@ -60,7 +60,7 @@ class PieChart:
         y -= self.__h // 2 + 10
         return x ** 2 + y ** 2 <= (self.__D // 2) ** 2
 
-    def set_geometry(self, x: int, y: int, w: int, h: int) -> None:
+    def setGeometry(self, x: int, y: int, w: int, h: int) -> None:
         if x == self.__x and y == self.__y and w == self.__w and self.__h == h:
             return
         old_x = int(self.__x + (self.__w - self.__legend_width) // 2)

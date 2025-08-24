@@ -1,9 +1,9 @@
 import os, warnings
 from math import log10, floor, ceil, pow
 
-from PyQt6.QtCore import Qt, QLineF, QRectF, pyqtSlot as Slot, QRect, QTimer
-from PyQt6.QtGui import QPen, QColor, QPainter, QFont, QFontMetrics, QContextMenuEvent
-from PyQt6.QtWidgets import QFileDialog, QWidget, QGestureEvent, QPinchGesture, QPanGesture, QTapGesture, QTapAndHoldGesture, QMenu
+from PyQt6.QtCore import Qt, QLineF, QRectF, pyqtSlot as Slot, QRect, QTimer                                                        # type: ignore
+from PyQt6.QtGui import QPen, QColor, QPainter, QFont, QFontMetrics                                                                 # type: ignore
+from PyQt6.QtWidgets import QFileDialog, QWidget, QGestureEvent, QPinchGesture, QPanGesture, QTapGesture, QTapAndHoldGesture, QSizePolicy
 
 from .utils import *
 
@@ -102,6 +102,8 @@ class Axles(QWidget):
         self.__background_color = QColor(255, 255, 255)
         self.__font = QFont("Bahnschrift, Arial", 11)
 
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+
         self.__touch_x = 0
         self.__touch_y = 0
 
@@ -114,7 +116,7 @@ class Axles(QWidget):
 
         self._qp = QPainter()
 
-        self.setGeometry(self.__x - self._OFFSET_X, self.__y - self._OFFSET_Y_UP, self.__w + self._OFFSET_X, self.__h + self._OFFSET_Y_UP + self._OFFSET_Y_DOWN)
+        super().setGeometry(self.__x - self._OFFSET_X, self.__y - self._OFFSET_Y_UP, self.__w + self._OFFSET_X, self.__h + self._OFFSET_Y_UP + self._OFFSET_Y_DOWN)
         self.setMouseTracking(True)
         self.show()
 
@@ -123,7 +125,7 @@ class Axles(QWidget):
         self.__btn_group.clear_button.clicked.connect(self.__clear_axles)
         self.__btn_group.zoom_button.clicked.connect(self._zoom_in)
         self.__btn_group.back_button.clicked.connect(self.__cancel_scaling)
-        self.__btn_group.set_geometry(self._MIN_X, self._OFFSET_Y_DOWN - self._OFFSET_Y_UP, self.__w, self.__h)
+        self.__btn_group.setGeometry(self._MIN_X, self._OFFSET_Y_DOWN - self._OFFSET_Y_UP, self.__w, self.__h)
         self.__btn_group.save_button.clicked.connect(self.__save_picture)
         self.__btn_group.more_button.clicked.connect(self._show_extended_window)
         self.__btn_group.pause_button.clicked.connect(lambda: self.pause(not self.__paused))
@@ -134,7 +136,6 @@ class Axles(QWidget):
 
         self.grabGesture(Qt.GestureType.PinchGesture)
         self.grabGesture(Qt.GestureType.PanGesture)
-        # self.grabGesture(Qt.GestureType.TapGesture)
         self.grabGesture(Qt.GestureType.TapAndHoldGesture)
 
         self._update_step_x()
@@ -181,14 +182,11 @@ class Axles(QWidget):
         if self._needs_redrawing():
             self.update()
 
-    def set_visible(self, visible: bool) -> None:
-        self.setVisible(visible)
-
     @property
     def visible(self):
-        return self.__visible
+        return self.isVisible()
 
-    def set_geometry(self, x: int, y: int, w: int, h: int) -> None:
+    def setGeometry(self, x: int, y: int, w: int, h: int) -> None:
         if self.__x != x or self.__y != y or self.__w != w or self.__h != h:
 
             if x > 0:
@@ -204,7 +202,7 @@ class Axles(QWidget):
             self._MAX_X = self._MIN_X + self.__w
             self._MAX_Y = self._MIN_Y + self.__h
 
-            self.__btn_group.set_geometry(self._MIN_X, self._OFFSET_Y_DOWN - self._OFFSET_Y_UP, self.__w, self.__h)
+            self.__btn_group.setGeometry(self._MIN_X, self._OFFSET_Y_DOWN - self._OFFSET_Y_UP, self.__w, self.__h)
 
             self._update_step_x()
             self._update_step_y()
@@ -814,18 +812,6 @@ class Axles(QWidget):
         self._recalculate_window_coords()
         self._redraw_required = True
 
-    def contextMenuEvent(self, a0: QContextMenuEvent):
-        menu = QMenu(self)
-        add_scanner = menu.addAction("Добавить линию-сканер")
-        zoom_out = menu.addAction("Исходный масштаб")
-        clear = menu.addAction("Очистить оси")
-
-        add_scanner.triggered.connect(self.__add_scanner)
-        zoom_out.triggered.connect(self._zoom_out)
-        clear.triggered.connect(self.__clear_axles)
-
-        menu.exec(a0.globalPos())
-
     def event(self, a0):
         if isinstance(a0, QGestureEvent):
             for gesture in a0.gestures():
@@ -1239,7 +1225,7 @@ class Axles(QWidget):
         self._MIN_X = self._OFFSET_X
         self._MAX_X = self._MIN_X + self.__w
         super().setGeometry(self.__x - self._OFFSET_X, self.__y - self._OFFSET_Y_UP, self.__w + self._OFFSET_X, self.__h + self._OFFSET_Y_UP + self._OFFSET_Y_DOWN)
-        self.__btn_group.set_geometry(self._MIN_X, self._OFFSET_Y_DOWN - self._OFFSET_Y_UP, self.__w, self.__h)
+        self.__btn_group.setGeometry(self._MIN_X, self._OFFSET_Y_DOWN - self._OFFSET_Y_UP, self.__w, self.__h)
         self._recalculate_window_coords()
         self._update_step_x()
         self.update()
