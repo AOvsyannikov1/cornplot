@@ -339,7 +339,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         if style in GRID_STYLES:
             self.__dashboard.set_major_grid_style_x(GRID_STYLES[style], self.majorTicksWidthX.value())
         else:
-            self.__dashboard.set_major_grid_style_x("dot", self.majorTicksWidthX.value())
+            self.__dashboard.set_major_grid_style_x(Qt.PenStyle.DotLine, self.majorTicksWidthX.value())
 
     @Slot()
     def __major_style_change_event_y(self):
@@ -347,7 +347,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         if style in GRID_STYLES:
             self.__dashboard.set_major_grid_style_y(GRID_STYLES[style], self.majorTicksWidthY.value())
         else:
-            self.__dashboard.set_major_grid_style_y("dot", self.majorTicksWidthY.value())
+            self.__dashboard.set_major_grid_style_y(Qt.PenStyle.DotLine, self.majorTicksWidthY.value())
 
     @Slot()
     def __minor_style_change_event_x(self):
@@ -355,7 +355,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         if style in GRID_STYLES:
             self.__dashboard.set_minor_grid_style_x(GRID_STYLES[style], self.minorTicksWidthX.value(), self.minorTicksStepX.value())
         else:
-            self.__dashboard.set_minor_grid_style_x("dot", self.minorTicksWidthX.value(), self.minorTicksStepX.value())
+            self.__dashboard.set_minor_grid_style_x(Qt.PenStyle.DotLine, self.minorTicksWidthX.value(), self.minorTicksStepX.value())
 
     @Slot()
     def __minor_style_change_event_y(self):
@@ -363,7 +363,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         if style in GRID_STYLES:
             self.__dashboard.set_minor_grid_style_y(GRID_STYLES[style], self.minorTicksWidthY.value(), self.minorTicksStepY.value())
         else:
-            self.__dashboard.set_minor_grid_style_y("dot", self.minorTicksWidthY.value(), self.minorTicksStepY.value())
+            self.__dashboard.set_minor_grid_style_y(Qt.PenStyle.DotLine, self.minorTicksWidthY.value(), self.minorTicksStepY.value())
 
     @Slot(str)
     def __set_plot_linestyle(self, style: str):
