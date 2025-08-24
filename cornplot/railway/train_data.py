@@ -1,4 +1,4 @@
-from PyQt6.QtGui import QPainter
+from PyQt5.QtGui import QPainter
 from .train import Train
 
 

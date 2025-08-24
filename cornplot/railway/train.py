@@ -1,5 +1,5 @@
 from time import monotonic
-from PyQt6.QtGui import QPainter, QColor
+from PyQt5.QtGui import QPainter, QColor
 
 from ..filters import MovingAverageFilter
 

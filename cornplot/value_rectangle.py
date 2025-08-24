@@ -1,5 +1,5 @@
-from PyQt6.QtCore import QRectF, QPointF
-from PyQt6.QtGui import QColor
+from PyQt5.QtCore import QRectF, QPointF
+from PyQt5.QtGui import QColor
 
 
 class ValueRectangle(QRectF):

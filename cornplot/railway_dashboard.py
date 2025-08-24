@@ -1,8 +1,8 @@
 import math as mt
 from collections.abc import Iterable
 
-from PyQt6.QtGui import QPolygonF, QPen, QColor, QFont
-from PyQt6.QtCore import QPointF, QRectF, Qt, QLineF
+from PyQt5.QtGui import QPolygonF, QPen, QColor, QFont
+from PyQt5.QtCore import QPointF, QRectF, Qt, QLineF
 
 from .dashboard import Dashboard
 from .railway.semaphore import SemaphoreColor

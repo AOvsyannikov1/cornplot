@@ -1,5 +1,5 @@
 import numpy as np
-from PyQt6 import QtCore, QtWidgets, QtGui
+from PyQt5 import QtCore, QtWidgets, QtGui
 
 from .color_generator import ColorGenerator
 

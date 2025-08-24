@@ -1,6 +1,6 @@
 from enum import Enum
-from PyQt6.QtGui import QPen, QColor, QPainter, QFont
-from PyQt6.QtCore import QLineF, Qt
+from PyQt5.QtGui import QPen, QColor, QPainter, QFont
+from PyQt5.QtCore import QLineF, Qt
 
 
 

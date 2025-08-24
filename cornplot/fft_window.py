@@ -1,4 +1,4 @@
-from PyQt6.QtCore import pyqtSignal as Signal
+from PyQt5.QtCore import pyqtSignal as Signal
 from .plotter_window import PlotterWindow
 
 

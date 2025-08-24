@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import importlib.resources as pkg_resources
 from pathlib import Path
 
-from PyQt6.QtGui import QColor
+from PyQt5.QtGui import QColor
 import numpy as np
 
 

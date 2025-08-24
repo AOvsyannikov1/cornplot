@@ -3,9 +3,9 @@ from math import log2, floor
 from time import monotonic
 from typing import Any
 
-from PyQt6.QtCore import QPointF, QLineF, QRectF, pyqtSlot as Slot, Qt                              # type: ignore
-from PyQt6.QtWidgets import QMessageBox                                                             # type: ignore
-from PyQt6.QtGui import QPainter, QPen, QColor, QFont, QFontMetrics, QPolygonF, QLinearGradient     # type: ignore
+from PyQt5.QtCore import QPointF, QLineF, QRectF, pyqtSlot as Slot, Qt                              # type: ignore
+from PyQt5.QtWidgets import QMessageBox                                                             # type: ignore
+from PyQt5.QtGui import QPainter, QPen, QColor, QFont, QFontMetrics, QPolygonF, QLinearGradient     # type: ignore
 
 from .axles import Axles
 from .utils import *
@@ -829,6 +829,7 @@ class Dashboard(Axles):
     def _show_extended_window(self):
         if self.__window is None:
             self.__window = CornplotWindow(self)
+            
             self.__window.point_selection_signal.connect(self.__begin_point_selection)
         self.__window.update_plot_info(self.__plots)
         self.__window.display_plot_info()

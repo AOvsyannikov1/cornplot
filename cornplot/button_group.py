@@ -1,7 +1,7 @@
 from time import monotonic
 
-from PyQt6.QtWidgets import QPushButton, QWidget, QGraphicsOpacityEffect
-from PyQt6.QtGui import QIcon, QEnterEvent
+from PyQt5.QtWidgets import QPushButton, QWidget, QGraphicsOpacityEffect
+from PyQt5.QtGui import QIcon, QEnterEvent
     
 from .utils import get_image_path
 

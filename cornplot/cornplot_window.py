@@ -6,9 +6,9 @@ from math import sqrt
 
 import numpy as np
 
-from PyQt6.QtCore import pyqtSignal as Signal, pyqtSlot as Slot, Qt, QTimer, QMetaMethod
-from PyQt6.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QColorDialog, QFontDialog
-from PyQt6.QtGui import QIcon, QColor, QFont, QPainter, QAction, QActionGroup, QKeySequence
+from PyQt5.QtCore import pyqtSignal as Signal, pyqtSlot as Slot, Qt, QTimer
+from PyQt5.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QColorDialog, QFontDialog, QAction, QActionGroup
+from PyQt5.QtGui import QIcon, QColor, QFont, QPainter, QKeySequence
 from .cornplot_gui import Ui_CornplotGui
 
 from .deriv_window import DerivWindow
@@ -24,8 +24,8 @@ from .version import *
 
 
 GRID_STYLES = {
-    "Штриховая": "dash",
-    "Сплошная": "solid",
+    "Штриховая": Qt.PenStyle.DashLine,
+    "Сплошная": Qt.PenStyle.SolidLine,
 }
 
 
@@ -112,16 +112,16 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
 
         for key, value in GRID_STYLES.items():
             if self.__dashboard.x_major_grid_style == value:
-                self.majorTicksX.setCurrentText(GRID_STYLES[key])
+                self.majorTicksX.setCurrentText(key)
 
             if self.__dashboard.y_major_grid_style == value:
-                self.majorTicksY.setCurrentText(GRID_STYLES[key])
+                self.majorTicksY.setCurrentText(key)
 
             if self.__dashboard.x_minor_grid_atyle == value:
-                self.minorTicksX.setCurrentText(GRID_STYLES[key])
+                self.minorTicksX.setCurrentText(key)
 
             if self.__dashboard.y_minor_grid_atyle == value:
-                self.minorTicksY.setCurrentText(GRID_STYLES[key])
+                self.minorTicksY.setCurrentText(key)
 
         self.aboutProgramAction.triggered.connect(self.__show_about)
         self.saveGraphAction.triggered.connect(self.__save_plots_to_file)

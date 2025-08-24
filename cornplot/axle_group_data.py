@@ -1,4 +1,4 @@
-from PyQt6.QtCore import QObject, pyqtSignal as Signal
+from PyQt5.QtCore import QObject, pyqtSignal as Signal
     
 from .scanner_lines import VerticalLineList
 

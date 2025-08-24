@@ -1,5 +1,5 @@
-from PyQt6.QtGui import QPainter, QColor, QPolygonF, QFont, QFontMetrics
-from PyQt6.QtCore import QRectF, Qt
+from PyQt5.QtGui import QPainter, QColor, QPolygonF, QFont, QFontMetrics
+from PyQt5.QtCore import QRectF, Qt
 
 
 class Station:

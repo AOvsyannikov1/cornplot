@@ -1,9 +1,9 @@
 import os, warnings
 from math import log10, floor, ceil, pow
 
-from PyQt6.QtCore import Qt, QLineF, QRectF, pyqtSlot as Slot, QRect, QTimer                                                        # type: ignore
-from PyQt6.QtGui import QPen, QColor, QPainter, QFont, QFontMetrics                                                                 # type: ignore
-from PyQt6.QtWidgets import QFileDialog, QWidget, QGestureEvent, QPinchGesture, QPanGesture, QTapGesture, QTapAndHoldGesture, QSizePolicy
+from PyQt5.QtCore import Qt, QLineF, QRectF, pyqtSlot as Slot, QRect, QTimer                                                        # type: ignore
+from PyQt5.QtGui import QPen, QColor, QPainter, QFont, QFontMetrics                                                                 # type: ignore
+from PyQt5.QtWidgets import QFileDialog, QWidget, QGestureEvent, QPinchGesture, QPanGesture, QTapGesture, QTapAndHoldGesture, QSizePolicy
 
 from .utils import *
 
@@ -1023,7 +1023,7 @@ class Axles(QWidget):
         font.setBold(True)
         self._qp.setFont(font)
 
-        txt_pen = QPen(0xD2D2D2) if self.__dark else QPen(0)
+        txt_pen = QPen(QColor(0xD2D2D2)) if self.__dark else QPen(QColor(0))
         self._qp.setPen(txt_pen)
 
         self._x_axle.label_size = QFontMetrics(font).horizontalAdvance(self._x_axle.name)
@@ -1119,7 +1119,7 @@ class Axles(QWidget):
         self._qp.setFont(font)
         self._y_axle.label_size = QFontMetrics(font).height()
 
-        txt_pen = QPen(0xD2D2D2) if self.__dark else QPen(0)
+        txt_pen = QPen(QColor(0xD2D2D2)) if self.__dark else QPen(QColor(0))
         self._qp.setPen(txt_pen)
 
         if self._y_axle.draw_label:
@@ -1256,7 +1256,7 @@ class Axles(QWidget):
                 text_width = qm.horizontalAdvance(tmp_str)  # измеряем текст
 
                 self._qp.setPen(QColor(0, 0, 0, 0))
-                self._qp.setBrush(0x00A2E8)
+                self._qp.setBrush(QColor(0x00A2E8))
                 rectX = x_win - text_width - 15
                 if rectX < self._MIN_X:
                     rectX = x_win + 10
@@ -1268,7 +1268,7 @@ class Axles(QWidget):
                 self._qp.drawRoundedRect(QRectF(rectX, rectY, rectW, rectH), 5, 5)
                 self._value_rect_max_y = rectY - 25
 
-                self._qp.setPen(0xFFFFFF)
+                self._qp.setPen(QColor(0xFFFFFF))
                 self._qp.drawText(QRectF(rectX, rectY, rectW, rectH),
                                   Qt.AlignmentFlag.AlignCenter, tmp_str)  # значение по Х
 
@@ -1292,7 +1292,7 @@ class Axles(QWidget):
                     continue
 
                 y = self._MIN_Y + 2
-                pen = QPen(0xFFFFFF if self.dark else 0)
+                pen = QPen(QColor(0xFFFFFF) if self.dark else 0)
                 pen.setWidthF(1)
                 pen.setStyle(Qt.PenStyle.DashDotLine)
                 self._qp.setPen(pen)
@@ -1308,7 +1308,7 @@ class Axles(QWidget):
                     tmp_str = f"{dx:.{digit_count}f}"
                 font = QFont("Consolas, Courier New", 10)
                 font.setBold(True)
-                self._qp.setPen(0xFFFFFF if self.dark else 0)
+                self._qp.setPen(QColor(0xFFFFFF) if self.dark else 0)
                 self._qp.setFont(font)
                 text_width = qm.size(0, tmp_str).width()
                 rectW = text_width + 10
@@ -1364,17 +1364,17 @@ class Axles(QWidget):
             rectW = text_width + 10
             rectH = text_height + 2
             self._qp.setPen(QColor(0, 0, 0, 0))
-            self._qp.setBrush(0x8080)
+            self._qp.setBrush(QColor(0x8080))
             self._qp.drawRoundedRect(QRectF(rectX, rectY, rectW, rectH), 5, 5)
-            self._qp.setPen(0xFFFFFF)
+            self._qp.setPen(QColor(0xFFFFFF))
             self._qp.drawText(QRectF(round(rectX), round(rectY), rectW, rectH), Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter, tmp_str)
 
             if i > 0:
                 y = self._MIN_Y + 2
                 if self.__dark:
-                    pen = QPen(0xC8C8C8)
+                    pen = QPen(QColor(0xC8C8C8))
                 else:
-                    pen = QPen(0)
+                    pen = QPen(QColor(0))
                 pen.setStyle(Qt.PenStyle.DotLine)
                 self._qp.setPen(pen)
                 self._qp.drawLine(QLineF(x_win, y, prev_val_line_coord_xwin, y))
@@ -1442,9 +1442,9 @@ class Axles(QWidget):
         if self.__scaling_rect_drawing:
             # рисуем масштабирующий прямоугольничек
             if self.__dark:
-                self._qp.setPen(QPen(0xC8C8C8, 1, Qt.PenStyle.DashLine))
+                self._qp.setPen(QPen(QColor(0xC8C8C8), 1, Qt.PenStyle.DashLine))
             else:
-                self._qp.setPen(QPen(0, 1, Qt.PenStyle.DashLine))
+                self._qp.setPen(QPen(QColor(0), 1, Qt.PenStyle.DashLine))
             self._qp.setBrush(QColor(0, 0, 0, 0))
             rect = QRectF(self.__scaling_rect)
             rect.setLeft(self.__scaling_rect.left() + self._MIN_X)
@@ -1855,11 +1855,11 @@ class Axles(QWidget):
     
     @property
     def x_major_grid_style(self):
-        return self._x_axle.pen_major.style().name
+        return self._x_axle.pen_major.style()
     
     @property
     def x_minor_grid_atyle(self):
-        return self._x_axle.pen_minor.style().name
+        return self._x_axle.pen_minor.style()
     
     @property
     def y_major_grid_width(self):
@@ -1871,11 +1871,11 @@ class Axles(QWidget):
     
     @property
     def y_major_grid_style(self):
-        return self._y_axle.pen_major.style().name
+        return self._y_axle.pen_major.style()
     
     @property
     def y_minor_grid_atyle(self):
-        return self._y_axle.pen_minor.style().name
+        return self._y_axle.pen_minor.style()
     
     def set_dark(self, dark: bool):
         if dark != self.__dark:

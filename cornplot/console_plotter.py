@@ -1,8 +1,8 @@
 import sys, uuid
 
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QWidget, QApplication
-from PyQt6.QtGui import QIcon
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QWidget, QApplication
+from PyQt5.QtGui import QIcon
 
 import numpy as np
 

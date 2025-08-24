@@ -1,5 +1,5 @@
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QPen, QColor
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QPen, QColor
 
 class CoordinateAx:
 

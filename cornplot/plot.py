@@ -1,6 +1,6 @@
-from PyQt6.QtWidgets import QCheckBox
-from PyQt6.QtGui import QPen, QPalette, QFont, QFontMetrics
-from PyQt6.QtCore import QObject, pyqtSignal as Signal, QLineF, QPointF, QRectF
+from PyQt5.QtWidgets import QCheckBox
+from PyQt5.QtGui import QPen, QPalette, QFont, QFontMetrics
+from PyQt5.QtCore import QObject, pyqtSignal as Signal, QLineF, QPointF, QRectF
 
 from .array_utils import *
 from array import array

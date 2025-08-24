@@ -1,5 +1,5 @@
 import warnings
-from PyQt6.QtCore import QThread
+from PyQt5.QtCore import QThread
 
 
 
