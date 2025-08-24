@@ -479,9 +479,8 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.pltYmax.setText(max_y_str)
 
         try:
-            if self.colorButton.isSignalConnected(QMetaMethod.fromSignal(self.colorButton.clicked)):
-                self.colorButton.clicked.disconnect()
-        except (TypeError, AttributeError):
+            self.colorButton.clicked.disconnect()
+        except TypeError:
             pass
         self.colorButton.clicked.connect(lambda: self.__open_color_dialog(plot))
         self.colorButton.setStyleSheet(f"""QPushButton
@@ -510,9 +509,8 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
                                         }}""")
 
         try:
-            if self.deletePlotButton.isSignalConnected(QMetaMethod.fromSignal(self.deletePlotButton.clicked)):
-                self.deletePlotButton.clicked.disconnect()
-        except (TypeError, AttributeError):
+            self.deletePlotButton.clicked.disconnect()
+        except TypeError:
             pass
             
         self.nPoints.setText(str(len(plot.X)))
