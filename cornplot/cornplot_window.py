@@ -757,6 +757,9 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
 
     @Slot()
     def __start_periodical_fft(self):
+        self.__fftWindow.dashboard_a.delete_all_plots()
+        self.__fftWindow.dashboard_f.delete_all_plots()
+        self.__fftWindow.dashboard_source.delete_all_plots()
         self.__fftWindow.show()
         self.__fftWindow.close_signal.connect(self.__end_periodical_fft)
         self.__fftWindow.dashboard_a.add_plot([0, 1], [0, 1], name='Амплитудный спектр', color="#f64a46", accurate=True)
@@ -770,9 +773,6 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
 
     @Slot()
     def __end_periodical_fft(self):
-        self.__fftWindow.dashboard_a.delete_all_plots()
-        self.__fftWindow.dashboard_f.delete_all_plots()
-        self.__fftWindow.dashboard_source.delete_all_plots()
         if self.__fftWindow.isVisible():
             try:
                 self.__fftWindow.close_signal.disconnect()
@@ -902,34 +902,31 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
                 y_arr[i] -= polynom(x, *coeffs)
 
         N = len(x_arr)
-        T = (x_arr[0] - x_arr[1])
+        T = mean(x_arr[i] - x_arr[i - 1] for i in range(1, len(x_arr)))
         spectr = fft(y_arr)
         try:
             freq = fftfreq(N, T)
         except ZeroDivisionError:
             self.__message("Ошибка выполнения преобразования Фурье")
-        right_freq = list(np.flip(freq[N // 2 + 1:]))
-        right_freq.insert(0, 0.0)
-        A = list(np.flip(np.abs(spectr)[N // 2 + 1:]) / (N / 2))
-        A.insert(0, np.abs(spectr[0]) / (N / 2))
+            return
+        frequency = list(map(float, freq[:N // 2]))
+        A = list((np.abs(spectr)[:N // 2]) / (N / 2))
+        F = list(np.rad2deg(np.angle(spectr)[:N // 2]))
 
-        F = list(np.rad2deg(np.flip(np.angle(spectr)[N // 2 + 1:])))
-        F.insert(0, np.rad2deg(np.angle(spectr[0])))
-
-        max_index = np.argmax(right_freq)
-        self.fftMaximums.setText(f"f = {F[max_index]:.4f}, A = {A[max_index]:.4f}")
+        max_index = np.argmax(A)
+        self.fftMaximums.setText(f"f = {frequency[max_index]:.4f}, A = {A[max_index]:.4f}")
 
         if periodical:
-            self.__fftWindow.dashboard_a.update_plot('Амплитудный спектр', right_freq, A, rescale_y=True)
-            self.__fftWindow.dashboard_f.update_plot('Фазовый спектр', right_freq, F, rescale_y=True)
+            self.__fftWindow.dashboard_a.update_plot('Амплитудный спектр', frequency, A, rescale_y=True)
+            self.__fftWindow.dashboard_f.update_plot('Фазовый спектр', frequency, F, rescale_y=True)
             self.__fftWindow.dashboard_source.update_plot('Оригинал', x_arr, y_arr, rescale_y=True)
         else:
             self.__fftWindow.dashboard_a.delete_all_plots()
             self.__fftWindow.dashboard_f.delete_all_plots()
             self.__fftWindow.dashboard_source.delete_all_plots()
 
-            self.__fftWindow.dashboard_a.add_plot(right_freq, A, name='Амплитудный спектр', color="#f64a46", accurate=True)
-            self.__fftWindow.dashboard_f.add_plot(right_freq, F, name='Фазовый спектр', color="#1560bd", accurate=True)
+            self.__fftWindow.dashboard_a.add_plot(frequency, A, name='Амплитудный спектр', color="#f64a46", accurate=True)
+            self.__fftWindow.dashboard_f.add_plot(frequency, F, name='Фазовый спектр', color="#1560bd", accurate=True)
             self.__fftWindow.dashboard_source.add_plot(x_arr, y_arr, name='Оригинал', color="#1560bd")
             self.__fftWindow.setWindowTitle(f"Преобразование Фурье {plot.name}")
             self.__fftWindow.show()

@@ -938,13 +938,17 @@ class Dashboard(Axles):
         plots_to_delete = list()
         for plt in self.__plots:
             if not plt.animated:
-                plots_to_delete.append(plt.name)
+                plots_to_delete.append(plt)
             else:
                 x_size = plt.x_size
             plt.remove_all()
 
         for plt in plots_to_delete:
-            self.delete_plot(plt)
+            self.__plots.remove(plt)
+        
+        if self.__window:
+            self.__window.update_plot_info(self.__plots)
+
         self._xstart = 0
         self._real_width = x_size
         self._xstop = self._xstart + self._real_width

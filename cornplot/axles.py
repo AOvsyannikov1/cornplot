@@ -1683,12 +1683,14 @@ class Axles(QWidget):
             self.__btn_group.pause(pause)
             self.__group.pause_signal.emit(pause)
         self.__paused = pause
+        self._redraw_required = True
 
     @Slot(bool)
     def __pause(self, pause: bool):
         if pause != self.__paused:
             self.__btn_group.pause(pause)
         self.__paused = pause
+        self._redraw_required = True
 
     @Slot()
     def restart_animation(self, **kwargs):
