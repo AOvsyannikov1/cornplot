@@ -1,8 +1,8 @@
 import os, warnings
 from math import log10, floor, ceil, pow
 
-from PyQt5.QtCore import Qt, QLineF, QRectF, pyqtSlot as Slot, QRect, QTimer                                                        # type: ignore
-from PyQt5.QtGui import QPen, QColor, QPainter, QFont, QFontMetrics                                                                 # type: ignore
+from PyQt5.QtCore import Qt, QLineF, QRectF, pyqtSlot as Slot, QRect, QTimer
+from PyQt5.QtGui import QPen, QColor, QPainter, QFont, QFontMetrics
 from PyQt5.QtWidgets import QFileDialog, QWidget, QGestureEvent, QPinchGesture, QPanGesture, QTapGesture, QTapAndHoldGesture, QSizePolicy
 
 from .utils import *
@@ -109,8 +109,6 @@ class Axles(QWidget):
 
         self.__initial_x = 0
         self.__initial_y = 0
-
-        self.__mouse_on = False
 
         self.__initial_timestamp = 0
 
@@ -535,14 +533,16 @@ class Axles(QWidget):
                                                             "PNG Files (*.png)")
         if len(fileName) > 0:
             grab.save(fileName, 'png')
-            os.startfile(fileName)
+            try:
+                os.startfile(fileName)
+            except AttributeError:
+                pass
         self.__btn_group.set_buttons_visible(True)
         if self.__animated:
             self.pause(False)
 
     def leaveEvent(self, a0):
         self.clearFocus()
-        self.__mouse_on = False
         self.__ctrl_pressed = False
         self.__shift_pressed = False
         self.__left_button_pressed = False
@@ -552,7 +552,6 @@ class Axles(QWidget):
 
     def enterEvent(self, a0):
         self.setFocus()
-        self.__mouse_on = True
 
     def mouseMoveEvent(self, a0):
         pos = a0.pos()
@@ -1195,10 +1194,10 @@ class Axles(QWidget):
                     self._qp.drawLine(QLineF(self._MIN_X, y_m, self._MAX_X, y_m))
 
         if self._y_axle.draw_minor_grid:
-            y0_minor = self._ystart - self._step_grid_y
-            yk_minor = y_metki_coords[0]
+            y0_minor = y_metki_coords[0]
+            yk_minor = self._ystart - self._step_grid_y
             ystep_minor = self._step_grid_y / self._y_axle.minor_step_ratio
-            y_min = arange(y0_minor, yk_minor + ystep_minor / 2, ystep_minor)
+            y_min = arange(y0_minor, yk_minor + ystep_minor / 2, -ystep_minor)
             y_minor = [self._real_to_window_y(y_m) for y_m in y_min]
             for y_m in y_minor:
                 if self._MIN_Y <= y_m <= self._MAX_Y and y_w != y_m:
@@ -1602,49 +1601,25 @@ class Axles(QWidget):
         if 0.25 <= width <= 4:
             self._y_axle.origin_pen.setWidthF(width)
 
-    def set_major_grid_style_x(self, style: str, width=1.0):
-        match style:
-            case "dot":
-                self._x_axle.pen_major.setStyle(Qt.PenStyle.DotLine)
-            case "dash":
-                self._x_axle.pen_major.setStyle(Qt.PenStyle.DashLine)
-            case "solid":
-                self._x_axle.pen_major.setStyle(Qt.PenStyle.SolidLine)
+    def set_major_grid_style_x(self, style: Qt.PenStyle, width=1.0):
+        self._x_axle.pen_major.setStyle(style)
         self._x_axle.pen_major.setWidthF(width)
         self._redraw_required = True
 
-    def set_minor_grid_style_x(self, style="dot", width=1.0, step_ratio=5):
-        match style:
-            case "dot":
-                self._x_axle.pen_minor.setStyle(Qt.PenStyle.DotLine)
-            case "dash":
-                self._x_axle.pen_minor.setStyle(Qt.PenStyle.DashLine)
-            case "solid":
-                self._x_axle.pen_minor.setStyle(Qt.PenStyle.SolidLine)
+    def set_minor_grid_style_x(self, style: Qt.PenStyle, width=1.0, step_ratio=5):
+        self._x_axle.pen_minor.setStyle(style)
         self._x_axle.pen_minor.setWidthF(width)
         if step_ratio > 0:
             self._x_axle.minor_step_ratio = step_ratio
         self._redraw_required = True
 
-    def set_major_grid_style_y(self, style: str, width=1.0):
-        match style:
-            case "dot":
-                self._y_axle.pen_major.setStyle(Qt.PenStyle.DotLine)
-            case "dash":
-                self._y_axle.pen_major.setStyle(Qt.PenStyle.DashLine)
-            case "solid":
-                self._y_axle.pen_major.setStyle(Qt.PenStyle.SolidLine)
+    def set_major_grid_style_y(self, style: Qt.PenStyle, width=1.0):
+        self._y_axle.pen_major.setStyle(style)
         self._y_axle.pen_major.setWidthF(width)
         self._redraw_required = True
 
-    def set_minor_grid_style_y(self, style="dot", width=1.0, step_ratio=5):
-        match style:
-            case "dot":
-                self._y_axle.pen_minor.setStyle(Qt.PenStyle.DotLine)
-            case "dash":
-                self._y_axle.pen_minor.setStyle(Qt.PenStyle.DashLine)
-            case "solid":
-                self._y_axle.pen_minor.setStyle(Qt.PenStyle.SolidLine)
+    def set_minor_grid_style_y(self, style: Qt.PenStyle, width=1.0, step_ratio=5):
+        self._y_axle.pen_minor.setStyle(style)
         self._y_axle.pen_minor.setWidthF(width)
         if step_ratio > 0:
             self._y_axle.minor_step_ratio = step_ratio
