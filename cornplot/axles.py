@@ -224,6 +224,7 @@ class Axles(QWidget):
             line.hide()
         self.__group.line_clear_signal.emit(self)
         self._redraw_required = True
+        self.update()
 
     def _update_x_borders(self, x0, xk):
         self.__group.update_x_borders(x0, xk)
@@ -260,14 +261,14 @@ class Axles(QWidget):
         self.__group = axle_groups[grp_name]
         self.__scanner_lines = self.__group.scanner_lines
         self.__scale_lines = self.__group.scale_lines
-        self.__group.line_move_signal.connect(self._force_redraw)
+        self.__group.line_move_signal.connect(self.update)
         self.__group.pause_signal.connect(self.__pause)
         self.__group.restart_signal.connect(self.__restart_animation)
         self.__group.line_clear_signal.connect(self.__redraw_after_clear_lines)
 
     def __redraw_after_clear_lines(self, sender: object):
         if sender is not self:
-            self._redraw_required = True
+            self.update()
 
     def fix_y_zero(self, fix: bool) -> None:
         if fix != self.__zero_y_fixed:
@@ -578,6 +579,7 @@ class Axles(QWidget):
                         line.select(abs(pos.x() - self._get_line_window_coord(line)) < 15)
                         if old_val != line.is_selected():
                             self._redraw_required = True
+                            self.update()
                             self.__group.line_move_signal.emit()
 
                 if self.__scanner_lines.any_selected():
@@ -589,6 +591,7 @@ class Axles(QWidget):
                         line.select(abs(pos.x() - self._get_line_window_coord(line)) < 15)
                         if old_val != line.is_selected():
                             self._redraw_required = True
+                            self.update()
                             self.__group.line_move_signal.emit()
 
         if self.__left_button_pressed:
@@ -628,6 +631,7 @@ class Axles(QWidget):
                 self.__scanner_lines.get_nearest_line().set_x_coord(new_coord / (self._MAX_X - self._MIN_X))
                 self.__scanner_lines.last_line = self.__scanner_lines.nearest_line
                 self._redraw_required = True
+                self.update()
                 self.__group.line_move_signal.emit()
 
             # движение масштабирующих линий
@@ -635,6 +639,7 @@ class Axles(QWidget):
                 new_coord = min(max(pos_x, 1), self.__w - 1)
                 self.__scale_lines.get_nearest_line().set_x_coord(new_coord / (self._MAX_X - self._MIN_X))
                 self._redraw_required = True
+                self.update()
                 self.__group.line_move_signal.emit()
 
             # определение координат масштабирующего прямоугольника
