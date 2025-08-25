@@ -1,8 +1,8 @@
 import os, warnings
 from math import log10, floor, ceil, pow
 
-from PyQt6.QtCore import Qt, QLineF, QRectF, pyqtSlot as Slot, QRect, QTimer                                                        # type: ignore
-from PyQt6.QtGui import QPen, QColor, QPainter, QFont, QFontMetrics                                                                 # type: ignore
+from PyQt6.QtCore import Qt, QLineF, QRectF, pyqtSlot as Slot, QRect, QTimer
+from PyQt6.QtGui import QPen, QColor, QPainter, QFont, QFontMetrics
 from PyQt6.QtWidgets import QFileDialog, QWidget, QGestureEvent, QPinchGesture, QPanGesture, QTapGesture, QTapAndHoldGesture, QSizePolicy
 
 from .utils import *
@@ -966,42 +966,42 @@ class Axles(QWidget):
 
     def _real_to_window_x(self, x: float) -> float:
         """Перевод реальных координат оси х в оконные"""
-        return c_real_to_window_x(x, self._MIN_X, self.__w, self._real_width, self._xstart) # type: ignore
+        return c_real_to_window_x(x, self._MIN_X, self.__w, self._real_width, self._xstart)
     
     def __real_to_window_x_linear(self, x: float) -> float:
-        return c_real_to_window_x(x, self._MIN_X, self.__w, self._real_width, self._xstart) # type: ignore
+        return c_real_to_window_x(x, self._MIN_X, self.__w, self._real_width, self._xstart)
     
     def __real_to_window_x_log(self, x: float) -> float:
-        return c_real_to_window_x_log(x, self._MIN_X, self.__w, self._xstart, self._xstop) # type: ignore
+        return c_real_to_window_x_log(x, self._MIN_X, self.__w, self._xstart, self._xstop)
 
     def _real_to_window_y(self, y: float) -> int:
         """Перевод реальных координат оси у в оконные"""
-        return c_real_to_window_y(y, self._MIN_Y, self.__h, self._real_height, self._ystop) # type: ignore
+        return c_real_to_window_y(y, self._MIN_Y, self.__h, self._real_height, self._ystop)
     
     def __real_to_window_y_linear(self, y: float) -> int:
-        return c_real_to_window_y(y, self._MIN_Y, self.__h, self._real_height, self._ystop) # type: ignore
+        return c_real_to_window_y(y, self._MIN_Y, self.__h, self._real_height, self._ystop)
     
     def __real_to_window_y_log(self, y: float) -> int:
-        return c_real_to_window_y_log(y, self._MIN_Y, self._MAX_Y, self.__h, self._ystart, self._ystop) # type: ignore
+        return c_real_to_window_y_log(y, self._MIN_Y, self._MAX_Y, self.__h, self._ystart, self._ystop)
 
     def _window_to_real_x(self, x: float) -> float:
         """Перевод оконных координат оси х в реальные"""
-        return c_window_to_real_x(x, self.__w, self._real_width, self._xstart) # type: ignore
+        return c_window_to_real_x(x, self.__w, self._real_width, self._xstart)
     
     def __window_to_real_x_linear(self, x: float) -> float:
-        return c_window_to_real_x(x, self.__w, self._real_width, self._xstart) # type: ignore
+        return c_window_to_real_x(x, self.__w, self._real_width, self._xstart) 
     
     def __window_to_real_x_log(self, x: float) -> float:
-        return c_window_to_real_x_log(x, self.__w, self._xstart, self._xstop) # type: ignore
+        return c_window_to_real_x_log(x, self.__w, self._xstart, self._xstop)
 
     def _window_to_real_y(self, y: float) -> float:
-        return c_window_to_real_y(y, self.__h, self._real_height, self._ystop, self._OFFSET_Y_UP) # type: ignore
+        return c_window_to_real_y(y, self.__h, self._real_height, self._ystop, self._OFFSET_Y_UP)
     
     def __window_to_real_y_linear(self, y: float) -> float:
-        return c_window_to_real_y(y, self.__h, self._real_height, self._ystop, self._OFFSET_Y_UP) # type: ignore
+        return c_window_to_real_y(y, self.__h, self._real_height, self._ystop, self._OFFSET_Y_UP)
     
     def __window_to_real_y_log(self, y: float) -> float:
-        return c_window_to_real_y_log(y, self.__h, self._ystart, self._ystop, self._OFFSET_Y_UP) # type: ignore
+        return c_window_to_real_y_log(y, self.__h, self._ystart, self._ystop, self._OFFSET_Y_UP)
     
     def __recalculate_slider_coords(self):
         if self.__slider.is_pressed():

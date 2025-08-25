@@ -454,8 +454,8 @@ class Dashboard(Axles):
             return
         
         if plt.animated and not self.is_paused():
-            Xwin = c_recalculate_window_x(list(plt.X), self._MIN_X, self._get_width(), self._real_width, self._xstart, plt.index0, plt.index1 + 1, 1)       # type: ignore
-            Ywin = c_recalculate_window_y(list(plt.Y), self._MIN_Y, self._get_heignt(), self._real_height, self._ystop, plt.index0, plt.index1 + 1, 1)      # type: ignore
+            Xwin = c_recalculate_window_x(list(plt.X), self._MIN_X, self._get_width(), self._real_width, self._xstart, plt.index0, plt.index1 + 1, 1)
+            Ywin = c_recalculate_window_y(list(plt.Y), self._MIN_Y, self._get_heignt(), self._real_height, self._ystop, plt.index0, plt.index1 + 1, 1)
             if plt.draw_line and plt.pen.style() == Qt.PenStyle.SolidLine:
                 plt.lines = [QLineF(Xwin[i - 1], Ywin[i - 1], Xwin[i], Ywin[i]) for i in range(1, len(Xwin))]
             if plt.draw_markers or plt.pen.style() != Qt.PenStyle.SolidLine:
@@ -771,12 +771,12 @@ class Dashboard(Axles):
     def __recalculate_plot_x(self, plt: Plot, step):
         if self._x_axle.logarithmic:
             return [self._real_to_window_x(plt.X[i]) for i in range(plt.index0, plt.index1, step)]
-        return c_recalculate_window_x(list(plt.X), self._MIN_X, self._get_width(), self._real_width, self._xstart, plt.index0, plt.index1, step)       # type: ignore
+        return c_recalculate_window_x(list(plt.X), self._MIN_X, self._get_width(), self._real_width, self._xstart, plt.index0, plt.index1, step)
     
     def __recalculate_plot_y(self, plt: Plot, step):
         if self._y_axle.logarithmic:
             return [self._real_to_window_y(plt.Y[i]) for i in range(plt.index0, plt.index1, step)]
-        return c_recalculate_window_y(list(plt.Y), self._MIN_Y, self._get_heignt(), self._real_height, self._ystop, plt.index0, plt.index1, step)       # type: ignore
+        return c_recalculate_window_y(list(plt.Y), self._MIN_Y, self._get_heignt(), self._real_height, self._ystop, plt.index0, plt.index1, step)
     
     def set_plot_linestyle(self, name: str, linestyle: Qt.PenStyle):
         for plt in self.__plots:

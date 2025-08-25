@@ -185,7 +185,7 @@ class Plot(QObject):
     def get_nearest(self, x_real):
         X = list(self.X[self.index0:self.index1+1])
         if self.x_ascending:
-            x, indx = c_get_nearest_value(X, x_real)        # type: ignore
+            x, indx = c_get_nearest_value(X, x_real)
             indx += self.index0
             return [x, indx],
 
