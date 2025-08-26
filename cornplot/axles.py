@@ -704,8 +704,8 @@ class Axles(QWidget):
     def mouseReleaseEvent(self, a0):
         pos = a0.pos()
 
-        if pos.y() < self._OFFSET_Y_UP and not self.__zoom_active:
-            return
+        # if pos.y() < self._OFFSET_Y_UP and not self.__zoom_active:
+        #     return
         
         match a0.button():
             case Qt.MouseButton.LeftButton:
@@ -726,8 +726,8 @@ class Axles(QWidget):
                 if self.__animated and not self.__paused or self.__scale_lines.any_selected() or self.__scanner_lines.any_selected():
                     return
                 else:
-                    if pos.x() > self._MIN_X and not self._x_axle.logarithmic and not self._y_axle.logarithmic:
-                        if self.__scaling_rect.width() == 0 and self.__scaling_rect.height() == 0 and not self.__zoom_active:
+                    if not self._x_axle.logarithmic and not self._y_axle.logarithmic:
+                        if pos.x() > self._MIN_X and self.__scaling_rect.width() == 0 and self.__scaling_rect.height() == 0 and not self.__zoom_active:
                             if self.__touch_x == pos.x() and self.__touch_y == pos.y() and not self._point_added:
                                 self.__scale_lines.add_line((pos.x() - self._MIN_X) / (self._MAX_X - self._MIN_X))
                                 self.__group.line_move_signal.emit()
