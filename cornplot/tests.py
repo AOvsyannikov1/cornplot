@@ -166,7 +166,7 @@ def show_demo_plots_4():
 def show_demo_plots_5():
     X = np.random.beta(a=2, b=5, size=100000)
 
-    plt.histogram(X, name="Бета-распределение")
+    plt.histogram(X, name="Бета-распределение", normalised=True)
     plt.show()
 
 

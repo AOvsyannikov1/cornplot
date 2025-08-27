@@ -81,9 +81,9 @@ class PlotWindow(QWidget):
         index = self.__datasets[name]
         self.dashboards[index].add_point_to_animated_plot(name, x, y)
 
-    def add_histogram(self, row, col, data, intervals_count=0, name="", color="any"):
+    def add_histogram(self, row, col, data, intervals_count=0, name="", color="any", normalised=False):
         index = self.dashboard_locations.index((row, col))
-        self.dashboards[index].add_histogram(data, name=name, color=color, interval_count=intervals_count)
+        self.dashboards[index].add_histogram(data, name=name, color=color, interval_count=intervals_count, normalised=normalised)
 
     def add_pie_chart(self, row, col, percentages, category_names, category_descriprions=None):
         index = self.dashboard_locations.index((row, col))
@@ -208,7 +208,7 @@ class CornPlotter:
         index = self.__datasets[name]
         self.__windows[index].add_point_to_dataset(name, x, y)
 
-    def histogram(self, data, intervals_count=0, x_name="X", y_name="Y", name="", color='any', link_plots=False):
+    def histogram(self, data, intervals_count=0, x_name="X", y_name="Y", name="", color='any', link_plots=False, normalised=False):
         self.__create_qapp()
         if len(self.__windows) == 0:
             self.__windows.append(PlotWindow())
@@ -217,7 +217,7 @@ class CornPlotter:
                                                              x_name=x_name, y_name=y_name, link_plots=link_plots, draw_axes=False)
         self.__windows[self.__current_window_index].dashboards[-1].set_x_name(x_name)
         self.__windows[self.__current_window_index].dashboards[-1].set_y_name(y_name)
-        self.__windows[self.__current_window_index].add_histogram(self.__current_row, self.__current_col, data, intervals_count=intervals_count, name=name, color=color)
+        self.__windows[self.__current_window_index].add_histogram(self.__current_row, self.__current_col, data, intervals_count=intervals_count, name=name, color=color, normalised=normalised)
 
     def pie_chart(self, percentages, category_names, category_descriptions=None):
         self.__create_qapp()

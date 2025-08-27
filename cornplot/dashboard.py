@@ -172,7 +172,7 @@ class Dashboard(Axles):
         self._set_animated(True)
         return True
     
-    def add_histogram(self, data, interval_count=0, name="", color="any"):
+    def add_histogram(self, data, interval_count=0, name="", color="any", normalised=False):
         if interval_count <= 0:
             interval_count = 1 + floor(log2(len(data)))
 
@@ -191,6 +191,9 @@ class Dashboard(Axles):
                 y[n_bin] += 1
             except IndexError:
                 y[n_bin - 1] += 1
+        summa = sum(y)
+        if normalised:
+            y = [yi / summa for yi in y]
 
         if color == 'any':
             color = self.__color_generator.get_color()
@@ -207,7 +210,8 @@ class Dashboard(Axles):
         if len(name) == 0:
             name = f"Гистограмма {len(self.__plots) + 1}"
 
-        self.__plots.append(Plot(self, x, y, pen, name=name, accurate=True, hist=True, heatmap=heatmap, checkbox_x=self.__get_checkbox_x()))
+        self.__plots.append(Plot(self, x, y, pen, name=name, accurate=True, hist=True, heatmap=heatmap, checkbox_x=self.__get_checkbox_x(),
+                                 hist_data=data))
         self.__plots[-1].redraw_signal.connect(self.__process_checkbox_press)
         self.__plots[-1].set_dark(self.dark)
 

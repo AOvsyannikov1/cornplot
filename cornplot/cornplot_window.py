@@ -1,5 +1,5 @@
 import csv, pathlib
-from statistics import mean
+import statistics
 from functools import partial
 from enum import Enum
 from math import sqrt
@@ -77,7 +77,8 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.tabWidget_2.setTabIcon(1, QIcon(get_image_path("filter.png")))
         self.tabWidget_2.setTabIcon(2, QIcon(get_image_path("derivative.png")))
         self.tabWidget_2.setTabIcon(3, QIcon(get_image_path("integral.png")))
-        self.tabWidget_2.setTabIcon(4, QIcon(get_image_path("spectr.png")))
+        self.tabWidget_2.setTabIcon(4, QIcon(get_image_path("stats.png")))
+        self.tabWidget_2.setTabIcon(5, QIcon(get_image_path("spectr.png")))
         self.tabWidget.setCurrentIndex(0)
         self.tabWidget_2.setCurrentIndex(0)
 
@@ -185,8 +186,8 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
 
         self.approxButton.clicked.connect(self.__fit)
         self.approxIntervalButton.clicked.connect(self.__begin_interval_approx)
-        self.meanSelectInterval.clicked.connect(self.__begin_interval_mean_calculating)
-        self.meanCalculateAll.clicked.connect(self.__begin_all_mean_calculating)
+        self.statsSelectInterval.clicked.connect(self.__begin_interval_stats_calculating)
+        self.statsCalculateAll.clicked.connect(self.__begin_all_stats_calculating)
         self.equationButton.clicked.connect(self.__show_dialog)
 
         self.lineWidth.valueChanged.connect(self.__line_width_changed)
@@ -516,6 +517,14 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
             self.deletePlotButton.clicked.disconnect()
         except TypeError:
             pass
+
+        try:
+            self.doKdeButton.clicked.disconnect()
+        except TypeError:
+            pass
+
+        if plot.is_hist:
+            self.doKdeButton.clicked.connect(self.__calculate_kde)
             
         self.nPoints.setText(str(len(plot.X)))
         self.deletePlotButton.clicked.connect(partial(self.__delete_plot, plot.name))
@@ -531,8 +540,10 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.tabWidget_2.setTabEnabled(1, plot.x_ascending)
         self.tabWidget_2.setTabEnabled(2, not plot.is_hist and plot.x_ascending)
         self.tabWidget_2.setTabEnabled(3, not plot.is_hist and plot.x_ascending)
-        self.tabWidget_2.setTabEnabled(4, not plot.is_hist and plot.x_ascending)
+        self.tabWidget_2.setTabEnabled(5, not plot.is_hist and plot.x_ascending)
         self.filterGroup.setEnabled(not plot.is_hist)
+        self.doKdeButton.setEnabled(plot.is_hist)
+        self.statsSelectInterval.setEnabled(plot.x_ascending)
 
         self.pltImage.update()
 
@@ -622,7 +633,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
             case MathOperation.APPROX:
                 self.__fit(i0, ik)
             case MathOperation.MEAN:
-                self.__find_mean_value(plot, i0, ik)
+                self.__calculate_statistics(plot, i0, ik)
             case MathOperation.CURVE_LENGTH:
                 self.__find_curve_length(plot, i0, ik)
 
@@ -717,7 +728,6 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
                     self.__derivWin.dashboard.disable_human_time_display()
                 self.__derivWin.dashboard.set_initial_timestamp(x_arr[0] + self.__dashboard.get_initial_timestamp())
                 self.__derivWin.show()
-                self.__derivWinFirst = False
             else:
                 color = plot.pen.color().darker(160).name()
                 self.__dashboard.delete_plot(f"{self.plotName.currentText()} (интеграл)")
@@ -726,13 +736,44 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         else:
             self.__message("Интеграл вычислен успешно.")
 
-    def __find_mean_value(self, plot: Plot, i0, ik):
-        result = mean(plot.Y[i0:ik])
+    @Slot()
+    def __calculate_kde(self):
+        plt = self.__plots[self.plotName.currentIndex()]
+        kde_result = statistics.kde(plt.hist_data, kernel=self.kdeKernel.currentText(), h=1)
+        dx = plt.X[-1] - plt.X[0]
+        x0 = plt.X[0] - 0.1 * dx
+        xk = plt.X[-1] + 0.1 * dx
+        points = 200
+        step = (xk - x0) / points
+        X = np.arange(x0, xk, step)
+        Y = [kde_result(x) for x in X]
+        self.__dashboard.add_plot(X, Y, name=f"{plt.name} (KDE)", accurate=True)
+
+    def __calculate_statistics(self, plot: Plot, i0, ik):
+        y_array = plot.Y[i0:ik]
+        self.__message("Вычисление статистических параметров...")
+        mean = statistics.fmean(y_array)
+        try:
+            geom_mean = statistics.geometric_mean(y_array)
+        except statistics.StatisticsError:
+            geom_mean = "Расчёт невозможен"
+        try:
+            harmonic_mean = statistics.harmonic_mean(y_array)
+        except statistics.StatisticsError:
+            harmonic_mean = "Расчёт невозможен"
+        std_dev = statistics.stdev(y_array)
+        std_gen_dev = statistics.pstdev(y_array)
+        median = statistics.median(y_array)
 
         self.xMeanBegin.setText(self.__param_to_string(plot.X[i0]))
         self.xMeanEnd.setText(self.__param_to_string(plot.X[ik]))
-        self.meanResult.setText(self.__param_to_string(result))
-        self.__message("Среднее значение вычислено успешно.")
+        self.meanResult.setText(str(mean))
+        self.geomMeanResult.setText(str(geom_mean))
+        self.harmonicMeanResult.setText(str(harmonic_mean))
+        self.stdDev.setText(str(std_dev))
+        self.stdGenDev.setText(str(std_gen_dev))
+        self.medianResult.setText(str(median))
+        self.__message("Статистические параметры вычислены успешно.")
 
     def __find_curve_length(self, plot: Plot, i0, ik):
         length = 0.0
@@ -859,7 +900,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.__operation = MathOperation.APPROX
 
     @Slot()
-    def __begin_interval_mean_calculating(self):
+    def __begin_interval_stats_calculating(self):
         if self.__dashboard.is_animated() and not self.__dashboard.is_paused():
             self.__message("Действие не может быть выполнено.")
             return
@@ -868,11 +909,11 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.__operation = MathOperation.MEAN
 
     @Slot()
-    def __begin_all_mean_calculating(self):
+    def __begin_all_stats_calculating(self):
         plot = self.__plots[self.plotName.currentIndex()]
         i0 = 0
         ik = len(plot.X) - 1
-        self.__find_mean_value(plot, i0, ik)
+        self.__calculate_statistics(plot, i0, ik)
 
     @Slot()
     def __begin_all_curve_length_calc(self):
@@ -904,7 +945,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
                 y_arr[i] -= polynom(x, *coeffs)
 
         N = len(x_arr)
-        T = mean(x_arr[i] - x_arr[i - 1] for i in range(1, len(x_arr)))
+        T = statistics.fmean(x_arr[i] - x_arr[i - 1] for i in range(1, len(x_arr)))
         spectr = fft(y_arr)
         try:
             freq = fftfreq(N, T)
@@ -1109,7 +1150,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         
     @staticmethod
     def __choose_contrast_color(color: QColor):
-        if mean((color.red(), color.green(), color.blue())) >= 128:
+        if statistics.mean((color.red(), color.green(), color.blue())) >= 128:
             return QColor(0, 0, 0)
         else:
             return QColor(255, 255, 255)

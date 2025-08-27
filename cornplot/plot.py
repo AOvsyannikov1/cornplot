@@ -11,7 +11,7 @@ class Plot(QObject):
     redraw_signal = Signal()
 
     def __init__(self, widget, x_arr, y_arr, pen: QPen, is_dotted=False, name="",
-                 accurate=False, hist=False, heatmap=False, animated=False, x_size=10, checkbox_x=0):
+                 accurate=False, hist=False, heatmap=False, animated=False, x_size=10, checkbox_x=0, hist_data=None):
         super().__init__()
         self.pen = pen
         self.animated = animated
@@ -38,6 +38,8 @@ class Plot(QObject):
         self.visible = True
         self.draw_line = True
         self.draw_markers = is_dotted
+
+        self.hist_data = hist_data
 
         self.heatmap = heatmap
         self.__marker_width = 5
