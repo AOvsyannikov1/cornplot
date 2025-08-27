@@ -3210,6 +3210,36 @@
                          <string>sigmoid</string>
                         </property>
                        </item>
+                       <item>
+                        <property name="text">
+                         <string>rectangular</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>triangular</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>parabolic</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>quartic</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>triweight</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>cosine</string>
+                        </property>
+                       </item>
                       </widget>
                      </item>
                     </layout>

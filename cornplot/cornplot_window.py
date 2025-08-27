@@ -19,6 +19,7 @@ from .color_generator import ColorGenerator
 from .filters import MovingAverageFilter, ExponentialFilter, MedianFilter
 from scipy.optimize import curve_fit
 from scipy.fft import fft, fftfreq
+from scipy.stats import gaussian_kde
 from .utils import get_image_path, get_upper_index, SelectedPoint
 from .version import *
 
@@ -1231,12 +1232,15 @@ class KdeCalcThread(QThread):
         self.cumulative = cumulative
 
     def run(self):
-        kde_result = statistics.kde(self.plt.hist_data, kernel=self.kernel, h=self.h, cumulative=self.cumulative)
-        dx = self.plt.X[-1] - self.plt.X[0]
-        x0 = self.plt.X[0] - 0.1 * dx
-        xk = self.plt.X[-1] + 0.1 * dx
-        points = 200
-        step = (xk - x0) / points
-        X = np.arange(x0, xk, step)
-        Y = [kde_result(x) for x in X]
-        self.plt_signal.emit(self.plt.name, list(X), Y)
+        try:
+            kde_result = statistics.kde(self.plt.hist_data, kernel=self.kernel, h=self.h, cumulative=self.cumulative)
+            dx = self.plt.X[-1] - self.plt.X[0]
+            x0 = self.plt.X[0] - 0.1 * dx
+            xk = self.plt.X[-1] + 0.1 * dx
+            points = 200
+            step = (xk - x0) / points
+            X = np.arange(x0, xk, step)
+            Y = [kde_result(x) for x in X]
+            self.plt_signal.emit(self.plt.name, list(X), Y)
+        except:
+            pass
