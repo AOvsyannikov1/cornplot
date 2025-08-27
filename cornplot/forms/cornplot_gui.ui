@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>790</width>
-    <height>612</height>
+    <width>792</width>
+    <height>639</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -48,7 +48,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="axlesTab">
        <property name="autoFillBackground">
@@ -3215,6 +3215,33 @@
                     </layout>
                    </item>
                    <item>
+                    <layout class="QHBoxLayout" name="horizontalLayout_64">
+                     <item>
+                      <widget class="QCheckBox" name="kdeHmanual">
+                       <property name="text">
+                        <string>Задать h вручную</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QDoubleSpinBox" name="kdeHvalue">
+                       <property name="enabled">
+                        <bool>false</bool>
+                       </property>
+                       <property name="decimals">
+                        <number>3</number>
+                       </property>
+                       <property name="minimum">
+                        <double>0.000000000000000</double>
+                       </property>
+                       <property name="maximum">
+                        <double>999999999999.000000000000000</double>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
                     <widget class="QCheckBox" name="kdeCumulative">
                      <property name="text">
                       <string>Кумулятивная функция</string>
@@ -3401,8 +3428,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>790</width>
-     <height>22</height>
+     <width>792</width>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu">
@@ -4294,6 +4321,22 @@
     <hint type="destinationlabel">
      <x>333</x>
      <y>365</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>kdeHmanual</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>kdeHvalue</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>217</x>
+     <y>470</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>570</x>
+     <y>470</y>
     </hint>
    </hints>
   </connection>

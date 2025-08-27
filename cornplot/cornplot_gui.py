@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'cornplot/forms/cornplot_gui.ui'
+# Form implementation generated from reading ui file './cornplot/forms/cornplot_gui.ui'
 #
 # Created by: PyQt6 UI code generator 6.9.1
 #
@@ -12,7 +12,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 class Ui_CornplotGui(object):
     def setupUi(self, CornplotGui):
         CornplotGui.setObjectName("CornplotGui")
-        CornplotGui.resize(790, 612)
+        CornplotGui.resize(792, 639)
         self.centralwidget = QtWidgets.QWidget(parent=CornplotGui)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
@@ -1527,6 +1527,19 @@ class Ui_CornplotGui(object):
         self.kdeKernel.addItem("")
         self.horizontalLayout_63.addWidget(self.kdeKernel)
         self.verticalLayout_4.addLayout(self.horizontalLayout_63)
+        self.horizontalLayout_64 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_64.setObjectName("horizontalLayout_64")
+        self.kdeHmanual = QtWidgets.QCheckBox(parent=self.groupBox_4)
+        self.kdeHmanual.setObjectName("kdeHmanual")
+        self.horizontalLayout_64.addWidget(self.kdeHmanual)
+        self.kdeHvalue = QtWidgets.QDoubleSpinBox(parent=self.groupBox_4)
+        self.kdeHvalue.setEnabled(False)
+        self.kdeHvalue.setDecimals(3)
+        self.kdeHvalue.setMinimum(0.0)
+        self.kdeHvalue.setMaximum(999999999999.0)
+        self.kdeHvalue.setObjectName("kdeHvalue")
+        self.horizontalLayout_64.addWidget(self.kdeHvalue)
+        self.verticalLayout_4.addLayout(self.horizontalLayout_64)
         self.kdeCumulative = QtWidgets.QCheckBox(parent=self.groupBox_4)
         self.kdeCumulative.setObjectName("kdeCumulative")
         self.verticalLayout_4.addWidget(self.kdeCumulative)
@@ -1607,7 +1620,7 @@ class Ui_CornplotGui(object):
         self.gridLayout.addWidget(self.tabWidget, 0, 1, 1, 1)
         CornplotGui.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(parent=CornplotGui)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 790, 22))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 792, 21))
         self.menubar.setObjectName("menubar")
         self.menu = QtWidgets.QMenu(parent=self.menubar)
         self.menu.setObjectName("menu")
@@ -1729,7 +1742,7 @@ class Ui_CornplotGui(object):
         self.menubar.addAction(self.menu_2.menuAction())
 
         self.retranslateUi(CornplotGui)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(1)
         self.tabWidget_2.setCurrentIndex(4)
         self.yAuto.toggled['bool'].connect(self.yStep.setDisabled) # type: ignore
         self.yAuto.toggled['bool'].connect(self.yMin.setDisabled) # type: ignore
@@ -1770,6 +1783,7 @@ class Ui_CornplotGui(object):
         self.majorGridAction.toggled['bool'].connect(self.majorTicksCheckY.setChecked) # type: ignore
         self.minorTicksCheckY.toggled['bool'].connect(self.minorTicksStepY.setEnabled) # type: ignore
         self.minorTicksCheckX.toggled['bool'].connect(self.minorTicksStepX.setEnabled) # type: ignore
+        self.kdeHmanual.toggled['bool'].connect(self.kdeHvalue.setEnabled) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(CornplotGui)
 
     def retranslateUi(self, CornplotGui):
@@ -1957,6 +1971,7 @@ class Ui_CornplotGui(object):
         self.kdeKernel.setItemText(0, _translate("CornplotGui", "normal"))
         self.kdeKernel.setItemText(1, _translate("CornplotGui", "logistic"))
         self.kdeKernel.setItemText(2, _translate("CornplotGui", "sigmoid"))
+        self.kdeHmanual.setText(_translate("CornplotGui", "Задать h вручную"))
         self.kdeCumulative.setText(_translate("CornplotGui", "Кумулятивная функция"))
         self.doKdeButton.setText(_translate("CornplotGui", "Выполнить"))
         self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_6), _translate("CornplotGui", "Статистика"))

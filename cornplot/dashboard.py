@@ -172,7 +172,7 @@ class Dashboard(Axles):
         self._set_animated(True)
         return True
     
-    def add_histogram(self, data, interval_count=0, name="", color="any", normalised=False):
+    def add_histogram(self, data, interval_count=0, name="", color="any", probabilities=False):
         if interval_count <= 0:
             interval_count = 1 + floor(log2(len(data)))
 
@@ -192,8 +192,74 @@ class Dashboard(Axles):
             except IndexError:
                 y[n_bin - 1] += 1
         summa = sum(y)
-        if normalised:
+        if probabilities:
             y = [yi / summa for yi in y]
+
+        if color == 'any':
+            color = self.__color_generator.get_color()
+            heatmap = False
+        elif color == 'heatmap':
+            heatmap = True
+            color = self.__color_generator.get_color()
+        else:
+            color = color
+            heatmap = False
+
+        pen = QPen(QColor(color), 2)
+        pen.setStyle(Qt.PenStyle.SolidLine)
+        if len(name) == 0:
+            name = f"Гистограмма {len(self.__plots) + 1}"
+
+        self.__plots.append(Plot(self, x, y, pen, name=name, accurate=True, hist=True, heatmap=heatmap, checkbox_x=self.__get_checkbox_x(),
+                                 hist_data=data))
+        self.__plots[-1].redraw_signal.connect(self.__process_checkbox_press)
+        self.__plots[-1].set_dark(self.dark)
+
+        if x0 < self._x_axis_min or len(self.__plots) == 1:
+            self._x_axis_min = x0
+        if xk >= self._x_axis_max or len(self.__plots) == 1:
+            self._x_axis_max = xk
+
+        if self._x_axis_min < self._xstart:
+            self._xstart = self._x_axis_min
+        if self._x_axis_max > self._xstop:
+            self._xstop = self._x_axis_max
+        self._real_width = self._xstop - self._xstart
+
+        self._calculate_y_parameters()
+        self._recalculate_window_coords()
+        self._update_step_y()
+        self._update_step_x()
+        self._update_x_borders(self._x_axis_min, self._x_axis_max)
+
+        if self.__window:
+            self.__window.update_plot_info(self.__plots)
+        self._force_redraw()
+
+        return True
+    
+    def add_density_histogram(self, data, interval_count=0, name="", color="any"):
+        if interval_count <= 0:
+            interval_count = 1 + floor(log2(len(data)))
+
+        x0 = min(data)
+        xk = max(data)
+
+        y = [0] * interval_count
+        n_bin = 0
+        intervals = [x0 + (xk - x0) / interval_count * i for i in range(interval_count + 1)]
+        x = [(intervals[i + 1] + intervals[i]) / 2 for i in range(interval_count)]
+        dx = x[1] - x[0]
+
+        for val in np.sort(data):
+            while val > intervals[n_bin + 1] and n_bin < interval_count - 1:
+                n_bin += 1
+            try:
+                y[n_bin] += 1
+            except IndexError:
+                y[n_bin - 1] += 1
+        summa = sum(y)
+        y = [yi / (summa * dx) for yi in y]
 
         if color == 'any':
             color = self.__color_generator.get_color()

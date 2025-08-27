@@ -29,9 +29,14 @@ def add_point_to_animated_plot(name, x, y):
     _plotter.add_point_to_animated_plot(name, x, y)
 
 
-def histogram(x_arr, intervals_count=0, x_name="X", y_name="Y", name='', color="any", normalised=False, link_plots=True):
+def histogram(x_arr, intervals_count=0, x_name="X", y_name="Y", name='', color="any", probabilities=False, link_plots=False):
     _plotter.histogram(x_arr, intervals_count=intervals_count, x_name=x_name, y_name=y_name, name=name,
-             color=color, normalised=normalised, link_plots=link_plots)
+             color=color, probabilities=probabilities, link_plots=link_plots)
+    
+
+def density_histogram(x_arr, intervals_count=0, x_name="X", y_name="Y", name='', color="any", link_plots=False):
+    _plotter.density_histogram(x_arr, intervals_count=intervals_count, x_name=x_name, y_name=y_name, name=name,
+             color=color, link_plots=link_plots)
 
 
 def pie_chart():

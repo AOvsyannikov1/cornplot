@@ -2,11 +2,11 @@ import csv, pathlib
 import statistics
 from functools import partial
 from enum import Enum
-from math import sqrt
+from math import sqrt, pow
 
 import numpy as np
 
-from PyQt6.QtCore import pyqtSignal as Signal, pyqtSlot as Slot, Qt, QTimer, QMetaMethod
+from PyQt6.QtCore import pyqtSignal as Signal, pyqtSlot as Slot, Qt, QTimer, QThread
 from PyQt6.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QColorDialog, QFontDialog
 from PyQt6.QtGui import QIcon, QColor, QFont, QPainter, QAction, QActionGroup, QKeySequence
 from .cornplot_gui import Ui_CornplotGui
@@ -739,18 +739,29 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
     @Slot()
     def __calculate_kde(self):
         plt = self.__plots[self.plotName.currentIndex()]
-        kde_result = statistics.kde(plt.hist_data, kernel=self.kdeKernel.currentText(), h=1)
-        dx = plt.X[-1] - plt.X[0]
-        x0 = plt.X[0] - 0.1 * dx
-        xk = plt.X[-1] + 0.1 * dx
-        points = 200
-        step = (xk - x0) / points
-        X = np.arange(x0, xk, step)
-        Y = [kde_result(x) for x in X]
-        self.__dashboard.add_plot(X, Y, name=f"{plt.name} (KDE)", accurate=True)
+        std = statistics.stdev(plt.hist_data)
+        mean = statistics.fmean(plt.hist_data)
+        if self.kdeHmanual.isChecked():
+            h = self.kdeHvalue.value()
+        else:
+            h = pow((4 * std ** 5) / (3 * len(plt.hist_data)), 0.2)         # правило Сильвермана
+            h *= 1.5
+            self.kdeHvalue.setValue(h)
+
+        self.__kde_thread = KdeCalcThread(self.__dashboard, plt, h, self.kdeKernel.currentText(), self.kdeCumulative.isChecked())
+        self.__kde_thread.plt_signal.connect(self.__add_kde_plot)
+        self.__kde_thread.start()
+
+    @Slot(str, list, list)
+    def __add_kde_plot(self, plt_name, x, y):
+        self.__dashboard.delete_plot(self.plotName.currentText() + " (KDE)")
+        self.__dashboard.add_plot(x, y, name=f"{plt_name} (KDE)")
 
     def __calculate_statistics(self, plot: Plot, i0, ik):
-        y_array = plot.Y[i0:ik]
+        if plot.is_hist:
+            y_array = plot.hist_data
+        else:
+            y_array = plot.Y[i0:ik]
         self.__message("Вычисление статистических параметров...")
         mean = statistics.fmean(y_array)
         try:
@@ -1206,3 +1217,26 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.__derivWin.close()
         self.__fftWindow.close()
         self.eqWin.close()
+
+
+class KdeCalcThread(QThread):
+    plt_signal = Signal(str, list, list)
+
+    def __init__(self, dashboard, plt: Plot, h: float, kernel: str, cumulative: bool):
+        super().__init__()
+        self.plt = plt
+        self.dashboard = dashboard
+        self.h = h
+        self.kernel = kernel
+        self.cumulative = cumulative
+
+    def run(self):
+        kde_result = statistics.kde(self.plt.hist_data, kernel=self.kernel, h=self.h, cumulative=self.cumulative)
+        dx = self.plt.X[-1] - self.plt.X[0]
+        x0 = self.plt.X[0] - 0.1 * dx
+        xk = self.plt.X[-1] + 0.1 * dx
+        points = 200
+        step = (xk - x0) / points
+        X = np.arange(x0, xk, step)
+        Y = [kde_result(x) for x in X]
+        self.plt_signal.emit(self.plt.name, list(X), Y)
