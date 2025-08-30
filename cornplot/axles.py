@@ -527,8 +527,10 @@ class Axles(QWidget):
     def _calculate_y_parameters(self):
         pass
 
+    @Slot()
     def __save_picture(self):
-        if self.__animated:
+        was_paused = self.__paused
+        if self.__animated and not self.__paused:
             self.pause(True)
         self.__btn_group.set_buttons_visible(False)
         grab = self.grab(QRect(0, 0, self.width() + 10, self.height()))
@@ -536,10 +538,13 @@ class Axles(QWidget):
                                                             "PNG Files (*.png)")
         if len(fileName) > 0:
             grab.save(fileName, 'png')
-            os.startfile(fileName)
+            try:
+                os.startfile(fileName)
+            except:
+                pass
         self.__btn_group.set_buttons_visible(True)
         if self.__animated:
-            self.pause(False)
+            self.pause(was_paused)
 
     def leaveEvent(self, a0):
         self.clearFocus()
