@@ -11,7 +11,7 @@ class Plot(QObject):
     redraw_signal = Signal()
 
     def __init__(self, widget, x_arr, y_arr, pen: QPen, is_dotted=False, name="",
-                 accurate=False, hist=False, heatmap=False, animated=False, x_size=10, checkbox_x=0, hist_data=None):
+                 accurate=False, hist=False, heatmap=False, animated=False, x_size=10, checkbox_x:int | None=None, hist_data=None):
         super().__init__()
         self.pen = pen
         self.animated = animated
@@ -63,20 +63,28 @@ class Plot(QObject):
         font.setBold(False)
         self.__chb_width = QFontMetrics(font).horizontalAdvance(self.name) + 30
 
-        self.__checkbox = QCheckBox(widget)
-        self.__checkbox.setText(self.name)
-        self.__checkbox.setChecked(True)
-        self.__checkbox.setGeometry(checkbox_x, 2, self.__chb_width, 20)
-        self.__checkbox.setFont(font)
-        self.__checkbox.toggled["bool"].connect(self.set_visible)
+        if checkbox_x:
+            self.__checkbox = QCheckBox(widget)
+            self.__checkbox.setText(self.name)
+            self.__checkbox.setChecked(True)
+            self.__checkbox.setGeometry(checkbox_x, 2, self.__chb_width, 20)
+            self.__checkbox.setFont(font)
+            self.__checkbox.toggled["bool"].connect(self.set_visible)
+        else:
+            self.__checkbox = None
+
+        self.__fill_with_index: int = -1
 
         self.set_dark(False)
-        palette = self.__checkbox.palette()
-        palette.setColor(QPalette.ColorRole.WindowText, pen.color())
-        self.__checkbox.setPalette(palette)
-        self.__checkbox.show()
+        if self.__checkbox:
+            palette = self.__checkbox.palette()
+            palette.setColor(QPalette.ColorRole.WindowText, pen.color())
+            self.__checkbox.setPalette(palette)
+            self.__checkbox.show()
 
     def set_dark(self, dark: bool):
+        if not self.__checkbox:
+            return
         rgb = self.pen.color().getRgb()
         self.__checkbox.setStyleSheet(f"""
                                     QCheckBox {{
@@ -95,15 +103,26 @@ class Plot(QObject):
                                         background-color: rgba({rgb[0]}, {rgb[1]}, {rgb[2]}, 0.5);
                                     }}
                                 """)
+        
+    def set_filling_with(self, index):
+        self.__fill_with_index = index
+
+    def is_filling_between(self) -> bool:
+        return self.__fill_with_index >= 0
+    
+    def filling_between_with(self) -> int:
+        return self.__fill_with_index
 
     def set_checkbox_x(self, x: int):
-        self.__checkbox.setGeometry(x, self.__checkbox.y(), self.__checkbox.width(), self.__checkbox.height())
+        if self.__checkbox:
+            self.__checkbox.setGeometry(x, self.__checkbox.y(), self.__checkbox.width(), self.__checkbox.height())
 
     def __len__(self):
         return len(self.X)
     
     def set_checkbox_state(self, state: bool):
-        self.__checkbox.setChecked(state)
+        if self.__checkbox:
+            self.__checkbox.setChecked(state)
 
     def set_visible(self, visible: bool):
         if visible != self.visible:
@@ -111,6 +130,8 @@ class Plot(QObject):
             self.redraw_signal.emit()
 
     def get_checkbox_width(self):
+        if not self.__checkbox:
+            return 0
         return self.__chb_width
 
     @property
@@ -239,5 +260,5 @@ class Plot(QObject):
         try:
             self.__checkbox.hide()
             self.__checkbox.deleteLater()
-        except RuntimeError:
+        except (RuntimeError, AttributeError):
             pass

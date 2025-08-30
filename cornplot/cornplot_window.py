@@ -538,10 +538,12 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         else:
             self.markerStyles.setCurrentText("Квадратные")
         
-        self.tabWidget_2.setTabEnabled(1, plot.x_ascending)
-        self.tabWidget_2.setTabEnabled(2, not plot.is_hist and plot.x_ascending)
-        self.tabWidget_2.setTabEnabled(3, not plot.is_hist and plot.x_ascending)
-        self.tabWidget_2.setTabEnabled(5, not plot.is_hist and plot.x_ascending)
+        self.tabWidget_2.setTabEnabled(0, not plot.is_filling_between())
+        self.tabWidget_2.setTabEnabled(1, plot.x_ascending and not plot.is_filling_between())
+        self.tabWidget_2.setTabEnabled(2, not plot.is_hist and plot.x_ascending and not plot.is_filling_between())
+        self.tabWidget_2.setTabEnabled(3, not plot.is_hist and plot.x_ascending and not plot.is_filling_between())
+        self.tabWidget_2.setTabEnabled(4, not plot.is_filling_between())
+        self.tabWidget_2.setTabEnabled(5, not plot.is_hist and plot.x_ascending and not plot.is_filling_between())
         self.periodicalFft.setEnabled(plot.animated)
         self.filterGroup.setEnabled(not plot.is_hist)
         self.doKdeButton.setEnabled(plot.is_hist)

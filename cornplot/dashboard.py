@@ -54,19 +54,24 @@ class Dashboard(Axles):
         for plt in self.__plots:
             chb_x += plt.get_checkbox_width()
         return chb_x
+    
+    def __check_xy_arrays(self, x_arr, y_arr=None):
+        if not hasattr(x_arr, "__iter__"):
+            return False
+        if y_arr is None:
+            y_arr = x_arr
+            x_arr = list(range(len(y_arr)))
+        elif not hasattr(y_arr, "__iter__"):
+            return False
+        if len(x_arr) != len(y_arr) or len(x_arr) < 2:
+            return False
+        return True
 
     def add_plot(self, x_arr, y_arr=None, name='', linewidth=2, linestyle='solid',
                  color='any', accurate=False, initial_ts=0) -> str | None:
         """Добавить статичный график"""
 
-        if not hasattr(x_arr, "__iter__"):
-            return None
-        if y_arr is None:
-            y_arr = x_arr
-            x_arr = list(range(len(y_arr)))
-        elif not hasattr(y_arr, "__iter__"):
-            return None
-        if len(x_arr) != len(y_arr) or len(x_arr) < 2:
+        if not self.__check_xy_arrays(x_arr, y_arr):
             return None
 
         # все значения графика в одной точке
@@ -112,6 +117,57 @@ class Dashboard(Axles):
 
         self._force_redraw()
         return name
+    
+    def fill_between(self, x, y1, y2, name='', opacity=128, color='any'):
+        if not hasattr(x, "__iter__") or not hasattr(y1, "__iter__") or not hasattr(y2, "__iter__"):
+            return None
+        
+        x_tmp = list(x)
+        y1_tmp = list(y1)
+        y2_tmp = list(y2)
+        if len(name) == 0:
+            plt_name = f"График {len(self.__plots) + 1}"
+        else:
+            plt_name = name
+
+        pen = self.__get_pen(color, 2, "solid", opacity)
+
+        self.__plots.append(Plot(self, x_tmp, y1_tmp, pen, name=plt_name, checkbox_x=self.__get_checkbox_x()))
+        self.__plots[-1].redraw_signal.connect(self.__process_checkbox_press)
+        self.__plots[-1].set_dark(self.dark)
+
+        if len(name) == 0:
+            plt_name = f"График {len(self.__plots) + 1}"
+        else:
+            plt_name = name + '_'
+        self.__plots.append(Plot(self, x_tmp, y2_tmp, pen, name=plt_name, checkbox_x=None))
+        self.__plots[-1].redraw_signal.connect(self.__process_checkbox_press)
+        self.__plots[-1].set_dark(self.dark)
+
+        self.__plots[-1].set_filling_with(len(self.__plots) - 2)
+        self.__plots[-2].set_filling_with(len(self.__plots) - 1)
+
+        max_x = max(x_tmp)
+        min_x = min(x_tmp)
+        if min_x < self._x_axis_min or len(self.__plots) == 2:
+            if self._x_axle.logarithmic:
+                if min_x > 0:
+                    self._x_axis_min = min_x
+                else:
+                    self._x_axis_min = 0.01
+            else:
+                self._x_axis_min = min_x
+        self._set_x_start(self._x_axis_min)
+
+        if max_x >= self._x_axis_max or len(self.__plots) == 2:
+            self._x_axis_max = max_x
+        self._set_x_stop(self._x_axis_max)
+
+        self._calculate_y_parameters()
+        self._recalculate_window_coords()
+        self._update_step_y()
+        self._update_step_x()
+        self._update_x_borders(self._x_axis_min, self._x_axis_max)
     
     def update_plot(self, name: str, x_arr, y_arr=None, rescale_y=False):
         if not hasattr(x_arr, "__iter__"):
@@ -343,13 +399,14 @@ class Dashboard(Axles):
         self._recalculate_window_coords()
         self.update()
 
-    def __get_pen(self, color, linewidth: float, linestyle: str) -> QPen:
+    def __get_pen(self, color, linewidth: float, linestyle: str, opacity=255) -> QPen:
         if color == 'any':
             color = self.__color_generator.get_color()
         else:
             color = color
-
-        pen = QPen(QColor(color), linewidth)
+        color = QColor(color)
+        color.setAlpha(opacity)
+        pen = QPen(color, linewidth)
         if linestyle == 'dash':
             pen.setStyle(Qt.PenStyle.DashLine)
         elif linestyle == 'dot':
@@ -429,10 +486,25 @@ class Dashboard(Axles):
         value_rects: list[list[ValueRectangle]] = [list() for _ in range(n_scanners)]
         
         self._qp.setClipRect(QRectF(self._MIN_X, self._MIN_Y - 1, self.width(), self.height() - self._OFFSET_Y_UP - self._OFFSET_Y_DOWN + 1))
+        fill_between_plots: list[tuple[Plot, Plot]] = list()
+        added_indexes = set()
+        for i, plt in enumerate(self.__plots):
+            if plt.visible:
+                if plt.is_filling_between():
+                    if i not in added_indexes:
+                        fill_between_plots.append((plt, self.__plots[plt.filling_between_with()]))
+                        added_indexes.add(i)
+                        added_indexes.add(plt.filling_between_with())
+
+        for plt1, plt2 in fill_between_plots:
+            if plt1.visible and plt2.visible:
+                self._qp.setPen(QColor(0, 0, 0, 0))
+                self._qp.setBrush(plt1.pen.color())
+                self._qp.drawPolygon(QPolygonF(plt1.points + list(reversed(plt2.points))))
+
         for plt in self.__plots:
             if plt.visible:
                 self.__redraw_plot(plt)
-    
                 for i in range(n_scanners):
                     rects = self.__create_value_pointer(scanner_coords[i], plt)
                     if rects:
@@ -524,15 +596,15 @@ class Dashboard(Axles):
 
     def __redraw_plot(self, plt: Plot) -> None:
         """Перерисовывание одного графика"""
-        if len(plt) == 0:
+        if len(plt) == 0 or plt.is_filling_between():
             return
-        
+
         if plt.animated and not self.is_paused():
             Xwin = c_recalculate_window_x(list(plt.X), self._MIN_X, self._get_width(), self._real_width, self._xstart, plt.index0, plt.index1 + 1, 1)
             Ywin = c_recalculate_window_y(list(plt.Y), self._MIN_Y, self._get_heignt(), self._real_height, self._ystop, plt.index0, plt.index1 + 1, 1)
-            if plt.draw_line and plt.pen.style() == Qt.PenStyle.SolidLine:
+            if plt.draw_line and plt.pen.style() == Qt.PenStyle.SolidLine and not plt.is_filling_between():
                 plt.lines = [QLineF(Xwin[i - 1], Ywin[i - 1], Xwin[i], Ywin[i]) for i in range(1, len(Xwin))]
-            if plt.draw_markers or plt.pen.style() != Qt.PenStyle.SolidLine:
+            if plt.draw_markers or plt.pen.style() != Qt.PenStyle.SolidLine or plt.is_filling_between():
                 plt.points = [QPointF(x, y) for x, y in zip(Xwin, Ywin)]
 
             self.__draw_plot_lines_and_points(plt)
@@ -841,9 +913,9 @@ class Dashboard(Axles):
             y_zero = self._real_to_window_y(0)
             plt.rects = [QRectF(x - half_width, y, width, y_zero - y) for x, y in zip(Xwin, Ywin)]
         else:
-            if plt.draw_line and plt.pen.style() == Qt.PenStyle.SolidLine:
+            if plt.draw_line and plt.pen.style() == Qt.PenStyle.SolidLine and not plt.is_filling_between():
                 plt.lines = [QLineF(Xwin[i - 1], Ywin[i - 1], Xwin[i], Ywin[i]) for i in range(1, len(Xwin))]
-            if plt.draw_markers or plt.pen.style() != Qt.PenStyle.SolidLine:
+            if plt.draw_markers or plt.pen.style() != Qt.PenStyle.SolidLine or plt.is_filling_between():
                 plt.points = [QPointF(x, y) for x, y in zip(Xwin, Ywin)]
 
     def __recalculate_plot_x(self, plt: Plot, step):
