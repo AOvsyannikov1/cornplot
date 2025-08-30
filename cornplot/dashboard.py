@@ -23,6 +23,7 @@ VALUE_FONT.setBold(True)
 
 
 class Dashboard(Axles):
+    """Оси координат на которых можно построить статичные и анимированные графики и гистограммы."""
     __MAX_POINTS = 5000
 
     def __init__(self, widget, x, y, w, h):
@@ -56,7 +57,7 @@ class Dashboard(Axles):
 
     def add_plot(self, x_arr, y_arr=None, name='', linewidth=2, linestyle='solid',
                  color='any', accurate=False, initial_ts=0) -> int:
-        """Добавить статичный график для отображения"""
+        """Добавить статичный график"""
 
         if not hasattr(x_arr, "__iter__"):
             return False
@@ -173,6 +174,8 @@ class Dashboard(Axles):
         return True
     
     def add_histogram(self, data, interval_count=0, name="", color="any", probabilities=False):
+        """Добавить гистограмму. Если аргумент probabilities равен True, по оси Y откладываются относительные частоты появления
+        экземпляров данных, иначе - количество появлений."""
         if interval_count <= 0:
             interval_count = 1 + floor(log2(len(data)))
 
@@ -239,6 +242,7 @@ class Dashboard(Axles):
         return True
     
     def add_density_histogram(self, data, interval_count=0, name="", color="any"):
+        """Аналогично гистограмме, но в этом случае строится гистограмма плотности вероятности."""
         if interval_count <= 0:
             interval_count = 1 + floor(log2(len(data)))
 
