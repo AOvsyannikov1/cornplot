@@ -68,7 +68,7 @@ class DashboardPolar(PolarAxles):
             self.repaint()
 
     def add_plot(self, amplitudes: Iterable[float], angles: Iterable[float], color='any',
-                 linewidth=2.0, linestyle='solid'):
+                 linewidth=2.0, linestyle='solid', scatter=False):
         if not hasattr(amplitudes, "__iter__"):
             return False
         if not hasattr(angles, "__iter__"):
@@ -79,6 +79,8 @@ class DashboardPolar(PolarAxles):
         plt = PolarPlot(amplitudes, angles, self.__get_pen(color, linewidth, linestyle))
         plt.X = array("d", [self._polar_coords_to_x(r, a) for r, a in zip(amplitudes, angles)])
         plt.Y = array("d", [self._polar_coords_to_y(r, a) for r, a in zip(amplitudes, angles)])
+        plt.draw_markers = scatter
+        plt.draw_line = not scatter
 
         x_max, x_min = max(plt.X), min(plt.X)
         y_max, y_min = max(plt.Y), min(plt.Y)
@@ -86,9 +88,10 @@ class DashboardPolar(PolarAxles):
         if x_max - x_min == 0 and y_max - y_min == 0:
             return False
 
-        if max(amplitudes) > self._max_value or len(self.__plots) == 0:
-            self._max_value = max(amplitudes)
-            self._min_value = -max(amplitudes)
+        maximum_abs_amplitude = np.max(np.abs(amplitudes))
+        if maximum_abs_amplitude > self._max_value or len(self.__plots) == 0:
+            self._max_value = maximum_abs_amplitude
+            self._min_value = -maximum_abs_amplitude
             self._real_size = self._max_value - self._min_value
             self._start_value = self._min_value
             self._stop_value = self._max_value
@@ -302,8 +305,12 @@ class DashboardPolar(PolarAxles):
     def __redraw_plots(self):
         value_rects: list[ValueRectangle] = list()
         for plt in self.__plots:
-            self._qp.setPen(QPen(plt.pen.color(), 2.0))
-            self._qp.drawLines(plt.lines)
+            if plt.draw_line:
+                self._qp.setPen(QPen(plt.pen.color(), 2.0))
+                self._qp.drawLines(plt.lines)
+            if plt.draw_markers:
+                self._qp.setPen(QPen(plt.pen.color(), 5, Qt.PenStyle.DashLine, Qt.PenCapStyle.RoundCap))
+                self._qp.drawPoints(plt.points)
 
             line = self.__scanner_line
             if line.visible:
