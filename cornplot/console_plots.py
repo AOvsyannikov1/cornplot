@@ -5,7 +5,7 @@ from .plot_updater import PlotUpdater
 
 <<<<<<< HEAD
 __all__ = ['plot', 'scatter', 'polar_plot', 'polar_scatter', 'animated_plot', 'add_point_to_animated_plot', 'add_plot_updater',
-           'histogram', 'pie_chart', 'subplot', 'window', 'show', 'clear']
+           'histogram', 'density_histogram', 'pie_chart', 'subplot', 'window', 'show', 'clear']
 =======
 __all__ = ['plot', 'scatter', 'polar_plot', 'polar_scatter', 'animated_plot', 'add_point_to_animated_plot', 'add_plot_updater',
            'histogram', 'pie_chart', 'subplot', 'window', 'show', 'clear']
