@@ -230,7 +230,7 @@ class Plot(QObject):
         self.minimums[1] = min(y)
 
     def min(self, axis):
-        return self.minimums[axis]
+        return self.minimums[axis] if not self.is_hist else 0
 
     def max(self, axis):
         return self.maximums[axis]

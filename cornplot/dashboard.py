@@ -56,22 +56,22 @@ class Dashboard(Axles):
         return chb_x
 
     def add_plot(self, x_arr, y_arr=None, name='', linewidth=2, linestyle='solid',
-                 color='any', accurate=False, initial_ts=0) -> int:
+                 color='any', accurate=False, initial_ts=0) -> str | None:
         """Добавить статичный график"""
 
         if not hasattr(x_arr, "__iter__"):
-            return False
+            return None
         if y_arr is None:
             y_arr = x_arr
             x_arr = list(range(len(y_arr)))
         elif not hasattr(y_arr, "__iter__"):
-            return False
+            return None
         if len(x_arr) != len(y_arr) or len(x_arr) < 2:
-            return False
+            return None
 
         # все значения графика в одной точке
         if max(x_arr) - min(x_arr) == 0 and max(y_arr) - min(y_arr) == 0:
-            return False
+            return None
         
         self.set_initial_timestamp(initial_ts)
 
@@ -111,7 +111,7 @@ class Dashboard(Axles):
             self.__window.update_plot_info(self.__plots)
 
         self._force_redraw()
-        return True
+        return name
     
     def update_plot(self, name: str, x_arr, y_arr=None, rescale_y=False):
         if not hasattr(x_arr, "__iter__"):
@@ -631,10 +631,12 @@ class Dashboard(Axles):
 
         super()._calculate_y_parameters()
 
+        all_hist = False
         if len(self.__plots) > 0:
+            all_hist = all(plt.is_hist for plt in self.__plots)
             try:
                 self._y_axis_max = max([plt.max(1) for plt in self.__plots if plt.visible])
-                self._y_axis_min = min([plt.min(1) for plt in self.__plots if plt.visible])
+                self._y_axis_min = min([plt.min(1) if not plt.is_hist else 0 for plt in self.__plots if plt.visible])
             except ValueError:
                 self._y_axis_max = 1
                 self._y_axis_min = 0
@@ -680,6 +682,8 @@ class Dashboard(Axles):
                 self._set_y_stop(self._y_axis_max)
             else:
                 ystart = min_y if self.__zero_y_fixed and min_y == 0 else min_y - self._Y_STOP_COEFF
+                if all_hist:
+                    ystart = 0
                 ystop = max_y if self.__zero_y_fixed and max_y == 0 else max_y + self._Y_STOP_COEFF
                 self._set_y_start(ystart)
                 self._set_y_stop(ystop)
@@ -796,7 +800,7 @@ class Dashboard(Axles):
 
         if not plot.x_ascending:
             plot.index0 = 0
-            plot.index1 = plt_len - 1
+            plot.index1 = plt_len
             return
 
         if plt_len < 3:
@@ -844,13 +848,13 @@ class Dashboard(Axles):
 
     def __recalculate_plot_x(self, plt: Plot, step):
         if self._x_axle.logarithmic:
-            return [self._real_to_window_x(plt.X[i]) for i in range(plt.index0, plt.index1, step)]
-        return c_recalculate_window_x(list(plt.X), self._MIN_X, self._get_width(), self._real_width, self._xstart, plt.index0, plt.index1, step)
+            return [self._real_to_window_x(plt.X[i]) for i in range(plt.index0, plt.index1 + 1, step)]
+        return c_recalculate_window_x(list(plt.X), self._MIN_X, self._get_width(), self._real_width, self._xstart, plt.index0, plt.index1 + 1, step)
     
     def __recalculate_plot_y(self, plt: Plot, step):
         if self._y_axle.logarithmic:
-            return [self._real_to_window_y(plt.Y[i]) for i in range(plt.index0, plt.index1, step)]
-        return c_recalculate_window_y(list(plt.Y), self._MIN_Y, self._get_heignt(), self._real_height, self._ystop, plt.index0, plt.index1, step)
+            return [self._real_to_window_y(plt.Y[i]) for i in range(plt.index0, plt.index1 + 1, step)]
+        return c_recalculate_window_y(list(plt.Y), self._MIN_Y, self._get_heignt(), self._real_height, self._ystop, plt.index0, plt.index1 + 1, step)
     
     def set_plot_linestyle(self, name: str, linestyle: Qt.PenStyle):
         for plt in self.__plots:

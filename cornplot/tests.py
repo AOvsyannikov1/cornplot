@@ -20,41 +20,41 @@ def show_demo_plots_1():
     plt.plot(X, Y4, name="Sigmoid")
 
     plt.window(2, x=200, y=100)
-    plt.subplot(2, 3, 1, link_subplots=True)
+    plt.subplot(2, 3, 1)
     plt.plot(X, Y1, name="Sin x")
 
-    plt.subplot(2, 3, 2, link_subplots=True)
+    plt.subplot(2, 3, 2)
     plt.plot(X, Y2, name="Cos x")
 
-    plt.subplot(2, 3, 3, link_subplots=True)
+    plt.subplot(2, 3, 3)
     plt.plot(X, Y3, name="Гауссоида")
 
-    plt.subplot(2, 3, 4, link_subplots=True)
+    plt.subplot(2, 3, 4)
     plt.plot(X, Y4, name="Логистическая кривая")
 
     plt.subplot(2, 3, 5)
     plt.plot(X, Y5, name="1 / sqrt(1 + x^2)")
 
-    plt.subplot(2, 3, 6, link_subplots=True)
+    plt.subplot(2, 3, 6)
     plt.plot(X, Y6, name="Сигмоида")
 
     plt.window(3, x=500, y=200)
-    plt.subplot(6, 1, 1, link_subplots=True)
+    plt.subplot(6, 1, 1)
     plt.plot(X, Y1, name="Sin x")
 
-    plt.subplot(6, 1, 2, link_subplots=True)
+    plt.subplot(6, 1, 2)
     plt.plot(X, Y2, name="Cos x")
 
-    plt.subplot(6, 1, 3, link_subplots=True)
+    plt.subplot(6, 1, 3)
     plt.plot(X, Y3, name="Гауссоида")
 
-    plt.subplot(6, 1, 4, link_subplots=True)
+    plt.subplot(6, 1, 4)
     plt.plot(X, Y4, name="Логистическая кривая")
 
-    plt.subplot(6, 1, 5, link_subplots=True)
+    plt.subplot(6, 1, 5)
     plt.plot(X, Y5, name="1 / sqrt(1 + x^2)")
 
-    plt.subplot(6, 1, 6, link_subplots=True)
+    plt.subplot(6, 1, 6)
     plt.plot(X, Y6, name="Сигмоида")
     plt.show()
 
@@ -71,26 +71,26 @@ def show_demo_plots_2():
     Y6 = np.tanh(X)
 
     plt.window(1)
-    plt.subplot(2, 2, 1, link_subplots=True)
+    plt.subplot(2, 2, 1)
     plt.plot(X, Y1, name="Sin x")
 
-    plt.subplot(2, 2, 3, link_subplots=True)
+    plt.subplot(2, 2, 3)
     plt.plot(X, Y2, name="Cos x")
 
-    plt.subplot(2, 1, 2, link_subplots=True)
+    plt.subplot(2, 1, 2)
     plt.plot(X, Y3, name="Гауссоида")
 
     plt.window(2)
-    plt.subplot(1, 3, 1, link_subplots=True)
+    plt.subplot(1, 3, 1)
     plt.plot(X, Y5, name="1 / sqrt(1 + x^2)")
 
-    plt.subplot(2, 3, 3, link_subplots=True)
+    plt.subplot(2, 3, 3)
     plt.plot(X, Y1, name="Sin x")
 
-    plt.subplot(2, 3, 4, link_subplots=True)
+    plt.subplot(2, 3, 4)
     plt.plot(X, Y4, name="Сигмоида 1")
 
-    plt.subplot(1, 3, 3, link_subplots=True)
+    plt.subplot(1, 3, 3)
     plt.plot(X, Y6, name="Сигмоида 2")
     plt.show()
 
@@ -126,32 +126,32 @@ def show_demo_plots_3():
     X8 = np.sin(t) * (np.exp(np.cos(t)) - 2 * np.cos(4 * t) + np.sin(t / 12) ** 5)
     Y8 = np.cos(t) * (np.exp(np.cos(t)) - 2 * np.cos(4 * t) + np.sin(t / 12) ** 5)
 
-    plt.subplot(3, 3, 1, axes=True)
-    plt.plot(X, Y, name="Спираль")
+    plt.subplot(3, 3, 1)
+    plt.plot(X, Y, name="Спираль", link_plots=False)
 
-    plt.subplot(3, 3, 2, axes=True)
-    plt.plot(X1, Y1, name="Сердце")
+    plt.subplot(3, 3, 2)
+    plt.plot(X1, Y1, name="Сердце", link_plots=False)
 
-    plt.subplot(3, 3, 3, axes=True)
-    plt.plot(X2, Y2, name="Дельтоида")
+    plt.subplot(3, 3, 3)
+    plt.plot(X2, Y2, name="Дельтоида", link_plots=False)
 
-    plt.subplot(3, 3, 4, axes=True)
-    plt.plot(X3, Y3, name="Астроида")
+    plt.subplot(3, 3, 4)
+    plt.plot(X3, Y3, name="Астроида", link_plots=False)
 
-    plt.subplot(3, 3, 5, axes=True)
-    plt.plot(X4, Y4, name="Гипоциклоида")
+    plt.subplot(3, 3, 5)
+    plt.plot(X4, Y4, name="Гипоциклоида", link_plots=False)
 
-    plt.subplot(3, 3, 6, axes=True)
-    plt.plot(X5, Y5, name="Кардиоида")
+    plt.subplot(3, 3, 6)
+    plt.plot(X5, Y5, name="Кардиоида", link_plots=False)
 
-    plt.subplot(3, 3, 7, axes=True)
-    plt.plot(X6, Y6, name="Нефроида")
+    plt.subplot(3, 3, 7)
+    plt.plot(X6, Y6, name="Нефроида", link_plots=False)
 
-    plt.subplot(3, 3, 8, axes=True)
-    plt.plot(X7, Y7, name="Эпициклоида")
+    plt.subplot(3, 3, 8)
+    plt.plot(X7, Y7, name="Эпициклоида", link_plots=False)
 
     plt.subplot(3, 3, 9)
-    plt.plot(X8, Y8, name="Бабочка")
+    plt.plot(X8, Y8, name="Бабочка", link_plots=False)
     plt.show()
 
 
@@ -189,10 +189,10 @@ def show_demo_animation():
             plt.add_point_to_animated_plot("sinsinsin", t, np.sin(t) + 0.3 * np.cos(3.5 * t))
 
     plt.window(1, name="Sin, cos")
-    plt.subplot(2, 1, 1, link_subplots=True)
+    plt.subplot(2, 1, 1)
     plt.animated_plot("Sin")
     plt.animated_plot("Cos")
-    plt.subplot(2, 1, 2, link_subplots=True)
+    plt.subplot(2, 1, 2)
     plt.animated_plot("SinSin")
     plt.animated_plot("CosCos")
     plt.add_plot_updater(Update())
