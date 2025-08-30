@@ -3,9 +3,13 @@ from .console_plotter import _plotter
 from .plot_updater import PlotUpdater
 
 
-__all__ = ['plot', 'scatter', 'polar_plot', 'polar_scatter', 
-           'animated_plot', 'add_point_to_animated_plot', 'add_plot_updater',
-           'histogram', 'density_histogram', 'pie_chart', 'subplot', 'window', 'show', 'clear']
+<<<<<<< HEAD
+__all__ = ['plot', 'scatter', 'polar_plot', 'polar_scatter', 'animated_plot', 'add_point_to_animated_plot', 'add_plot_updater',
+           'histogram', 'pie_chart', 'subplot', 'window', 'show', 'clear']
+=======
+__all__ = ['plot', 'scatter', 'polar_plot', 'polar_scatter', 'animated_plot', 'add_point_to_animated_plot', 'add_plot_updater',
+           'histogram', 'pie_chart', 'subplot', 'window', 'show', 'clear']
+>>>>>>> 7eb3d5d5d0517ed648a6936593241e13c716d8c2
 
 
 def plot(x_arr, y_arr=None, x_name="X", y_name="Y", name='', linewidth=2, color="any", synchronise_plots=True, axes=True):
