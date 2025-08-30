@@ -542,6 +542,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.tabWidget_2.setTabEnabled(2, not plot.is_hist and plot.x_ascending)
         self.tabWidget_2.setTabEnabled(3, not plot.is_hist and plot.x_ascending)
         self.tabWidget_2.setTabEnabled(5, not plot.is_hist and plot.x_ascending)
+        self.periodicalFft.setEnabled(plot.animated)
         self.filterGroup.setEnabled(not plot.is_hist)
         self.doKdeButton.setEnabled(plot.is_hist)
         self.statsSelectInterval.setEnabled(plot.x_ascending)
