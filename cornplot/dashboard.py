@@ -800,7 +800,7 @@ class Dashboard(Axles):
 
         if not plot.x_ascending:
             plot.index0 = 0
-            plot.index1 = plt_len
+            plot.index1 = plt_len - 1
             return
 
         if plt_len < 3:
