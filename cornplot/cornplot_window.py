@@ -19,7 +19,7 @@ from .color_generator import ColorGenerator
 from .filters import MovingAverageFilter, ExponentialFilter, MedianFilter
 from scipy.optimize import curve_fit
 from scipy.fft import fft, fftfreq
-from scipy.stats import gaussian_kde
+from scipy.signal import correlate, correlation_lags
 from .utils import get_image_path, get_upper_index, SelectedPoint
 from .version import *
 
@@ -199,6 +199,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.plotLineStyle.currentTextChanged.connect(self.__set_plot_linestyle)
         self.xScaleSelect.currentIndexChanged.connect(self.__dashboard.set_x_logarithmic)
         self.yScaleSelect.currentIndexChanged.connect(self.__dashboard.set_y_logarithmic)
+        self.doAutocorrelation.clicked.connect(self.__do_autocorrelation)
 
         self.__equation = "Аппроксимация не выполнялась"
 
@@ -741,10 +742,23 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
             self.__message("Интеграл вычислен успешно.")
 
     @Slot()
+    def __do_autocorrelation(self):
+        plt = self.__plots[self.plotName.currentIndex()]
+        result = correlate(plt.Y, plt.Y)
+        result /= np.max(result)
+        X = correlation_lags(len(plt.Y), len(plt.Y))
+        dt = plt.X[1] - plt.X[0]
+        X = X * dt
+        if self.autocorrNewWindow.isChecked():
+            self.__derivWin.dashboard.delete_all_plots()
+            self.__derivWin.dashboard.add_plot(X, result, name=f"{self.plotName.currentText()} (автокорреляция)", accurate=True)
+            self.__derivWin.setWindowTitle(f"{self.plotName.currentText()} (автокорреляция)")
+            self.__derivWin.show()
+
+    @Slot()
     def __calculate_kde(self):
         plt = self.__plots[self.plotName.currentIndex()]
         std = statistics.stdev(plt.hist_data)
-        mean = statistics.fmean(plt.hist_data)
         if self.kdeHmanual.isChecked():
             h = self.kdeHvalue.value()
         else:

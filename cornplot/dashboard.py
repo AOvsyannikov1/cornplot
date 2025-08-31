@@ -54,24 +54,19 @@ class Dashboard(Axles):
         for plt in self.__plots:
             chb_x += plt.get_checkbox_width()
         return chb_x
-    
-    def __check_xy_arrays(self, x_arr, y_arr=None):
-        if not hasattr(x_arr, "__iter__"):
-            return False
-        if y_arr is None:
-            y_arr = x_arr
-            x_arr = list(range(len(y_arr)))
-        elif not hasattr(y_arr, "__iter__"):
-            return False
-        if len(x_arr) != len(y_arr) or len(x_arr) < 2:
-            return False
-        return True
 
     def add_plot(self, x_arr, y_arr=None, name='', linewidth=2, linestyle='solid',
                  color='any', accurate=False, initial_ts=0) -> str | None:
         """Добавить статичный график"""
 
-        if not self.__check_xy_arrays(x_arr, y_arr):
+        if not hasattr(x_arr, "__iter__"):
+            return None
+        if y_arr is None:
+            y_arr = x_arr
+            x_arr = list(range(len(y_arr)))
+        elif not hasattr(y_arr, "__iter__"):
+            return None
+        if len(x_arr) != len(y_arr) or len(x_arr) < 2:
             return None
 
         # все значения графика в одной точке
