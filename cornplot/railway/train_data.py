@@ -4,7 +4,7 @@ from .train import Train
 
 class TrainData:
 
-    def __init__(self, dark=False):
+    def __init__(self, dark: bool = False) -> None:
         self.trains: dict[str, Train] = dict()
         self.dark = dark
 

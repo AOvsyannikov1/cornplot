@@ -11,7 +11,7 @@ class Plot(QObject):
     redraw_signal = Signal()
 
     def __init__(self, widget, x_arr, y_arr, pen: QPen, is_dotted=False, name="",
-                 accurate=False, hist=False, heatmap=False, animated=False, x_size=10, checkbox_x:int | None=None, hist_data=None):
+                 accurate=False, hist=False, heatmap=False, animated=False, x_size=10, checkbox_x: int | None=None, hist_data=None):
         super().__init__()
         self.pen = pen
         self.animated = animated
@@ -63,15 +63,14 @@ class Plot(QObject):
         font.setBold(False)
         self.__chb_width = QFontMetrics(font).horizontalAdvance(self.name) + 30
 
-        if checkbox_x:
+        self.__checkbox: QCheckBox | None = None
+        if checkbox_x is not None:
             self.__checkbox = QCheckBox(widget)
             self.__checkbox.setText(self.name)
             self.__checkbox.setChecked(True)
             self.__checkbox.setGeometry(checkbox_x, 2, self.__chb_width, 20)
             self.__checkbox.setFont(font)
             self.__checkbox.toggled["bool"].connect(self.set_visible)
-        else:
-            self.__checkbox = None
 
         self.__fill_with_index: int = -1
 

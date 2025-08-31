@@ -6,11 +6,14 @@ from ..filters import MovingAverageFilter
 
 class Train:
 
-    def __init__(self, car_lengths, dark=False, colors=None):
+    def __init__(self, car_lengths: list[float], dark: bool = False, colors: list[QColor] | None = None) -> None:
         self.L = [l for l in car_lengths]
         self.X = [i * self.L[i] for i in range(len(self.L))]
         self.__speed: float = 0
-        self.colors = colors
+        if colors:
+            self.colors = [QColor(color) for color in colors]
+        else:
+            self.colors = [QColor("blue") for _ in range(len(self.L))]
         self.h = 10
         self.last_len = 0
         self.dark = dark

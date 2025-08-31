@@ -1,10 +1,12 @@
+from PyQt6.QtWidgets import QWidget
+
 from .semaphore import Semaphore
 from .station import Station
 
 
 class TrackData:
 
-    def __init__(self, widget):
+    def __init__(self, widget: QWidget):
         self.semaphores: list[Semaphore] = list()
         self.stations: list[Station] = list()
         self.__w = widget

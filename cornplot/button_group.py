@@ -1,5 +1,5 @@
 from time import monotonic
-
+from typing import Callable
 from PyQt6.QtWidgets import QPushButton, QWidget, QGraphicsOpacityEffect
 from PyQt6.QtGui import QIcon, QEnterEvent
     
@@ -30,9 +30,19 @@ def button_style(dark):
             }}""")
 
 
+class CustomButton(QPushButton):
+    def __init__(self, widget: QWidget, enter_callback: Callable[[QEnterEvent | None], None] | None = None):
+        super().__init__(widget)
+        self.__enter_callback = enter_callback
+
+    def enterEvent(self, event: QEnterEvent | None):
+        if self.__enter_callback:
+            self.__enter_callback(event)
+
+
 class ButtonGroup:
     def __init__(self, widget: QWidget, w, h):
-        self.pause_button = QPushButton(widget)
+        self.pause_button = CustomButton(widget)
         self.pause_button.setGeometry(w - 56, 22, 25, 25)
         self.pause_button.setIcon(QIcon(get_image_path("pause.png")))
         self.pause_button.setToolTip("Пауза / Старт")
@@ -40,7 +50,7 @@ class ButtonGroup:
         self.pause_button.show()
         self.pause_button.setVisible(False)
 
-        self.restart_button = QPushButton(widget)
+        self.restart_button = CustomButton(widget)
         self.restart_button.setGeometry(w - 28, 22, 25, 25)
         self.restart_button.setIcon(QIcon(get_image_path("restart.png")))
         self.restart_button.setToolTip("Перезапуск анимации")
@@ -51,57 +61,50 @@ class ButtonGroup:
         self.__button_tmr = monotonic()
         self.__buttons_visible = False
 
-        self.more_button = QPushButton(widget)
+        self.more_button = CustomButton(widget, self.__restart_timer)
         self.more_button.show()
         self.more_button.setToolTip("Настройки и анализ графиков")
         self.more_button.setIcon(QIcon(get_image_path("more.png")))
         self.more_button.setStyleSheet(button_style(False))
         self.more_button.setEnabled(True)
-        self.more_button.enterEvent = self.__restart_timer
 
-        self.save_button = QPushButton(widget)
+        self.save_button = CustomButton(widget, self.__restart_timer)
         self.save_button.setIcon(QIcon(get_image_path("save.png")))
         self.save_button.setToolTip("Сохранить изображение")
         self.save_button.setStyleSheet(button_style(False))
         self.save_button.show()
         self.save_button.setEnabled(True)
-        self.save_button.enterEvent = self.__restart_timer
 
-        self.back_button = QPushButton(widget)
+        self.back_button = CustomButton(widget, self.__restart_timer)
         self.back_button.setIcon(QIcon(get_image_path("cancel.png")))
         self.back_button.show()
         self.back_button.setToolTip("Отменить масштабирование")
         self.back_button.setStyleSheet(button_style(False))
-        self.back_button.enterEvent = self.__restart_timer
 
-        self.zoom_button = QPushButton(widget)
+        self.zoom_button = CustomButton(widget, self.__restart_timer)
         self.zoom_button.setIcon(QIcon(get_image_path("scale.png")))
         self.zoom_button.setToolTip("Масштабировать")
         self.zoom_button.setStyleSheet(button_style(False))
         self.zoom_button.show()
         self.zoom_button.setEnabled(True)
-        self.zoom_button.enterEvent = self.__restart_timer
 
-        self.add_vert_button = QPushButton(widget)
+        self.add_vert_button = CustomButton(widget, self.__restart_timer)
         self.add_vert_button.setIcon(QIcon(get_image_path("scan.png")))
         self.add_vert_button.show()
         self.add_vert_button.setToolTip("Добавить линию-сканер")
         self.add_vert_button.setStyleSheet(button_style(False))
-        self.add_vert_button.enterEvent = self.__restart_timer
 
-        self.clear_button = QPushButton(widget)
+        self.clear_button = CustomButton(widget, self.__restart_timer)
         self.clear_button.setIcon(QIcon(get_image_path("clear.png")))
         self.clear_button.show()
         self.clear_button.setToolTip("Очистить график от вспомогательных линий")
         self.clear_button.setStyleSheet(button_style(False))
-        self.clear_button.enterEvent = self.__restart_timer
 
-        self.fix_button = QPushButton(widget)
+        self.fix_button = CustomButton(widget, self.__restart_timer)
         self.fix_button.setIcon(QIcon(get_image_path("fix.png")))
         self.fix_button.show()
         self.fix_button.setToolTip("Закрепить нуль Y")
         self.fix_button.setStyleSheet(button_style(False))
-        self.fix_button.enterEvent = self.__restart_timer
 
         self.lower_buttons = (
             self.more_button, self.save_button, self.back_button, 
@@ -146,7 +149,7 @@ class ButtonGroup:
         self.restart_button.setGeometry(button_x0, button_y0, button_size, button_size)
         self.pause_button.setGeometry(button_x0 - button_step, button_y0, button_size, button_size)
 
-    def __restart_timer(self, a0: QEnterEvent):
+    def __restart_timer(self, a0: QEnterEvent | None):
         self.__button_tmr = monotonic()
 
     def process_visibility(self):

@@ -116,12 +116,12 @@ class PolarAxles(QWidget):
         self._recalculate_window_coords()
         self._update_step_x()
 
-    def _carthesian_to_polar(self, x: float, y: float) -> tuple[float]:
+    def _carthesian_to_polar(self, x: float, y: float) -> tuple[float, float]:
         r = hypot(x, y)
-        a = atan2(y / x)
+        a = atan2(y, x)
         return r, a
     
-    def _window_to_polar(self, x: float, y: float) -> tuple[float]:
+    def _window_to_polar(self, x: float, y: float) -> tuple[float, float]:
         x = c_window_to_real_x(x, self._MAX_X - self._MIN_X, self._real_size, self._start_value)
         y = c_window_to_real_y(y, self._MAX_Y - self._MIN_Y, self._real_size, self._stop_value, self._MIN_Y)
         return self._carthesian_to_polar(x, y)

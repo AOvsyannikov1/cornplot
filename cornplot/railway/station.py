@@ -3,7 +3,7 @@ from PyQt6.QtCore import QRectF, Qt
 
 
 class Station:
-    def __init__(self, coord, length, name, dark=False):
+    def __init__(self, coord: int, length: int, name: str, dark=False):
         self.__x = coord
         self.__l = length
         self.__name = name

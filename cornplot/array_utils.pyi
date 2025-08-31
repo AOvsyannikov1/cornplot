@@ -2,7 +2,7 @@ def c_window_to_real_x(x: float, win_width: int, real_width: float, xstart: floa
     ...
 
 
-def c_window_to_real_x_log(x: float, xstart: float, xstop: float) -> float:
+def c_window_to_real_x_log(x: float, width: int, xstart: float, xstop: float) -> float:
     ...
 
 
@@ -30,7 +30,7 @@ def c_real_to_window_y_log(y: float, min_y: int, max_y: int, win_height: int, ys
     ...
 
 
-def c_get_nearest_value(x_array: list[float], x_real: float) -> list[float, int]:
+def c_get_nearest_value(x_array: list[float], x_real: float) -> list[float]:
     ...
 
 

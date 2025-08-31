@@ -123,9 +123,7 @@ def round_value(num: float, digit_count=-1) -> str:
             val, power = st.split('e')
         else:
             val, power = st.split('E')
-        val = float(val)
-        power = int(power)
-        return f"{val:.3f}×10{get_upper_index(int(power))}"
+        return f"{float(val):.3f}×10{get_upper_index(int(power))}"
     
     if '.' in st:
         int_part, frac_part = st.split('.')

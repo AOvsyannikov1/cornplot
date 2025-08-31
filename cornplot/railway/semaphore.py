@@ -1,6 +1,7 @@
 from enum import Enum
 from PyQt6.QtGui import QPen, QColor, QPainter, QFont
 from PyQt6.QtCore import QLineF, Qt
+from PyQt6.QtWidgets import QWidget
 
 
 
@@ -14,7 +15,7 @@ class SemaphoreColor(Enum):
 
 class Semaphore:
 
-    def __init__(self, widget, coord, name='', dark=False, four_digit=True):
+    def __init__(self, widget: QWidget, coord: int, name: str = '', dark=False, four_digit=True):
         self.__w = widget
         self.__x = coord
         self.__color = SemaphoreColor.green

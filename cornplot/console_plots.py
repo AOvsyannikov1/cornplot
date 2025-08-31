@@ -1,3 +1,5 @@
+from typing import Iterable
+
 import numpy as np
 from .console_plotter import _plotter
 from .plot_updater import PlotUpdater
@@ -8,11 +10,12 @@ __all__ = ['plot', 'scatter', 'polar_plot', 'polar_scatter',
            'histogram', 'density_histogram', 'pie_chart', 'subplot', 'window', 'show', 'clear']
 
 
-def plot(x_arr, y_arr=None, x_name="X", y_name="Y", name='', linewidth=2, color="any", synchronise_plots=True, axes=True):
+def plot(x_arr: Iterable[float], y_arr: Iterable[float] | None = None, x_label: str="X", 
+         y_label: str = "Y", plot_label: str = '', linewidth: float = 2.0, color="any", synchronise_plots=True, axes=True):
     if y_arr is None:
         y_arr = list(x_arr)
         x_arr = np.arange(len(x_arr))
-    _plotter.plot(x_arr, y_arr, x_name=x_name, y_name=y_name, name=name, linewidth=linewidth,
+    _plotter.plot(x_arr, y_arr, x_name=x_label, y_name=y_label, name=plot_label, linewidth=linewidth,
                 color=color, link_plots=synchronise_plots, axes=axes)
         
 

@@ -1,5 +1,6 @@
 import os, warnings
 from math import log10, floor, ceil, pow
+from typing import overload
 
 from PyQt6.QtCore import Qt, QLineF, QRectF, pyqtSlot as Slot, QRect, QTimer
 from PyQt6.QtGui import QPen, QColor, QPainter, QFont, QFontMetrics
@@ -186,17 +187,17 @@ class Axles(QWidget):
     def visible(self):
         return self.isVisible()
 
-    def setGeometry(self, x: int, y: int, w: int, h: int) -> None:
-        if self.__x != x or self.__y != y or self.__w != w or self.__h != h:
+    def setGeometry(self, ax: int, ay: int, aw: int, ah: int) -> None:
+        if self.__x != ax or self.__y != ay or self.__w != aw or self.__h != ah:
 
-            if x > 0:
-                self.__x = x
-            if y > 0:
-                self.__y = y
-            if w > 0:
-                self.__w = w
-            if h > 0:
-                self.__h = h
+            if ax > 0:
+                self.__x = ax
+            if ay > 0:
+                self.__y = ay
+            if aw > 0:
+                self.__w = aw
+            if ah > 0:
+                self.__h = ah
             super().setGeometry(self.__x - self._OFFSET_X, self.__y - self._OFFSET_Y_UP, self.__w + self._OFFSET_X, self.__h + self._OFFSET_Y_UP + self._OFFSET_Y_DOWN)
 
             self._MAX_X = self._MIN_X + self.__w
@@ -979,14 +980,14 @@ class Axles(QWidget):
     def __real_to_window_x_log(self, x: float) -> float:
         return c_real_to_window_x_log(x, self._MIN_X, self.__w, self._xstart, self._xstop)
 
-    def _real_to_window_y(self, y: float) -> int:
+    def _real_to_window_y(self, y: float) -> float:
         """Перевод реальных координат оси у в оконные"""
         return c_real_to_window_y(y, self._MIN_Y, self.__h, self._real_height, self._ystop)
     
-    def __real_to_window_y_linear(self, y: float) -> int:
+    def __real_to_window_y_linear(self, y: float) -> float:
         return c_real_to_window_y(y, self._MIN_Y, self.__h, self._real_height, self._ystop)
     
-    def __real_to_window_y_log(self, y: float) -> int:
+    def __real_to_window_y_log(self, y: float) -> float:
         return c_real_to_window_y_log(y, self._MIN_Y, self._MAX_Y, self.__h, self._ystart, self._ystop)
 
     def _window_to_real_x(self, x: float) -> float:

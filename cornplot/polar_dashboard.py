@@ -4,7 +4,7 @@ from array import array
 from math import sqrt, atan2, degrees, pi
 
 from PyQt6.QtGui import QPainter, QPainterPath, QPen, QFont, QFontMetrics, QAction
-from PyQt6.QtWidgets import QMenu, QFileDialog
+from PyQt6.QtWidgets import QMenu, QFileDialog, QWidget
 from PyQt6.QtCore import QPointF, QLineF, Qt, pyqtSlot as Slot, QRect
 
 from .polar_axles import PolarAxles
@@ -23,7 +23,7 @@ VALUE_FONT.setBold(True)
 class DashboardPolar(PolarAxles):
     __MAX_POINTS = 5000
 
-    def __init__(self, widget, x, y, size):
+    def __init__(self, widget: QWidget, x: int, y: int, size: int) -> None:
         super().__init__(widget, x, y, size)
 
         self.__plots: list[PolarPlot] = list()
@@ -73,6 +73,8 @@ class DashboardPolar(PolarAxles):
             return False
         if not hasattr(angles, "__iter__"):
             return False
+        amplitudes = list(amplitudes)
+        angles = list(angles)
         if len(amplitudes) != len(amplitudes) or len(amplitudes) < 2:
             return False
         
@@ -175,7 +177,7 @@ class DashboardPolar(PolarAxles):
             return None
         nearest = plt.get_nearest(angle)
 
-        res: tuple[ValueRectangle] = tuple()
+        res: tuple[ValueRectangle, ...] = tuple()
         for _, i in nearest:
             y = plt.Y[i]
             x = plt.X[i]
@@ -302,7 +304,7 @@ class DashboardPolar(PolarAxles):
         else:
             return angle
 
-    def __redraw_plots(self):
+    def __redraw_plots(self) -> None:
         value_rects: list[ValueRectangle] = list()
         for plt in self.__plots:
             if plt.draw_line:
