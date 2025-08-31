@@ -1,4 +1,4 @@
-from typing import Iterable
+from typing import Iterable, cast
 
 import numpy as np
 from .console_plotter import _plotter

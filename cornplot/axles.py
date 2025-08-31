@@ -1241,7 +1241,7 @@ class Axles(QWidget):
         self._update_step_x()
         self.update()
 
-    def _draw_scanner_lines(self):
+    def _draw_scanner_lines(self, value_rects):
         line_real_coords = list()
         line_window_coords = list()
 

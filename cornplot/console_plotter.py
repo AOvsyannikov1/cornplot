@@ -69,7 +69,7 @@ class PlotWindow(QWidget):
         self.dashboard_sizes.append((rows, cols))
         return True
 
-    def add_plot(self, row, col, x_arr, y_arr, name='', linewidth=2, linestyle='solid', color='any', scatter=False, markerwidth=6):
+    def add_plot(self, row, col, x_arr, y_arr, name='', linewidth=2.0, linestyle='solid', color='any', scatter=False, markerwidth=5.0):
         index = self.dashboard_locations.index((row, col))
         plt_name = self.dashboards[index].add_plot(x_arr, y_arr, name=name, linewidth=linewidth,
                                         color=color, linestyle=linestyle)
@@ -196,7 +196,7 @@ class CornPlotter:
         self.__ncols = cols
 
     def plot(self, x_arr, y_arr, x_name="X", y_name="Y", name='',
-             linewidth=2, linestyle='solid', color='any', link_plots=True, axes=False, scatter=False, markerwidth=5):
+             linewidth=2.0, linestyle='solid', color='any', link_plots=True, axes=False, scatter=False, markerwidth=5.0):
         self.__create_qapp()
         win = self.__add_window()
         win.add_dashboard(self.__current_row, self.__current_col, rows=self.__nrows, cols=self.__ncols,

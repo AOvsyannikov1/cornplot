@@ -3,9 +3,9 @@ from math import log2, floor
 from time import monotonic
 from typing import Any
 
-from PyQt6.QtCore import QPointF, QLineF, QRectF, pyqtSlot as Slot, Qt                              # type: ignore
-from PyQt6.QtWidgets import QMessageBox                                                             # type: ignore
-from PyQt6.QtGui import QPainter, QPen, QColor, QFont, QFontMetrics, QPolygonF, QLinearGradient     # type: ignore
+from PyQt6.QtCore import QPointF, QLineF, QRectF, pyqtSlot as Slot, Qt
+from PyQt6.QtWidgets import QMessageBox, QWidget
+from PyQt6.QtGui import QPainter, QPen, QColor, QFont, QFontMetrics, QPolygonF, QLinearGradient
 
 from .axles import Axles
 from .utils import *
@@ -26,7 +26,7 @@ class Dashboard(Axles):
     """Оси координат на которых можно построить статичные и анимированные графики и гистограммы."""
     __MAX_POINTS = 5000
 
-    def __init__(self, widget, x, y, w, h):
+    def __init__(self, widget: QWidget, x: int, y: int, w: int, h: int) -> None:
         super().__init__(widget, x, y, w, h)
 
         self.__plots: list[Plot] = list()
@@ -55,7 +55,7 @@ class Dashboard(Axles):
             chb_x += plt.get_checkbox_width()
         return chb_x
 
-    def add_plot(self, x_arr, y_arr=None, name='', linewidth=2, linestyle='solid',
+    def add_plot(self, x_arr, y_arr=None, name='', linewidth=2.0, linestyle='solid',
                  color='any', accurate=False, initial_ts=0) -> str | None:
         """Добавить статичный график"""
 
@@ -452,8 +452,9 @@ class Dashboard(Axles):
         self._recalculate_window_coords()
         self.__color_generator.one_color_back()
 
-        self.__window.update_plot_info(self.__plots)
-        self.__window.display_plot_info()
+        if self.__window:
+            self.__window.update_plot_info(self.__plots)
+            self.__window.display_plot_info()
 
         w = self._MIN_X
         for plt in self.__plots:
@@ -470,7 +471,7 @@ class Dashboard(Axles):
         self._selectingPointGraph = plt_num
         self._pointsToSelect = n_points
     
-    def _redraw(self):
+    def _redraw(self) -> None:
         if not self.visible:
             return
         t0 = monotonic()
@@ -535,7 +536,7 @@ class Dashboard(Axles):
         x_real = self._window_to_real_x(xwin - self._MIN_X)
         nearest = plt.get_nearest(x_real)
 
-        res: tuple[ValueRectangle] = tuple()
+        res: tuple[ValueRectangle, ...] = tuple()
         for _, i in nearest:
             y = plt.Y[i]
             ywin = max(self._real_to_window_y(y), self._MIN_Y)
@@ -575,8 +576,8 @@ class Dashboard(Axles):
             plt.set_checkbox_x(x)
             x += plt.get_checkbox_width()
 
-    def _draw_scanner_lines(self, value_rects):
-        super()._draw_scanner_lines()
+    def _draw_scanner_lines(self, value_rects: list[list[ValueRectangle]]) -> None:
+        super()._draw_scanner_lines(value_rects)
         for rects in value_rects:
             for rect in rects:
                 self._qp.setPen(QColor(255, 255, 255, 127))
@@ -895,8 +896,8 @@ class Dashboard(Axles):
         plot.index1 = tmp
 
     def __recalculate_window_xy(self, plt: Plot, step):
-        Xwin = self.__recalculate_plot_x(plt, step)
-        Ywin = self.__recalculate_plot_y(plt, step)
+        Xwin = array('d', self.__recalculate_plot_x(plt, step))
+        Ywin = array('d', self.__recalculate_plot_y(plt, step))
         
         length = plt.index1 - plt.index0
         if length == 0:
@@ -965,11 +966,6 @@ class Dashboard(Axles):
                 plt.draw_markers = draw
                 self.__recalculate_plot_coords(plt)
                 self._force_redraw()
-    
-    def __update_extended_window(self):
-        self.__window.update_plot_info(self.__plots)
-        if self.__window.isVisible():
-            self.__window.display_plot_info()
 
     def _show_extended_window(self):
         if self.__window is None:
@@ -1001,9 +997,10 @@ class Dashboard(Axles):
                 self._point_added = True
                 self._pointsToSelect -= 1
                 if self._pointsToSelect == 0:
-                    self.__window.set_selected_points(self.__plots[self._selectingPointGraph].selectedPoints)
-                    self._selectingPointGraph = -1
-                    self.__window.show()                    
+                    if self.__window:
+                        self.__window.set_selected_points(self.__plots[self._selectingPointGraph].selectedPoints)
+                        self._selectingPointGraph = -1
+                        self.__window.show()                    
                 return
 
     def export_to_file(self, path):

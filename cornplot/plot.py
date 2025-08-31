@@ -21,15 +21,15 @@ class Plot(QObject):
         self.rects: list[QRectF] = list()
 
         if self.animated:
-            self.X = array("d")
-            self.Y = array("d")
+            self.X: array = array("d")
+            self.Y: array = array("d")
             self.x_size = x_size
             self.first_point = True
             self.x0 = 0
             self.length = 0
         else:
-            self.X = array("d", x_arr)
-            self.Y = array("d", y_arr)
+            self.X: array = array("d", x_arr)
+            self.Y: array = array("d", y_arr)
             self.x0 = x_arr[0]
             self.first_point = False
             self.x_size = 0
@@ -53,8 +53,8 @@ class Plot(QObject):
         self.x_ascending = self.analyze_x_sequence()
         self.is_hist = hist
 
-        self.maximums = [0, 0]
-        self.minimums = [0, 0]
+        self.maximums = [0.0, 0.0]
+        self.minimums = [0.0, 0.0]
         if not animated and len(x_arr) > 0 and len(y_arr) > 0:
             self.maximums = [max(x_arr), max(y_arr)]
             self.minimums = [min(x_arr), min(y_arr)]
@@ -157,9 +157,9 @@ class Plot(QObject):
         if self.animated:
             self.x_size = size
 
-    def add_element(self, x, y):
+    def add_element(self, x: float, y: float) -> tuple[float, float]:
         if not self.animated:
-            return
+            return 0.0, 0.0
 
         if self.first_point:
             self.x0 = x
@@ -257,7 +257,8 @@ class Plot(QObject):
     
     def __del__(self):
         try:
-            self.__checkbox.hide()
-            self.__checkbox.deleteLater()
+            if self.__checkbox:
+                self.__checkbox.hide()
+                self.__checkbox.deleteLater()
         except (RuntimeError, AttributeError):
             pass
