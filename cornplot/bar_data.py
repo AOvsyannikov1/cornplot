@@ -5,3 +5,5 @@ class BarData:
         self.categories = list()
         self.values = list()
         self.colors = list()
+        self.rects = list()
+        self.n_values = 0

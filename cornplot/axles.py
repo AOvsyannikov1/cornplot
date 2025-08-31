@@ -1144,7 +1144,6 @@ class Axles(QWidget):
         self._qp.setFont(font)
 
         y0 = round_custom(self._ystart, self._step_grid_y)
-        y_metki_coords = arange(y0, self._ystop + self._step_grid_y, self._step_grid_y)
 
         if self._y_axle.logarithmic:
             if y0 <= 0:
