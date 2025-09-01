@@ -7,7 +7,7 @@ from .plot_updater import PlotUpdater
 
 __all__ = ['plot', 'scatter', 'polar_plot', 'polar_scatter', 
            'animated_plot', 'add_point_to_animated_plot', 'add_plot_updater',
-           'histogram', 'density_histogram', 'pie_chart', 'subplot', 'window', 'show', 'clear']
+           'histogram', 'density_histogram', 'bar_chart', 'pie_chart', 'subplot', 'window', 'show', 'clear']
 
 
 def plot(x_arr: Iterable[float], y_arr: Iterable[float] | None = None, x_label: str="X", 
@@ -55,6 +55,11 @@ def histogram(x_arr, intervals_count=0, x_name="X", y_name="Y", name='', color="
 def density_histogram(x_arr, intervals_count=0, x_name="X", y_name="Y", name='', color="any", synchronise_plots=False):
     _plotter.density_histogram(x_arr, intervals_count=intervals_count, x_name=x_name, y_name=y_name, name=name,
              color=color, link_plots=synchronise_plots)
+    
+
+def bar_chart(categories: list[str], values: list[float] | list[list[float]], value_names: list[str] | None = None,
+                      y_label="Y", value_colors=None, draw_legend=True, legend_loc='left'):
+    _plotter.bar_chart(categories, values, value_names, y_label, value_colors, draw_legend, legend_loc)
 
 
 def pie_chart():

@@ -8,6 +8,7 @@ import numpy as np
 
 from .dashboard import Dashboard
 from .polar_dashboard import DashboardPolar
+from .barchart import BarChart
 from .pie_chart import PieChart
 from .plot_updater import PlotUpdater
 from .utils import get_image_path
@@ -20,7 +21,7 @@ class PlotWindow(QWidget):
         self.setGeometry(x, y, width, height)
         self.setWindowIcon(QIcon(get_image_path("icon.png")))
         self.setMinimumSize(800, 600)
-        self.dashboards: list[Dashboard | DashboardPolar] = list()
+        self.dashboards: list[Dashboard | DashboardPolar | BarChart] = list()
         self.pie_charts = list()
         self.dashboard_locations = list()
         self.dashboard_sizes = list()
@@ -56,6 +57,10 @@ class PlotWindow(QWidget):
     def add_polar_axes(self, row=1, col=1, rows=1, cols=1):
         if self.__add_axes(row, col, rows, cols):
             self.dashboards.append(DashboardPolar(self, 0, 0, self.width() - 200))
+
+    def add_bar_axes(self, row=1, col=1, rows=1, cols=1):
+        if self.__add_axes(row, col, rows, cols):
+            self.dashboards.append(BarChart(self, 0, 0, self.width() - 200, self.height() - 100))
 
     def __add_axes(self, row, col, rows, cols):
         if self.n_cols < cols:
@@ -113,6 +118,11 @@ class PlotWindow(QWidget):
             descr = category_descriprions[i] if category_descriprions else ''
             self.dashboards[index].add_cathegory(percentages[i], category_names[i], descr)
 
+    def add_bar_chart(self, row, col, categories: list[str], values: list[float] | list[list[float]], value_names: list[str] | None = None,
+                      y_label="Y", value_colors=None, draw_legend=True, legend_loc='left'):
+        index = self.dashboard_locations.index((row, col))
+        self.dashboards[index].add_bar_chart(categories, values, value_names, y_label, value_colors, draw_legend, legend_loc)
+
     def resizeEvent(self, a0) -> None:
         self.step_y = (self.height() - 80) // self.n_rows
         self.step_x = (self.width() - 150) // self.n_cols
@@ -130,7 +140,7 @@ class PlotWindow(QWidget):
             else:
                 w = self.width() - 200
 
-            if type(dash) == Dashboard:
+            if type(dash) in (Dashboard, BarChart):
                 dash.setGeometry(x, y, w, h)
             elif type(dash) == DashboardPolar:
                 dash.setGeometry(x, y, min(w, h))
@@ -250,6 +260,13 @@ class CornPlotter:
         win = self.__add_window()
         win.add_polar_axes(self.__current_row, self.__current_col, self.__nrows, self.__ncols)
         win.add_polar_plot(self.__current_row, self.__current_col, amplitudes, angles, color, linewidth, linestyle, scatter)
+
+    def bar_chart(self, categories: list[str], values: list[float] | list[list[float]], value_names: list[str] | None = None,
+                      y_label="Y", value_colors=None, draw_legend=True, legend_loc='left'):
+        self.__create_qapp()
+        win = self.__add_window()
+        win.add_bar_axes(self.__current_row, self.__current_col, self.__nrows, self.__ncols)
+        win.add_bar_chart(self.__current_row, self.__current_col, categories, values, value_names, y_label, value_colors, draw_legend, legend_loc)
 
     def pie_chart(self, percentages, category_names, category_descriptions=None):
         self.__create_qapp()

@@ -31,7 +31,8 @@ class BarChart(QWidget):
         self.__font = QFont("Bahnschrift, Arial", 11)
         self.__pen_major = QPen(QColor(145, 145, 145), 0.5)
         self.__pen_major.setStyle(Qt.PenStyle.SolidLine)
-
+        self.__legend = True
+        self.__legend_loc = 'left'
         self.__dark = False
 
         self.setGeometry(x, y, w, h)
@@ -52,6 +53,7 @@ class BarChart(QWidget):
         self._MIN_Y = 20
         self._MAX_Y = self._MIN_Y + h
         super().setGeometry(x - self._MIN_X, y - self._MIN_Y, w + self._MIN_X, h + 2 * self._MIN_Y)
+        self.__update_step_y()
         self.__recalculate_window_coords()
 
     @Slot()
@@ -60,13 +62,15 @@ class BarChart(QWidget):
             self.update()
             self.__redraw_required = False
 
-    def add_bar_chart(self, categories: list[str], values, y_label="Y", value_colors=None):
+    def add_bar_chart(self, categories: list[str], values, value_names: list[str] | None = None, y_label="Y", value_colors=None, draw_legend=True, legend_loc='left'):
         self.__data.categories = categories
         self.__data.values = values
         if value_colors and len(value_colors) == len(categories):
             self.__data.colors = value_colors
         else:
             self.__data.colors = [self.__color_generator.get_color() for _ in range(len(categories))]
+
+        self.__data.value_names = value_names
 
         if hasattr(values[0], "__iter__"):
             max_y = max(max(y for y in val) for val in values)
@@ -84,8 +88,10 @@ class BarChart(QWidget):
         else:
             self.__ystart = min_y - height * 0.05
         self.__real_height = self.__ystop - self.__ystart
-    
+
         self.__y_label = y_label
+        self.__legend = draw_legend
+        self.__legend_loc = legend_loc if legend_loc == 'right' else 'left'
         self.__recalculate_window_coords()
         self.__update_step_y()
         self.__redraw_required = True
@@ -93,18 +99,10 @@ class BarChart(QWidget):
     def paintEvent(self, a0):
         self.__qp.begin(self)
         self.__qp.setRenderHint(QPainter.RenderHint.Antialiasing)
+        
         self.__draw_axes()
-
-        for i, rects_val in enumerate(self.__data.rects):
-            self.__qp.setPen(QColor(0, 0, 0, 0))
-            self.__qp.setBrush(QColor(self.__data.colors[i]))
-            self.__qp.drawRects(rects_val)
-            self.__qp.setPen(QColor(0))
-            if i == 0:
-                for j, name in enumerate(self.__data.categories):
-                    self.__qp.setFont(self.__font)
-                    self.__qp.drawText(QRectF(rects_val[j].x(), self._MAX_Y + 2, rects_val[j].width() * self.__data.n_values, 15),
-                                    Qt.AlignmentFlag.AlignCenter, name)
+        self.__draw_value_rects()
+        self.__draw_legend()
 
         self.__qp.end()
 
@@ -167,6 +165,66 @@ class BarChart(QWidget):
         super().setGeometry(self.__x - self._MIN_X, self.__y - self._MIN_Y, self.__w + self._MIN_X, self.__h + 2 * self._MIN_Y)
         self.__recalculate_window_coords()
         self.update()
+
+    def __draw_value_rects(self):
+        val_font = QFont("Consolas, Courier New", 10)
+        metrics = QFontMetrics(val_font)
+        val_height = metrics.height()
+
+        for i, rects_val in enumerate(self.__data.rects):
+            self.__qp.setPen(QColor(0, 0, 0, 0))
+            self.__qp.setBrush(QColor(self.__data.colors[i]))
+            self.__qp.drawRects(rects_val)
+            self.__qp.setPen(QColor(0))
+            for j, name in enumerate(self.__data.categories):
+                if i == 0:
+                    self.__qp.setFont(self.__font)
+                    self.__qp.drawText(QRectF(rects_val[j].x(), self._MAX_Y + 2, rects_val[j].width() * self.__data.n_values, 15),
+                                    Qt.AlignmentFlag.AlignCenter, name)
+                    
+                    # self.__qp.setPen(QPen(QColor(0), 0.25))
+                    # self.__qp.drawLine(QLineF(rects_val[j].x(), self._MIN_Y, rects_val[j].x(), self._MAX_Y))
+
+                tmp_str = f"{self.__data.values[j][i]}"
+                val_width = metrics.horizontalAdvance(tmp_str)
+                rect_x = rects_val[j].x() + (rects_val[j].width() - val_width) / 2
+                rect_y = (rects_val[j].y() - 17) if self.__data.values[j][i] >= 0 else (rects_val[j].y() + 2)
+
+                self.__qp.setFont(val_font)
+                self.__qp.drawText(QRectF(rect_x, rect_y, val_width, val_height),
+                                Qt.AlignmentFlag.AlignCenter, tmp_str)
+
+    def __draw_legend(self):
+        if not self.__legend:
+            return
+        w = 20
+        if self.__legend_loc == 'left':
+            x0 = self._MIN_X + 5
+        else:
+            x0 = self._MAX_X - 5
+        y0 = self._MIN_Y + 5
+        self.__qp.setFont(self.__font)
+        metrics = QFontMetrics(self.__font)
+        h = metrics.height()
+        if self.__data.value_names:
+            for i, name in enumerate(self.__data.value_names):
+                text_width = metrics.horizontalAdvance(name)
+                self.__qp.setPen(QColor(0))
+
+                if self.__legend_loc == 'left':
+                    text_x0 = x0 + w + 5
+                else:
+                    text_x0 = x0 - text_width
+                self.__qp.drawText(QRectF(text_x0, y0, text_width, metrics.height()), Qt.AlignmentFlag.AlignCenter, name)
+            
+                self.__qp.setPen(QColor(0, 0, 0, 0))
+                self.__qp.setBrush(QColor(self.__data.colors[i]))
+                if self.__legend_loc == 'left':
+                    self.__qp.drawRect(x0, y0, w, h)
+                    x0 += w + 5 + text_width + 10
+                else:
+                    self.__qp.drawRect(x0 - text_width - w - 5, y0, w, h)
+                    x0 -= w + 5 + text_width + 10
 
     def __recalculate_window_coords(self):
         try:

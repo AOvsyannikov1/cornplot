@@ -6,4 +6,5 @@ class BarData:
         self.values = list()
         self.colors = list()
         self.rects = list()
+        self.value_names = list()
         self.n_values = 0
