@@ -2,7 +2,7 @@ import sys, uuid
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QWidget, QApplication, QStyleFactory
-from PyQt6.QtGui import QIcon
+from PyQt6.QtGui import QIcon, QGuiApplication
 
 import numpy as np
 
@@ -43,10 +43,6 @@ class PlotWindow(QWidget):
     def set_dark(self, dark: bool):
         if dark != self.__dark:
             self.__dark = dark
-            if dark:
-                self.setStyleSheet("background-color: rgb(30, 38, 49);")
-            else:
-                self.setStyleSheet("")
 
     def add_dashboard(self, row=1, col=1, rows=1, cols=1, x_name='X', y_name='Y', link_plots=True, draw_axes=False):
         if self.__add_axes(row, col, rows, cols):
@@ -331,6 +327,8 @@ class CornPlotter:
         if self.app is None:
             self.app = QApplication(sys.argv)
             self.app.setStyle(self.__app_style)
+            if self.__dark:
+                QGuiApplication.styleHints().setColorScheme(Qt.ColorScheme.Dark)
 
     def __add_window(self):
         if len(self.__windows) == 0:

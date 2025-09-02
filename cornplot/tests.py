@@ -3,7 +3,7 @@ from .console_plotter import _plotter as plt
 from .utils import UPPER_INDEXES
 
 
-def show_demo_plots_1():
+def show_demo_plots_1(dark=False):
     X = np.arange(-10, 10, 0.005)
     Y1 = np.sin(X)
     Y2 = np.cos(X)
@@ -14,6 +14,7 @@ def show_demo_plots_1():
     Y5 = (1 / np.sqrt(1 + X ** 2))
     Y6 = np.tanh(X)
 
+    plt.set_dark(dark)
     plt.window(1, x=50, y=50)
     plt.plot(X, Y1, plot_label="Sin x")
     plt.plot(X, Y2, plot_label="Cos x")
@@ -60,7 +61,7 @@ def show_demo_plots_1():
     plt.show()
 
 
-def show_demo_plots_2():
+def show_demo_plots_2(dark=False):
     X = np.arange(-10, 10, 0.005)
     Y1 = np.sin(X)
     Y2 = np.cos(X)
@@ -70,7 +71,7 @@ def show_demo_plots_2():
     Y4 = (1 / (1 + np.exp(-X)))
     Y5 = (1 / np.sqrt(1 + X ** 2))
     Y6 = np.tanh(X)
-    plt.set_dark(True)
+    plt.set_dark(dark)
     plt.window(1)
     plt.subplot(2, 2, 1)
     plt.plot(X, Y1, plot_label="Sin x")
@@ -96,7 +97,7 @@ def show_demo_plots_2():
     plt.show()
 
 
-def show_demo_plots_3():
+def show_demo_plots_3(dark=False):
     t = np.arange(0, 6 * np.pi, 0.005)
     X = np.exp(-0.2 * t) * np.sin(t)
     Y = np.exp(-0.2 * t) * np.cos(t)
@@ -126,7 +127,8 @@ def show_demo_plots_3():
     t = np.arange(0, 12 * np.pi, 0.005)
     X8 = np.sin(t) * (np.exp(np.cos(t)) - 2 * np.cos(4 * t) + np.sin(t / 12) ** 5)
     Y8 = np.cos(t) * (np.exp(np.cos(t)) - 2 * np.cos(4 * t) + np.sin(t / 12) ** 5)
-
+    
+    plt.set_dark(dark)
     plt.subplot(3, 3, 1)
     plt.plot(X, Y, plot_label="Спираль", link_plots=False)
 
@@ -156,18 +158,20 @@ def show_demo_plots_3():
     plt.show()
 
 
-def show_demo_plots_4():
+def show_demo_plots_4(dark=False):
     X = np.arange(0, 0.04, 1e-5)
     Y = 220 * np.sqrt(2) * np.sin(314 * X)
 
+    plt.set_dark(dark)
     plt.plot(X, Y, plot_label="Переменный ток")
     plt.show()
 
 
-def show_demo_plots_5():
+def show_demo_plots_5(dark=False):
     X = np.arange(-2, -0.5, 0.001)
     X1 = np.arange(0.5, 2, 0.001)
 
+    plt.set_dark(dark)
     plt.plot(X, 1 / X + 10, plot_label="", axes=True)
     plt.plot(X1, 1 / X1 + 10, plot_label="", axes=True)
     plt.auxiliary_line("10")
@@ -176,12 +180,12 @@ def show_demo_plots_5():
     plt.show()
 
 
-def show_demo_histogram():
+def show_demo_histogram(dark=False):
     X = np.random.beta(a=2, b=5, size=100000)
 
+    plt.set_dark(dark)
     plt.window(1)
     plt.histogram(X, name="Бета-распределение", probabilities=True)
-    plt.set_dark()
     plt.window(2)
     X = np.random.chisquare(df=10, size=100000)
     
@@ -189,23 +193,19 @@ def show_demo_histogram():
     plt.show()
 
 
-def show_demo_bar_chart():
+def show_demo_bar_chart(dark=False):
     months = ("Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек")
     temperatures = {
                     "Москва": [-6.2, -5.9, -0.7, 6.9, 13.6, 17.3, 19.7, 17.6, 11.9, 5.8, -0.5, -4.4],
                     "Сочи": [6.3, 6.5, 8.6, 12.3, 16.6, 20.9, 23.7, 24.3, 20.5, 16.2, 11.4, 8.3],
                     "Оймякон": [-46, -42.2, -35.2, -15.1, -0.2, 12.2, 14.1, 9.7, -0.2, -20.3, -36.7, -45.8]
                     }
-    plt.window(1)
-    plt.bar_chart(months, temperatures, y_label="T, °C", legend_loc='left')
-
-    plt.set_dark()
-    plt.window(2)
+    plt.set_dark(dark)
     plt.bar_chart(months, temperatures, y_label="T, °C", legend_loc='left')
     plt.show()
 
 
-def show_demo_animation():
+def show_demo_animation(dark=False):
     import time
     from .plot_updater import PlotUpdater
 
@@ -223,6 +223,7 @@ def show_demo_animation():
             t = time.monotonic()
             plt.add_point_to_animated_plot("sinsinsin", t, np.sin(t) + 0.3 * np.cos(3.5 * t))
 
+    plt.set_dark(dark)
     plt.window(1, name="Sin, cos")
     plt.subplot(2, 1, 1)
     plt.animated_plot("Sin")
@@ -232,7 +233,6 @@ def show_demo_animation():
     plt.animated_plot("CosCos")
     plt.add_plot_updater(Update())
 
-    plt.set_dark(True)
     plt.window(2, name="Sinsin", x=500, y=200)
     plt.animated_plot("sinsinsin")
     updater = Update1()
@@ -252,29 +252,28 @@ def show_demo_pie_chart():
     plt.show()
 
 
-def show_demo_polar_plot():
-    for i in range(2):
-        plt.set_dark(i == 1)
-        plt.window(i + 1, "", w=900, h=800)
+def show_demo_polar_plot(dark=False):
+    plt.set_dark(dark)
+    plt.window(1, "", w=900, h=800)
 
-        plt.subplot(2, 2, 1)
-        angles = np.arange(0, 2 * np.pi, np.pi / 1000)
-        amplitudes = np.exp(-angles) + np.sin(2 * angles)
-        plt.polar_plot(amplitudes, angles, color='red')
+    plt.subplot(2, 2, 1)
+    angles = np.arange(0, 2 * np.pi, np.pi / 1000)
+    amplitudes = np.exp(-angles) + np.sin(2 * angles)
+    plt.polar_plot(amplitudes, angles, color='red')
 
-        plt.subplot(2, 2, 2)
-        angles = np.arange(0, 8 * np.pi, np.pi / 1000)
-        amplitudes = 2 * angles
-        plt.polar_plot(amplitudes, angles)
+    plt.subplot(2, 2, 2)
+    angles = np.arange(0, 8 * np.pi, np.pi / 1000)
+    amplitudes = 2 * angles
+    plt.polar_plot(amplitudes, angles)
 
-        plt.subplot(2, 2, 3)
-        angles = np.arange(0, 2 * np.pi, np.pi / 1000)
-        amplitudes = np.sin(6 * angles)
-        plt.polar_plot(amplitudes, angles, color='purple')
+    plt.subplot(2, 2, 3)
+    angles = np.arange(0, 2 * np.pi, np.pi / 1000)
+    amplitudes = np.sin(6 * angles)
+    plt.polar_plot(amplitudes, angles, color='purple')
 
-        plt.subplot(2, 2, 4)
-        angles = np.arange(0, 8 * np.pi, np.pi / 1000)
-        amplitudes = np.sin(3/4 * angles)
-        plt.polar_plot(amplitudes, angles, color='green')
+    plt.subplot(2, 2, 4)
+    angles = np.arange(0, 8 * np.pi, np.pi / 1000)
+    amplitudes = np.sin(3/4 * angles)
+    plt.polar_plot(amplitudes, angles, color='green')
     plt.show()
 

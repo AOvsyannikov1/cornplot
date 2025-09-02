@@ -1733,6 +1733,9 @@ class Ui_CornplotGui(object):
         self.auxiliaryLinesAction.setCheckable(True)
         self.auxiliaryLinesAction.setChecked(True)
         self.auxiliaryLinesAction.setObjectName("auxiliaryLinesAction")
+        self.darkThemeAction = QtGui.QAction(parent=CornplotGui)
+        self.darkThemeAction.setCheckable(True)
+        self.darkThemeAction.setObjectName("darkThemeAction")
         self.menu.addAction(self.openGraphAction)
         self.menu.addAction(self.saveGraphAction)
         self.menu.addSeparator()
@@ -1753,6 +1756,7 @@ class Ui_CornplotGui(object):
         self.menu_5.addAction(self.action6)
         self.menu_4.addAction(self.backgroundColorAction)
         self.menu_4.addAction(self.fontAction)
+        self.menu_4.addAction(self.darkThemeAction)
         self.menu_4.addSeparator()
         self.menu_4.addAction(self.drawOriginAction)
         self.menu_4.addAction(self.drawTicksAction)
@@ -2058,6 +2062,7 @@ class Ui_CornplotGui(object):
         self.action5.setText(_translate("CornplotGui", "5"))
         self.action6.setText(_translate("CornplotGui", "6"))
         self.auxiliaryLinesAction.setText(_translate("CornplotGui", "Вспомогательные линии"))
+        self.darkThemeAction.setText(_translate("CornplotGui", "Тёмная тема"))
 
 
 if __name__ == "__main__":

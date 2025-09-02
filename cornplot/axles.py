@@ -3,8 +3,12 @@ from math import log10, floor, ceil, pow
 from typing import overload
 
 from PyQt6.QtCore import Qt, QLineF, QRectF, pyqtSlot as Slot, QRect, QTimer
-from PyQt6.QtGui import QPen, QColor, QPainter, QFont, QFontMetrics
-from PyQt6.QtWidgets import QFileDialog, QWidget, QGestureEvent, QPinchGesture, QPanGesture, QTapGesture, QTapAndHoldGesture, QSizePolicy
+from PyQt6.QtGui import QPen, QColor, QPainter, QFont, QFontMetrics, QGuiApplication
+from PyQt6.QtWidgets import (
+    QFileDialog, QWidget, QGestureEvent, 
+    QPinchGesture, QPanGesture, QTapGesture, 
+    QTapAndHoldGesture, QSizePolicy
+    )
 
 from .utils import *
 
@@ -179,10 +183,19 @@ class Axles(QWidget):
 
     @Slot()
     def __timer_callback(self):
+        self.__check_color_theme()
         self.__btn_group.process_visibility()
         self.__check_group_x_borders()
         if self._needs_redrawing():
             self.update()
+
+    def __check_color_theme(self):
+        if self.__dark and QGuiApplication.styleHints().colorScheme() != Qt.ColorScheme.Dark:
+            self.set_dark(False)
+            self._redraw_required = True
+        elif not self.__dark and QGuiApplication.styleHints().colorScheme() != Qt.ColorScheme.Light:
+            self.set_dark(True)
+            self._redraw_required = True
 
     @property
     def visible(self):

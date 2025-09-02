@@ -8,7 +8,7 @@ import numpy as np
 
 from PyQt6.QtCore import pyqtSignal as Signal, pyqtSlot as Slot, Qt, QTimer, QThread
 from PyQt6.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QColorDialog, QFontDialog
-from PyQt6.QtGui import QIcon, QColor, QFont, QPainter, QAction, QActionGroup, QKeySequence
+from PyQt6.QtGui import QIcon, QColor, QFont, QPainter, QAction, QActionGroup, QKeySequence, QGuiApplication
 from .cornplot_gui import Ui_CornplotGui
 
 from .deriv_window import DerivWindow
@@ -181,6 +181,11 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.__derivWin = DerivWindow()
         self.__fftWindow = FFTWindow()
 
+        self.__derivWin.dashboard.set_dark(self.__dashboard.dark)
+        self.__fftWindow.dashboard_a.set_dark(self.__dashboard.dark)
+        self.__fftWindow.dashboard_f.set_dark(self.__dashboard.dark)
+        self.__fftWindow.dashboard_source.set_dark(self.__dashboard.dark)
+
         self.diffPointSelect.clicked.connect(self.__begin_point_diff)
         self.diffSelectTwoPoints.clicked.connect(self.__begin_interval_diff)
         self.diffSelectAll.clicked.connect(self.__begin_all_diff)
@@ -241,6 +246,9 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.__digitsActionGroup.addAction(self.action6)
         self.__digitsActionGroup.addAction(self.digitsAuto)
         self.__digitsActionGroup.triggered.connect(self.__change_digits_count)
+        
+        self.darkThemeAction.setChecked(QGuiApplication.styleHints().colorScheme() == Qt.ColorScheme.Dark)
+        self.darkThemeAction.toggled.connect(self.__change_theme)
 
         self.auxiliaryLinesAction.toggled.connect(self.__dashboard.enable_auxiliary_lines)
 
@@ -249,6 +257,10 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.__operation = MathOperation.ONE_POINT_DIFF
 
         self.pltImage.paintEvent = self.label_paint_event
+
+    @Slot(bool)
+    def __change_theme(self, dark: bool):
+        QGuiApplication.styleHints().setColorScheme(Qt.ColorScheme.Dark if dark else Qt.ColorScheme.Light)
 
     @Slot(bool)
     def __x_autoscale_event(self, val: bool):

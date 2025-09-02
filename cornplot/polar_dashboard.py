@@ -3,7 +3,7 @@ from typing import Iterable
 from array import array
 from math import sqrt, atan2, degrees, pi
 
-from PyQt6.QtGui import QPainter, QPainterPath, QPen, QFont, QFontMetrics, QAction
+from PyQt6.QtGui import QPainter, QPainterPath, QPen, QFont, QFontMetrics, QAction, QGuiApplication
 from PyQt6.QtWidgets import QMenu, QFileDialog, QWidget
 from PyQt6.QtCore import QPointF, QLineF, Qt, pyqtSlot as Slot, QRect
 
@@ -43,26 +43,23 @@ class DashboardPolar(PolarAxles):
         self.__rotateScanner.setCheckable(True)
         self.__rotateScanner.toggled.connect(self.__start_scanner_rotation)
 
+        self.__darkTheme = QAction("Тёмная тема")
+        self.__darkTheme.setCheckable(True)
+        self.__darkTheme.setChecked(QGuiApplication.styleHints().colorScheme() == Qt.ColorScheme.Dark)
+        self.__darkTheme.toggled.connect(self.__set_dark_theme)
+
         self.__savePicture = QAction("Сохранить картинку как...")
         self.__savePicture.triggered.connect(self.__save_picture)
-
+        
+        self.__menu.addAction(self.__savePicture)
+        self.__menu.addSeparator()
+        self.__menu.addAction(self.__darkTheme)
         self.__menu.addAction(self.__addScanner)
         self.__menu.addAction(self.__rotateScanner)
-        self.__menu.addSeparator()
-        self.__menu.addAction(self.__savePicture)
 
-    def set_dark(self, dark):
-        if dark != self.dark:
-            if dark:
-                self.__menu.setStyleSheet("""
-                                            QMenu {
-                                            background-color: grey;
-                                        }
-                                            """)
-            else:
-                self.__menu.setStyleSheet("")
-        super().set_dark(dark)
-
+    @Slot(bool)
+    def __set_dark_theme(self, dark: bool):
+        QGuiApplication.styleHints().setColorScheme(Qt.ColorScheme.Dark if dark else Qt.ColorScheme.Light)
 
     @Slot()
     def __save_picture(self):

@@ -3551,6 +3551,7 @@
     </widget>
     <addaction name="backgroundColorAction"/>
     <addaction name="fontAction"/>
+    <addaction name="darkThemeAction"/>
     <addaction name="separator"/>
     <addaction name="drawOriginAction"/>
     <addaction name="drawTicksAction"/>
@@ -3782,6 +3783,14 @@
    </property>
    <property name="text">
     <string>Вспомогательные линии</string>
+   </property>
+  </action>
+  <action name="darkThemeAction">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Тёмная тема</string>
    </property>
   </action>
  </widget>

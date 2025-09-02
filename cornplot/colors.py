@@ -2,7 +2,7 @@ from PyQt6.QtGui import QColor
 
 
 def background_color(dark: bool) -> QColor:
-    return QColor(40, 47, 60) if dark else QColor(0xFFFFFF)
+    return QColor(24, 24, 24) if dark else QColor(0xFFFFFF)
 
 
 def text_color(dark: bool):

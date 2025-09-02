@@ -1,7 +1,7 @@
 from math import sin, cos, log10, radians, pi, degrees, sqrt, atan2, hypot
 from PyQt6.QtCore import Qt, QRectF, QTimer, pyqtSlot as Slot, QPointF
 from PyQt6.QtWidgets import QWidget
-from PyQt6.QtGui import QFontMetrics, QPen, QFont, QPainter
+from PyQt6.QtGui import QFontMetrics, QPen, QFont, QPainter, QGuiApplication
 
 from .array_utils import *
 from .colors import *
@@ -100,9 +100,18 @@ class PolarAxles(QWidget):
 
     @Slot()
     def __tmr_callback(self):
+        self.__check_color_theme()
         if self.__redraw_required:
             self.update()
             self.__redraw_required = False
+
+    def __check_color_theme(self):
+        if self.__dark and QGuiApplication.styleHints().colorScheme() != Qt.ColorScheme.Dark:
+            self.set_dark(False)
+            self.__redraw_required = True
+        elif not self.__dark and QGuiApplication.styleHints().colorScheme() != Qt.ColorScheme.Light:
+            self.set_dark(True)
+            self.__redraw_required = True
 
     def _force_redraw(self):
         self.__redraw_required = True

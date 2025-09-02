@@ -2,7 +2,7 @@ from math import log10
 import os
 from PyQt6.QtWidgets import QWidget, QMenu, QFileDialog
 from PyQt6.QtCore import QTimer, Qt, pyqtSlot as Slot, QLineF, QRectF, QRect
-from PyQt6.QtGui import QPainter, QPen, QColor, QFont, QFontMetrics, QAction
+from PyQt6.QtGui import QPainter, QPen, QColor, QFont, QFontMetrics, QAction, QGuiApplication
 
 from .color_generator import ColorGenerator
 from .bar_data import BarData
@@ -61,9 +61,15 @@ class BarChart(QWidget):
         self.__displayGrid.setChecked(False)
         self.__displayGrid.toggled.connect(self.display_ticks)
 
+        self.__darkTheme = QAction("Тёмная тема")
+        self.__darkTheme.setCheckable(True)
+        self.__darkTheme.setChecked(QGuiApplication.styleHints().colorScheme() == Qt.ColorScheme.Dark)
+        self.__darkTheme.toggled.connect(self.__set_dark_theme)
+
         
         self.__menu.addAction(self.__savePicture)
         self.__menu.addSeparator()
+        self.__menu.addAction(self.__darkTheme)
         self.__menu.addAction(self.__displayLegend)
         self.__menu.addAction(self.__displayValues)
         self.__menu.addAction(self.__displayGrid)
@@ -86,6 +92,11 @@ class BarChart(QWidget):
         super().setGeometry(x - self._MIN_X, y - self._MIN_Y, w + self._MIN_X, h + 2 * self._MIN_Y)
         self.__update_step_y()
         self.__recalculate_window_coords()
+
+    @Slot(bool)
+    def __set_dark_theme(self, dark: bool):
+        QGuiApplication.styleHints().setColorScheme(Qt.ColorScheme.Dark if dark else Qt.ColorScheme.Light)
+        self.set_dark(dark)
 
     @Slot(bool)
     def display_legend(self, display: bool):
@@ -390,13 +401,4 @@ class BarChart(QWidget):
         return c_real_to_window_y(y, self._MIN_Y, self.__h, self.__real_height, self.__ystop)
     
     def set_dark(self, dark: bool):
-        if self.__dark != dark:
-            if dark:
-                self.__menu.setStyleSheet("""
-                                            QMenu {
-                                            background-color: grey;
-                                        }
-                                            """)
-            else:
-                self.__menu.setStyleSheet("")
-            self.__dark = dark
+        self.__dark = dark

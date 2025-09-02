@@ -592,12 +592,16 @@ class Dashboard(Axles):
 
     def _draw_scanner_lines(self, value_rects: list[list[ValueRectangle]]) -> None:
         super()._draw_scanner_lines(value_rects)
+        if len(self.__plots):
+            any_hist = any(plt.is_hist for plt in self.__plots)
+        else:
+            any_hist = False
         for rects in value_rects:
             for rect in rects:
-                self._qp.setPen(QColor(255, 255, 255, 127))
+                self._qp.setPen(QColor(255, 255, 255, 127 if any_hist else 0))
                 self._qp.setBrush(rect.color)
                 self._qp.drawRoundedRect(rect, 5, 5)
-                self._qp.setPen(QColor(255, 255, 255))
+                self._qp.setPen(QColor("white"))
                 self._qp.setFont(VALUE_FONT)
                 self._qp.drawText(rect, Qt.AlignmentFlag.AlignCenter, rect.text)
                 
