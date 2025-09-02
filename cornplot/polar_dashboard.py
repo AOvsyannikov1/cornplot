@@ -43,13 +43,26 @@ class DashboardPolar(PolarAxles):
         self.__rotateScanner.setCheckable(True)
         self.__rotateScanner.toggled.connect(self.__start_scanner_rotation)
 
-        self.__savePicture = QAction("Сохранить изображение")
+        self.__savePicture = QAction("Сохранить картинку как...")
         self.__savePicture.triggered.connect(self.__save_picture)
 
         self.__menu.addAction(self.__addScanner)
         self.__menu.addAction(self.__rotateScanner)
         self.__menu.addSeparator()
         self.__menu.addAction(self.__savePicture)
+
+    def set_dark(self, dark):
+        if dark != self.dark:
+            if dark:
+                self.__menu.setStyleSheet("""
+                                            QMenu {
+                                            background-color: grey;
+                                        }
+                                            """)
+            else:
+                self.__menu.setStyleSheet("")
+        super().set_dark(dark)
+
 
     @Slot()
     def __save_picture(self):
@@ -218,10 +231,7 @@ class DashboardPolar(PolarAxles):
 
     @staticmethod
     def __distance_from_point_to_line(point: QPointF, line: QLineF) -> float:
-        # Get the coordinates of the point
         x0, y0 = point.x(), point.y()
-
-        # Get the start and end points of the line
         p1 = line.p1()
         p2 = line.p2()
 
@@ -233,14 +243,11 @@ class DashboardPolar(PolarAxles):
         B = p1.x() - p2.x()
         C = -A * p1.x() - B * p1.y()
 
-        # Calculate the distance using the formula
         numerator = abs(A * x0 + B * y0 + C)
         denominator = sqrt(A**2 + B**2)
 
-        # Handle the case of a zero-length line (or vertical/horizontal lines where
-        # denominator might be very close to zero due to floating point inaccuracies)
         if denominator == 0:
-            return 0.0  # Or handle as an error, depending on requirements
+            return 0.0
 
         return numerator / denominator
 
@@ -259,8 +266,8 @@ class DashboardPolar(PolarAxles):
                     self._real_polar_to_window_y(self._min_value, line.angle))
         p1 = QPointF(self._real_polar_to_window_x(self._max_value, line.angle),
                         self._real_polar_to_window_y(self._max_value, line.angle))
-        self._qp.setPen(QColor(0x66BD6C) if line.selected else QColor(0))
-        self._qp.drawLine(p0, p1)
+        self._qp.setPen(QColor(0x66BD6C) if line.selected else (QColor(0xD8D8D8) if self.dark else QColor(0)))
+        self._qp.drawLine(QLineF(p0, p1))
         line.line = QLineF(p0, p1)
 
         font = QFont("Consolas, Courier New", 10)

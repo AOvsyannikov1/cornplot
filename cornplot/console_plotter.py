@@ -1,7 +1,7 @@
 import sys, uuid
 
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QWidget, QApplication
+from PyQt6.QtWidgets import QWidget, QApplication, QStyleFactory
 from PyQt6.QtGui import QIcon
 
 import numpy as np
@@ -28,6 +28,7 @@ class PlotWindow(QWidget):
         self.__plt_updaters: list[PlotUpdater] = list()
         self.__datasets: dict[str, int] = dict()
         self.axles_num = 0
+        self.__dark = False
 
         self.n_rows = 1
         self.n_cols = 1
@@ -39,6 +40,14 @@ class PlotWindow(QWidget):
 
         self.__group_id = str(uuid.uuid4())
 
+    def set_dark(self, dark: bool):
+        if dark != self.__dark:
+            self.__dark = dark
+            if dark:
+                self.setStyleSheet("background-color: rgb(30, 38, 49);")
+            else:
+                self.setStyleSheet("")
+
     def add_dashboard(self, row=1, col=1, rows=1, cols=1, x_name='X', y_name='Y', link_plots=True, draw_axes=False):
         if self.__add_axes(row, col, rows, cols):
             dashboard = Dashboard(self, 0, 0, self.width() - 200, self.height() - 100)
@@ -46,6 +55,7 @@ class PlotWindow(QWidget):
             dashboard.set_x_name(x_name)
             dashboard.enable_origin_drawing_x(draw_axes)
             dashboard.enable_origin_drawing_y(draw_axes)
+            dashboard.set_dark(self.__dark)
             if link_plots:
                 dashboard.move_to_group(self.__group_id)
             self.dashboards.append(dashboard)
@@ -57,10 +67,12 @@ class PlotWindow(QWidget):
     def add_polar_axes(self, row=1, col=1, rows=1, cols=1):
         if self.__add_axes(row, col, rows, cols):
             self.dashboards.append(DashboardPolar(self, 0, 0, self.width() - 200))
+            self.dashboards[-1].set_dark(self.__dark)
 
     def add_bar_axes(self, row=1, col=1, rows=1, cols=1):
         if self.__add_axes(row, col, rows, cols):
             self.dashboards.append(BarChart(self, 0, 0, self.width() - 200, self.height() - 100))
+            self.dashboards[-1].set_dark(self.__dark)
 
     def __add_axes(self, row, col, rows, cols):
         if self.n_cols < cols:
@@ -118,10 +130,10 @@ class PlotWindow(QWidget):
             descr = category_descriprions[i] if category_descriprions else ''
             self.dashboards[index].add_cathegory(percentages[i], category_names[i], descr)
 
-    def add_bar_chart(self, row, col, categories: list[str], values: list[float] | list[list[float]], value_names: list[str] | None = None,
+    def add_bar_chart(self, row, col, categories: list[str], values: dict[str, list[float]],
                       y_label="Y", value_colors=None, draw_legend=True, legend_loc='left'):
         index = self.dashboard_locations.index((row, col))
-        self.dashboards[index].add_bar_chart(categories, values, value_names, y_label, value_colors, draw_legend, legend_loc)
+        self.dashboards[index].add_bar_chart(categories, values, y_label, value_colors, draw_legend, legend_loc)
 
     def resizeEvent(self, a0) -> None:
         self.step_y = (self.height() - 80) // self.n_rows
@@ -181,15 +193,21 @@ class CornPlotter:
         self.__nrows = 1
         self.__ncols = 1
         self.__datasets: dict[str, int] = dict()
+        self.__dark = False
+        self.__app_style = "Fusion"
 
-    def window(self, num, name="", x=100, y=100):
+    def set_dark(self, dark=True):
+        self.__dark = dark
+
+    def window(self, num, name="", x=100, y=100, w=1000, h=600):
         self.__create_qapp()
         self.__current_window_index = num - 1
         if len(self.__windows) < num:
-            self.__windows.append(PlotWindow(x=x, y=y))
+            self.__windows.append(PlotWindow(x=x, y=y, width=w, height=h))
             if name == "":
                 name = f"Окно {len(self.__windows)}"
             self.__windows[-1].setWindowTitle(name)
+            self.__windows[-1].set_dark(self.__dark)
 
         self.__current_row = 1
         self.__current_col = 1
@@ -205,16 +223,18 @@ class CornPlotter:
         self.__nrows = rows
         self.__ncols = cols
 
-    def plot(self, x_arr, y_arr, x_name="X", y_name="Y", name='',
-             linewidth=2.0, linestyle='solid', color='any', link_plots=True, axes=False, scatter=False, markerwidth=5.0):
+    def plot(self, x_arr, y_arr, x_label="X", y_label="Y", plot_label='',
+             linewidth=2.0, linestyle='solid', color='any', link_plots=True, axes=False, scatter=False, markerwidth=5.0, draw_x=True):
         self.__create_qapp()
         win = self.__add_window()
         win.add_dashboard(self.__current_row, self.__current_col, rows=self.__nrows, cols=self.__ncols,
-                          x_name=x_name, y_name=y_name, link_plots=link_plots, draw_axes=axes)
-        win.dashboards[-1].set_x_name(x_name)
-        win.dashboards[-1].set_y_name(y_name)
+                          x_name=x_label, y_name=y_label, link_plots=link_plots, draw_axes=axes)
+        win.dashboards[-1].set_x_name(x_label)
+        win.dashboards[-1].set_y_name(y_label)
+        win.dashboards[-1].enable_x_ticks(draw_x)
+        win.dashboards[-1].enable_x_label(draw_x)
         win.add_plot(self.__current_row, self.__current_col, x_arr, y_arr,
-                                                             name, linewidth, linestyle, color, scatter, markerwidth)
+                                                             plot_label, linewidth, linestyle, color, scatter, markerwidth)
         
     def animated_plot(self, name: str, x_size=30, x_name="X", y_name="Y", linewidth=2, linestyle='solid', color='any', link_plots=True, axes=False):
         self.__create_qapp()
@@ -261,12 +281,11 @@ class CornPlotter:
         win.add_polar_axes(self.__current_row, self.__current_col, self.__nrows, self.__ncols)
         win.add_polar_plot(self.__current_row, self.__current_col, amplitudes, angles, color, linewidth, linestyle, scatter)
 
-    def bar_chart(self, categories: list[str], values: list[float] | list[list[float]], value_names: list[str] | None = None,
-                      y_label="Y", value_colors=None, draw_legend=True, legend_loc='left'):
+    def bar_chart(self, categories: list[str], values: dict[str, list[float]], y_label="Y", value_colors=None, draw_legend=True, legend_loc='left'):
         self.__create_qapp()
         win = self.__add_window()
         win.add_bar_axes(self.__current_row, self.__current_col, self.__nrows, self.__ncols)
-        win.add_bar_chart(self.__current_row, self.__current_col, categories, values, value_names, y_label, value_colors, draw_legend, legend_loc)
+        win.add_bar_chart(self.__current_row, self.__current_col, categories, values, y_label, value_colors, draw_legend, legend_loc)
 
     def pie_chart(self, percentages, category_names, category_descriptions=None):
         self.__create_qapp()
@@ -292,14 +311,22 @@ class CornPlotter:
         self.__current_row = 1
         self.__current_col = 1
 
+    def set_style(self, style: str):
+        if style in list(QStyleFactory.keys()):
+            self.__app_style = style
+        else:
+            self.__app_style = ""
+
     def __create_qapp(self):
         if self.app is None:
             self.app = QApplication(sys.argv)
+            self.app.setStyle(self.__app_style)
 
     def __add_window(self):
         if len(self.__windows) == 0:
             self.__windows.append(PlotWindow())
             self.__windows[-1].setWindowTitle(f"Окно {len(self.__windows)}")
+            self.__windows[-1].set_dark(self.__dark)
         return self.__windows[self.__current_window_index]
 
 _plotter = CornPlotter()

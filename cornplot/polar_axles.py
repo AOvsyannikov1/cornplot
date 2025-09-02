@@ -1,11 +1,10 @@
 from math import sin, cos, log10, radians, pi, degrees, sqrt, atan2, hypot
-import os
-
 from PyQt6.QtCore import Qt, QRectF, QTimer, pyqtSlot as Slot, QPointF
 from PyQt6.QtWidgets import QWidget
 from PyQt6.QtGui import QFontMetrics, QPen, QFont, QPainter
 
 from .array_utils import *
+from .colors import *
 from .utils import *
 
 
@@ -36,6 +35,7 @@ class PolarAxles(QWidget):
         self._digits_count = -1
 
         self.__redraw_required = True
+        self.__dark = False
 
         self.__font = QFont("Bahnschrift, Arial", 11)
 
@@ -48,6 +48,14 @@ class PolarAxles(QWidget):
 
     def paintEvent(self, a0):
         self._redraw()
+
+    def set_dark(self, dark: bool):
+        if self.__dark != dark:
+            self.__dark = dark
+
+    @property
+    def dark(self) -> bool:
+        return self.__dark
 
     def _get_width(self):
         return self.__w
@@ -138,11 +146,11 @@ class PolarAxles(QWidget):
     def _real_to_window_y(self, y: float):
         return c_real_to_window_y(y, self._MIN_Y, self.__h, self._real_size, self._stop_value)
 
-    def _real_polar_to_window_x(self, r: float, angle: float):
+    def _real_polar_to_window_x(self, r: float, angle: float) -> float:
         x = self._polar_coords_to_x(r, angle)
         return c_real_to_window_x(x, self._MIN_X, self.__w, self._real_size, self._start_value)
     
-    def _real_polar_to_window_y(self, r: float, angle: float):
+    def _real_polar_to_window_y(self, r: float, angle: float) -> float:
         y = self._polar_coords_to_y(r, angle)
         return c_real_to_window_y(y, self._MIN_Y, self.__h, self._real_size, self._stop_value)
     
@@ -150,6 +158,7 @@ class PolarAxles(QWidget):
         pass
 
     def _draw_grid(self, white_rect=False):
+        self._qp.setFont(self.__font)
         self.__draw_grid_circles(white_rect)
         self.__draw_grid_angles()
     
@@ -160,7 +169,7 @@ class PolarAxles(QWidget):
         
         center = QPointF(self.width() / 2, self.height() / 2)
         self._qp.setPen(QColor(0, 0, 0, 0))
-        self._qp.setBrush(QColor(0xFFFFFF))
+        self._qp.setBrush(background_color(self.__dark))
         if white_rect:
             self._qp.drawRect(0, 0, self.width(), self.height())
         else:
@@ -183,22 +192,21 @@ class PolarAxles(QWidget):
             x_win = self._real_polar_to_window_x(r, 0)
             r_win = x_win - self._real_polar_to_window_x(0, 0)
 
-            self._qp.setPen(QPen(QColor(0), 0.5, Qt.PenStyle.SolidLine))
+            self._qp.setPen(QPen(grid_color(self.__dark), 0.5, Qt.PenStyle.SolidLine))
             self._qp.setBrush(QColor(0, 0, 0, 0))
             self._qp.drawEllipse(center, r_win, r_win)
 
             if i < len(radiuses) - 1:
-                self._qp.setFont(self.__font)
                 y_win = self.height() / 2 + 5
                 tmp_str = self.__get_rounded_tick(r, divised_step, digit_count if self._digits_count < 0 else self._digits_count)
                 w = metrics.horizontalAdvance(tmp_str)
                 h = metrics.height()
 
                 self._qp.setPen(QColor(0, 0, 0, 0))
-                self._qp.setBrush(QColor(0xFFFFFF))
+                self._qp.setBrush(background_color(self.__dark))
                 self._qp.drawRect(QRectF(x_win - w / 2, y_win, w, h))
 
-                self._qp.setPen(QColor(0))
+                self._qp.setPen(text_color(self.__dark))
                 self._qp.drawText(QRectF(x_win - w / 2, y_win, w, h), Qt.AlignmentFlag.AlignCenter, tmp_str)
 
                 x_win = self._real_polar_to_window_x(-r, 0)
@@ -210,10 +218,10 @@ class PolarAxles(QWidget):
                     self.__x_met_width = w
 
                 self._qp.setPen(QColor(0, 0, 0, 0))
-                self._qp.setBrush(QColor(0xFFFFFF))
+                self._qp.setBrush(background_color(self.__dark))
                 self._qp.drawRect(QRectF(x_win - w / 2, y_win, w, h))
 
-                self._qp.setPen(QColor(0))
+                self._qp.setPen(text_color(self.__dark))
                 self._qp.drawText(QRectF(x_win - w / 2, y_win, w, h), Qt.AlignmentFlag.AlignCenter, tmp_str)
 
         if old_x_met_width != self.__x_met_width:
@@ -233,7 +241,7 @@ class PolarAxles(QWidget):
 
         metrics = QFontMetrics(self.__font)
         for angle in angles:
-            self._qp.setPen(QPen(QColor(0), 0.5, Qt.PenStyle.SolidLine))
+            self._qp.setPen(QPen(grid_color(self.__dark), 0.5, Qt.PenStyle.SolidLine))
             self._qp.setBrush(QColor(0, 0, 0, 0))
 
             p0 = QPointF(self._real_polar_to_window_x(self._min_value, angle), self._real_polar_to_window_y(self._min_value, angle))
@@ -271,9 +279,9 @@ class PolarAxles(QWidget):
 
         if not draw_rect:
             self._qp.setPen(QColor(0, 0, 0, 0))
-            self._qp.setBrush(QColor(0xFFFFFF))
+            self._qp.setBrush(background_color(self.__dark))
             self._qp.drawRect(rect)
-            self._qp.setPen(QColor(0, 0, 0))
+            self._qp.setPen(text_color(self.__dark))
         else:
             self._qp.setPen(QPen(0xFFFFFF))
         self._qp.drawText(rect, Qt.AlignmentFlag.AlignCenter, text)

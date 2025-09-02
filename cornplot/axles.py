@@ -10,6 +10,7 @@ from .utils import *
 
 from .button_group import ButtonGroup
 from .axle_slider import AxleSlider
+from .colors import *
 from .action_buffer import ActionBuffer
 from .array_utils import *
 from .axle_group_data import AxleGroupData, MAX_SCANNER_LINES
@@ -163,7 +164,7 @@ class Axles(QWidget):
 
     def __draw_background(self):
         self._qp.setPen(QColor(0, 0, 0, 0))
-        self._qp.setBrush(self.__background_color)
+        self._qp.setBrush(background_color(self.__dark))
         self._qp.drawRect(self._OFFSET_X, self._OFFSET_Y_UP, self.__w, self.__h)  # поле графика
 
         # оси координат по необходимости
@@ -1034,7 +1035,7 @@ class Axles(QWidget):
         font.setBold(True)
         self._qp.setFont(font)
 
-        txt_pen = QPen(0xD2D2D2) if self.__dark else QPen(0)
+        txt_pen = QPen(text_color(self.__dark))
         self._qp.setPen(txt_pen)
 
         self._x_axle.label_size = QFontMetrics(font).horizontalAdvance(self._x_axle.name)
@@ -1130,7 +1131,7 @@ class Axles(QWidget):
         self._qp.setFont(font)
         self._y_axle.label_size = QFontMetrics(font).height()
 
-        txt_pen = QPen(0xD2D2D2) if self.__dark else QPen(0)
+        txt_pen = QPen(text_color(self.__dark))
         self._qp.setPen(txt_pen)
 
         if self._y_axle.draw_label:
@@ -1397,10 +1398,7 @@ class Axles(QWidget):
                     tmp_str = f"{dx:.{digit_count}f}"
                 font = QFont("Consolas, Courier New", 9)
                 font.setBold(True)
-                if self.__dark:
-                    self._qp.setPen(QColor(255, 255, 255))
-                else:
-                    self._qp.setPen(QColor(100, 100, 100))
+                self._qp.setPen(text_color(self.__dark))
                 self._qp.setFont(font)
                 text_width = qm.size(0, tmp_str).width()
                 rectW = text_width + 10
@@ -1889,7 +1887,7 @@ class Axles(QWidget):
     
     def set_dark(self, dark: bool):
         if dark != self.__dark:
-            self.__background_color = QColor(40, 47, 60) if dark else QColor(255, 255, 255)
+            self.__background_color = background_color(self.__dark)
             self.__btn_group.set_dark(dark)
             self._redraw_required = True
             self.__dark = dark

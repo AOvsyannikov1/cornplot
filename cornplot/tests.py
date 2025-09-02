@@ -1,5 +1,6 @@
 import numpy as np
 from .console_plotter import _plotter as plt
+from .utils import UPPER_INDEXES
 
 
 def show_demo_plots_1():
@@ -14,48 +15,48 @@ def show_demo_plots_1():
     Y6 = np.tanh(X)
 
     plt.window(1, x=50, y=50)
-    plt.plot(X, Y1, name="Sin x")
-    plt.plot(X, Y2, name="Cos x")
-    plt.plot(X, Y3, name="Gauss")
-    plt.plot(X, Y4, name="Sigmoid")
+    plt.plot(X, Y1, plot_label="Sin x")
+    plt.plot(X, Y2, plot_label="Cos x")
+    plt.plot(X, Y3, plot_label="Gauss")
+    plt.plot(X, Y4, plot_label="Sigmoid")
 
     plt.window(2, x=200, y=100)
     plt.subplot(2, 3, 1)
-    plt.plot(X, Y1, name="Sin x")
+    plt.plot(X, Y1, plot_label="Sin x")
 
     plt.subplot(2, 3, 2)
-    plt.plot(X, Y2, name="Cos x")
+    plt.plot(X, Y2, plot_label="Cos x")
 
     plt.subplot(2, 3, 3)
-    plt.plot(X, Y3, name="Гауссоида")
+    plt.plot(X, Y3, plot_label="Гауссоида")
 
     plt.subplot(2, 3, 4)
-    plt.plot(X, Y4, name="Логистическая кривая")
+    plt.plot(X, Y4, plot_label="Логистическая кривая")
 
     plt.subplot(2, 3, 5)
-    plt.plot(X, Y5, name="1 / sqrt(1 + x^2)")
+    plt.plot(X, Y5, plot_label=f"1 / sqrt(1 + x{UPPER_INDEXES[2]})")
 
     plt.subplot(2, 3, 6)
-    plt.plot(X, Y6, name="Сигмоида")
+    plt.plot(X, Y6, plot_label="Сигмоида")
 
     plt.window(3, x=500, y=200)
     plt.subplot(6, 1, 1)
-    plt.plot(X, Y1, name="Sin x")
+    plt.plot(X, Y1, plot_label="Sin x", draw_x=False)
 
     plt.subplot(6, 1, 2)
-    plt.plot(X, Y2, name="Cos x")
+    plt.plot(X, Y2, plot_label="Cos x", draw_x=False)
 
     plt.subplot(6, 1, 3)
-    plt.plot(X, Y3, name="Гауссоида")
+    plt.plot(X, Y3, plot_label="Гауссоида", draw_x=False)
 
     plt.subplot(6, 1, 4)
-    plt.plot(X, Y4, name="Логистическая кривая")
+    plt.plot(X, Y4, plot_label="Логистическая кривая", draw_x=False)
 
     plt.subplot(6, 1, 5)
-    plt.plot(X, Y5, name="1 / sqrt(1 + x^2)")
+    plt.plot(X, Y5, plot_label=f"1 / sqrt(1 + x{UPPER_INDEXES[2]})", draw_x=False)
 
     plt.subplot(6, 1, 6)
-    plt.plot(X, Y6, name="Сигмоида")
+    plt.plot(X, Y6, plot_label="Сигмоида")
     plt.show()
 
 
@@ -69,29 +70,29 @@ def show_demo_plots_2():
     Y4 = (1 / (1 + np.exp(-X)))
     Y5 = (1 / np.sqrt(1 + X ** 2))
     Y6 = np.tanh(X)
-
+    plt.set_dark(True)
     plt.window(1)
     plt.subplot(2, 2, 1)
-    plt.plot(X, Y1, name="Sin x")
+    plt.plot(X, Y1, plot_label="Sin x")
 
     plt.subplot(2, 2, 3)
-    plt.plot(X, Y2, name="Cos x")
+    plt.plot(X, Y2, plot_label="Cos x")
 
     plt.subplot(2, 1, 2)
-    plt.plot(X, Y3, name="Гауссоида")
+    plt.plot(X, Y3, plot_label="Гауссоида")
 
     plt.window(2)
     plt.subplot(1, 3, 1)
-    plt.plot(X, Y5, name="1 / sqrt(1 + x^2)")
+    plt.plot(X, Y5, plot_label="1 / sqrt(1 + x^2)")
 
     plt.subplot(2, 3, 3)
-    plt.plot(X, Y1, name="Sin x")
+    plt.plot(X, Y1, plot_label="Sin x")
 
     plt.subplot(2, 3, 4)
-    plt.plot(X, Y4, name="Сигмоида 1")
+    plt.plot(X, Y4, plot_label="Сигмоида 1")
 
     plt.subplot(1, 3, 3)
-    plt.plot(X, Y6, name="Сигмоида 2")
+    plt.plot(X, Y6, plot_label="Сигмоида 2")
     plt.show()
 
 
@@ -127,31 +128,31 @@ def show_demo_plots_3():
     Y8 = np.cos(t) * (np.exp(np.cos(t)) - 2 * np.cos(4 * t) + np.sin(t / 12) ** 5)
 
     plt.subplot(3, 3, 1)
-    plt.plot(X, Y, name="Спираль", link_plots=False)
+    plt.plot(X, Y, plot_label="Спираль", link_plots=False)
 
     plt.subplot(3, 3, 2)
-    plt.plot(X1, Y1, name="Сердце", link_plots=False)
+    plt.plot(X1, Y1, plot_label="Сердце", link_plots=False)
 
     plt.subplot(3, 3, 3)
-    plt.plot(X2, Y2, name="Дельтоида", link_plots=False)
+    plt.plot(X2, Y2, plot_label="Дельтоида", link_plots=False)
 
     plt.subplot(3, 3, 4)
-    plt.plot(X3, Y3, name="Астроида", link_plots=False)
+    plt.plot(X3, Y3, plot_label="Астроида", link_plots=False)
 
     plt.subplot(3, 3, 5)
-    plt.plot(X4, Y4, name="Гипоциклоида", link_plots=False)
+    plt.plot(X4, Y4, plot_label="Гипоциклоида", link_plots=False)
 
     plt.subplot(3, 3, 6)
-    plt.plot(X5, Y5, name="Кардиоида", link_plots=False)
+    plt.plot(X5, Y5, plot_label="Кардиоида", link_plots=False)
 
     plt.subplot(3, 3, 7)
-    plt.plot(X6, Y6, name="Нефроида", link_plots=False)
+    plt.plot(X6, Y6, plot_label="Нефроида", link_plots=False)
 
     plt.subplot(3, 3, 8)
-    plt.plot(X7, Y7, name="Эпициклоида", link_plots=False)
+    plt.plot(X7, Y7, plot_label="Эпициклоида", link_plots=False)
 
     plt.subplot(3, 3, 9)
-    plt.plot(X8, Y8, name="Бабочка", link_plots=False)
+    plt.plot(X8, Y8, plot_label="Бабочка", link_plots=False)
     plt.show()
 
 
@@ -159,14 +160,36 @@ def show_demo_plots_4():
     X = np.arange(0, 0.04, 1e-5)
     Y = 220 * np.sqrt(2) * np.sin(314 * X)
 
-    plt.plot(X, Y, name="Переменный ток")
+    plt.plot(X, Y, plot_label="Переменный ток")
     plt.show()
 
 
-def show_demo_plots_5():
+def show_demo_histogram():
     X = np.random.beta(a=2, b=5, size=100000)
 
+    plt.window(1)
     plt.histogram(X, name="Бета-распределение", probabilities=True)
+    plt.set_dark()
+    plt.window(2)
+    X = np.random.chisquare(df=10, size=100000)
+    
+    plt.histogram(X, name=f"Распределение χ{UPPER_INDEXES[2]} (k = 10)", probabilities=True, color="#73C991")
+    plt.show()
+
+
+def show_demo_bar_chart():
+    months = ("Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек")
+    temperatures = {
+                    "Москва": [-6.2, -5.9, -0.7, 6.9, 13.6, 17.3, 19.7, 17.6, 11.9, 5.8, -0.5, -4.4],
+                    "Сочи": [6.3, 6.5, 8.6, 12.3, 16.6, 20.9, 23.7, 24.3, 20.5, 16.2, 11.4, 8.3],
+                    "Оймякон": [-46, -42.2, -35.2, -15.1, -0.2, 12.2, 14.1, 9.7, -0.2, -20.3, -36.7, -45.8]
+                    }
+    plt.window(1)
+    plt.bar_chart(months, temperatures, y_label="T, °C", legend_loc='left')
+
+    plt.set_dark()
+    plt.window(2)
+    plt.bar_chart(months, temperatures, y_label="T, °C", legend_loc='left')
     plt.show()
 
 
@@ -197,6 +220,7 @@ def show_demo_animation():
     plt.animated_plot("CosCos")
     plt.add_plot_updater(Update())
 
+    plt.set_dark(True)
     plt.window(2, name="Sinsin", x=500, y=200)
     plt.animated_plot("sinsinsin")
     updater = Update1()
@@ -213,5 +237,32 @@ def show_demo_pie_chart():
               "а прочие газы тут углекислый газ лох но им растения дышат")
 
     plt.pie_chart(perc, cats, descrs)
+    plt.show()
+
+
+def show_demo_polar_plot():
+    for i in range(2):
+        plt.set_dark(i == 1)
+        plt.window(i + 1, "", w=900, h=800)
+
+        plt.subplot(2, 2, 1)
+        angles = np.arange(0, 2 * np.pi, np.pi / 1000)
+        amplitudes = np.exp(-angles) + np.sin(2 * angles)
+        plt.polar_plot(amplitudes, angles, color='red')
+
+        plt.subplot(2, 2, 2)
+        angles = np.arange(0, 8 * np.pi, np.pi / 1000)
+        amplitudes = 2 * angles
+        plt.polar_plot(amplitudes, angles)
+
+        plt.subplot(2, 2, 3)
+        angles = np.arange(0, 2 * np.pi, np.pi / 1000)
+        amplitudes = np.sin(6 * angles)
+        plt.polar_plot(amplitudes, angles, color='purple')
+
+        plt.subplot(2, 2, 4)
+        angles = np.arange(0, 8 * np.pi, np.pi / 1000)
+        amplitudes = np.sin(3/4 * angles)
+        plt.polar_plot(amplitudes, angles, color='green')
     plt.show()
 

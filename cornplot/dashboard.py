@@ -10,6 +10,7 @@ from PyQt6.QtGui import QPainter, QPen, QColor, QFont, QFontMetrics, QPolygonF, 
 from .axles import Axles
 from .utils import *
 from .color_generator import ColorGenerator
+from .colors import *
 from .plot import Plot
 from .value_rectangle import ValueRectangle
 from .cornplot_window import CornplotWindow
@@ -256,7 +257,7 @@ class Dashboard(Axles):
             heatmap = True
             color = self.__color_generator.get_color()
         else:
-            color = color
+            color = QColor(color)
             heatmap = False
 
         pen = QPen(QColor(color), 2)
@@ -645,6 +646,7 @@ class Dashboard(Axles):
             self._qp.setPen(QColor(0, 0, 0))
             for rect in plt.rects:
                 h = rect.height()
+                self._qp.setPen(QColor(0xffffff) if self.dark else QColor(0))
                 self._qp.setBrush(gradient.get_color((h - min_h) / (max_h - min_h)))
                 self._qp.drawRect(rect)
 
@@ -661,7 +663,7 @@ class Dashboard(Axles):
             self._qp.setBrush(linear_gradient)
             self._qp.drawRect(x, y, w, h)
 
-            self._qp.setPen(QColor(210, 210, 210) if self.dark else QColor(0, 0, 0))
+            self._qp.setPen(text_color(self.dark))
             self._qp.setFont(QFont("Consolas, Courier New", 8))
             self._qp.drawText(x, y + h + 10, str(min(plt.Y)))
             self._qp.drawText(x + w - 15, y + h + 10, str(max(plt.Y)))
@@ -764,13 +766,13 @@ class Dashboard(Axles):
             return
 
         if self.__selected_point.x >= self._MIN_X:
-            self._qp.setPen(0)
+            self._qp.setPen(QColor(210, 210, 210) if self.dark else QColor(0))
             # вертикальная линия у текущей выбираемой точки
             self._qp.drawLine(QLineF(self.__selected_point.x, self._MIN_Y, self.__selected_point.x, self._MAX_Y))
 
             # сама точка
             self._qp.setPen(QColor(0, 0, 0, 0))
-            self._qp.setBrush(QColor(103, 103, 52, alpha=200))
+            self._qp.setBrush(QColor(255, 255, 255, alpha=100) if self.dark else QColor(103, 103, 52, alpha=200))
             self._qp.drawEllipse(QPointF(self.__selected_point.x, self.__selected_point.y), 5, 5)
 
         # возня с прямоугольником со значением
@@ -802,16 +804,16 @@ class Dashboard(Axles):
             rectX -= rectW + 20
         rectY1 = rectY - 30
         self._qp.drawRoundedRect(QRectF(rectX, rectY, rectW, rectH), 5, 5)
-        self._qp.setPen(QColor(255, 255, 255, alpha=255))
+        self._qp.setPen(QColor(0xFFFFFF))
         self._qp.drawText(QRectF(rectX, rectY, rectW, rectH), Qt.AlignmentFlag.AlignCenter, tmp_str)
-        self._qp.setBrush(QColor(29, 69, 154, alpha=255))
+        self._qp.setBrush(QColor(29, 69, 154))
         self._qp.setPen(QColor(0, 0, 0, alpha=0))
 
         if rectX1 <= self._MIN_X:
             rectX1 += rectW1 + 10
 
         self._qp.drawRoundedRect(QRectF(rectX1, rectY1, rectW1, rectH1), 5, 5)
-        self._qp.setPen(QColor(255, 255, 255, alpha=255))
+        self._qp.setPen(QColor(0xFFFFFF))
         self._qp.drawText(QRectF(rectX1, rectY1, rectW1, rectH1), Qt.AlignmentFlag.AlignCenter, tmp_str1)
 
         points = self.__plots[self._selectingPointGraph].selectedPoints
@@ -821,10 +823,10 @@ class Dashboard(Axles):
         # если первая точка уже выбрана, нарисуем линию на её месте
         if len(points) == 1:
             x = self._real_to_window_x(points[0].x)
-            self._qp.setPen(QColor(0, 0, 0, alpha=255))
+            self._qp.setPen(QColor(0xB4B4B4) if self.dark else QColor(0))
             self._qp.drawLine(QLineF(x, self._MIN_Y, x, self._MAX_Y))
-            self._qp.setPen(QColor(0, 0, 0, alpha=0))
-            self._qp.setBrush(QColor(103, 103, 52, alpha=40))
+            self._qp.setPen(QColor(0, 0, 0, 0))
+            self._qp.setBrush(QColor(255, 255, 255, 40) if self.dark else QColor(0, 0, 0, 20))
 
             # нарисуем закрашенную область под графиком
             i0 = min(points[0].i, self.__selected_point.i)

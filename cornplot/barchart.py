@@ -1,11 +1,13 @@
-from math import log10, floor, ceil
-from PyQt6.QtWidgets import QWidget
-from PyQt6.QtCore import QTimer, Qt, pyqtSlot as Slot, QLineF, QRectF
-from PyQt6.QtGui import QPainter, QPen, QColor, QFont, QFontMetrics
+from math import log10
+import os
+from PyQt6.QtWidgets import QWidget, QMenu, QFileDialog
+from PyQt6.QtCore import QTimer, Qt, pyqtSlot as Slot, QLineF, QRectF, QRect
+from PyQt6.QtGui import QPainter, QPen, QColor, QFont, QFontMetrics, QAction
 
 from .color_generator import ColorGenerator
 from .bar_data import BarData
 from .utils import *
+from .colors import *
 from .array_utils import *
 
 class BarChart(QWidget):
@@ -19,8 +21,10 @@ class BarChart(QWidget):
         self._MAX_X = w - 40
         self._MIN_Y = 20
         self._MAX_Y = h - 40
+        self.__legend_width = 0
 
         self.__draw_ticks = False
+        self.__draw_values = True
         self.__ystart = 0.0
         self.__ystop = 1.0
         self.__real_height = 1.0
@@ -36,6 +40,33 @@ class BarChart(QWidget):
         self.__dark = False
 
         self.setGeometry(x, y, w, h)
+
+        self.__menu = QMenu(self)
+
+        self.__savePicture = QAction("Сохранить картинку как...")
+        self.__savePicture.triggered.connect(self.__save_picture)
+
+        self.__displayLegend = QAction("Отображать легенду")
+        self.__displayLegend.setCheckable(True)
+        self.__displayLegend.setChecked(True)
+        self.__displayLegend.toggled.connect(self.display_legend)
+
+        self.__displayValues = QAction("Отображать значения")
+        self.__displayValues.setCheckable(True)
+        self.__displayValues.setChecked(True)
+        self.__displayValues.toggled.connect(self.display_values)
+
+        self.__displayGrid = QAction("Рисовать сетку")
+        self.__displayGrid.setCheckable(True)
+        self.__displayGrid.setChecked(False)
+        self.__displayGrid.toggled.connect(self.display_ticks)
+
+        
+        self.__menu.addAction(self.__savePicture)
+        self.__menu.addSeparator()
+        self.__menu.addAction(self.__displayLegend)
+        self.__menu.addAction(self.__displayValues)
+        self.__menu.addAction(self.__displayGrid)
 
         self.__qp = QPainter()
         self.__redraw_required = True
@@ -56,13 +87,44 @@ class BarChart(QWidget):
         self.__update_step_y()
         self.__recalculate_window_coords()
 
+    @Slot(bool)
+    def display_legend(self, display: bool):
+        if self.__legend != display:
+            self.__legend = display
+            self.update()
+
+    @Slot(bool)
+    def display_values(self, display: bool):
+        if self.__draw_values != display:
+            self.__draw_values = display
+            self.update()
+
+    @Slot(bool)
+    def display_ticks(self, display: bool):
+        if self.__draw_ticks != display:
+            self.__draw_ticks = display
+            self.update()
+
+    @Slot()
+    def __save_picture(self):
+        fileName, _ = QFileDialog.getSaveFileName(self, "Сохранить картинку", "",
+                                                            "PNG Files (*.png)")
+        if len(fileName) > 0:
+            self.repaint()
+            grab = self.grab(QRect(0, 0, self.width(), self.height()))
+            grab.save(fileName, 'png')
+            try:
+                os.startfile(fileName)
+            except:
+                pass
+
     @Slot()
     def __timeout_event(self):
         if self.__redraw_required:
             self.update()
             self.__redraw_required = False
 
-    def add_bar_chart(self, categories: list[str], values, value_names: list[str] | None = None, y_label="Y", value_colors=None, draw_legend=True, legend_loc='left'):
+    def add_bar_chart(self, categories: list[str], values: dict[str, list[float]], y_label="Y", value_colors=None, draw_legend=True, legend_loc='left'):
         self.__data.categories = categories
         self.__data.values = values
         if value_colors and len(value_colors) == len(categories):
@@ -70,16 +132,9 @@ class BarChart(QWidget):
         else:
             self.__data.colors = [self.__color_generator.get_color() for _ in range(len(categories))]
 
-        self.__data.value_names = value_names
-
-        if hasattr(values[0], "__iter__"):
-            max_y = max(max(y for y in val) for val in values)
-            min_y = min(min(y for y in val) for val in values)
-            self.__data.n_values = len(values[0])
-        else:
-            max_y = max(values)
-            min_y = min(values)
-            self.__data.n_values = 1
+        max_y = max(max(y for y in val) for val in values.values())
+        min_y = min(min(y for y in val) for val in values.values())
+        self.__data.n_values = len(values)
         
         height = max_y - min_y
         self.__ystop = max_y + height * 0.05
@@ -106,12 +161,32 @@ class BarChart(QWidget):
 
         self.__qp.end()
 
+    def contextMenuEvent(self, a0):
+        self.__menu.exec(a0.globalPos())
+
     def __draw_axes(self):
         self.__qp.setPen(QColor(0, 0, 0, 0))
-        self.__qp.setBrush(QColor(0xFFFFFF))
+        self.__qp.setBrush(background_color(self.__dark))
 
         self.__qp.drawRect(self._MIN_X, self._MIN_Y, self.__w, self.__h)
+        self.__draw_grid_x()
         self.__draw_grid_y()
+
+    def __draw_grid_x(self):
+        if self.__draw_ticks:
+            self.__qp.setPen(self.__pen_major)
+        else:
+            return
+
+        try:
+            step_x = self.__w / (len(self.__data.categories))
+        except ZeroDivisionError:
+            return
+        
+        x = self._MIN_X + step_x
+        while x < self._MAX_X - 5:
+            self.__qp.drawLine(QLineF(x, self._MIN_Y, x, self._MAX_Y))
+            x += step_x
 
     def __draw_grid_y(self):
         font = QFont(self.__font)
@@ -119,7 +194,7 @@ class BarChart(QWidget):
         self.__qp.setFont(font)
         self.__label_height = QFontMetrics(font).height()
 
-        txt_pen = QPen(0xD2D2D2) if self.__dark else QPen(0)
+        txt_pen = text_color(self.__dark)
         self.__qp.setPen(txt_pen)
 
         max_y_label_width = QFontMetrics(font).horizontalAdvance(self.__y_label) + 10
@@ -170,29 +245,30 @@ class BarChart(QWidget):
         val_font = QFont("Consolas, Courier New", 10)
         metrics = QFontMetrics(val_font)
         val_height = metrics.height()
-
+        txt_pen = text_color(self.__dark)
         for i, rects_val in enumerate(self.__data.rects):
             self.__qp.setPen(QColor(0, 0, 0, 0))
             self.__qp.setBrush(QColor(self.__data.colors[i]))
             self.__qp.drawRects(rects_val)
-            self.__qp.setPen(QColor(0))
+            self.__qp.setPen(txt_pen)
             for j, name in enumerate(self.__data.categories):
                 if i == 0:
                     self.__qp.setFont(self.__font)
                     self.__qp.drawText(QRectF(rects_val[j].x(), self._MAX_Y + 2, rects_val[j].width() * self.__data.n_values, 15),
                                     Qt.AlignmentFlag.AlignCenter, name)
                     
-                    # self.__qp.setPen(QPen(QColor(0), 0.25))
-                    # self.__qp.drawLine(QLineF(rects_val[j].x(), self._MIN_Y, rects_val[j].x(), self._MAX_Y))
+        if self.__draw_values:
+            for i, val_list in enumerate(self.__data.values.values()):
+                rects_val = self.__data.rects[i]
+                for j, val in enumerate(val_list):
+                    tmp_str = f"{val}"
+                    val_width = metrics.horizontalAdvance(tmp_str)
+                    rect_x = rects_val[j].x() + (rects_val[j].width() - val_width) / 2
+                    rect_y = (rects_val[j].y() - 17) if val >= 0 else (rects_val[j].y() + 2)
 
-                tmp_str = f"{self.__data.values[j][i]}"
-                val_width = metrics.horizontalAdvance(tmp_str)
-                rect_x = rects_val[j].x() + (rects_val[j].width() - val_width) / 2
-                rect_y = (rects_val[j].y() - 17) if self.__data.values[j][i] >= 0 else (rects_val[j].y() + 2)
-
-                self.__qp.setFont(val_font)
-                self.__qp.drawText(QRectF(rect_x, rect_y, val_width, val_height),
-                                Qt.AlignmentFlag.AlignCenter, tmp_str)
+                    self.__qp.setFont(val_font)
+                    self.__qp.drawText(QRectF(rect_x, rect_y, val_width, val_height),
+                                    Qt.AlignmentFlag.AlignCenter, tmp_str)
 
     def __draw_legend(self):
         if not self.__legend:
@@ -206,25 +282,41 @@ class BarChart(QWidget):
         self.__qp.setFont(self.__font)
         metrics = QFontMetrics(self.__font)
         h = metrics.height()
-        if self.__data.value_names:
-            for i, name in enumerate(self.__data.value_names):
-                text_width = metrics.horizontalAdvance(name)
-                self.__qp.setPen(QColor(0))
 
-                if self.__legend_loc == 'left':
-                    text_x0 = x0 + w + 5
-                else:
-                    text_x0 = x0 - text_width
-                self.__qp.drawText(QRectF(text_x0, y0, text_width, metrics.height()), Qt.AlignmentFlag.AlignCenter, name)
-            
-                self.__qp.setPen(QColor(0, 0, 0, 0))
-                self.__qp.setBrush(QColor(self.__data.colors[i]))
-                if self.__legend_loc == 'left':
-                    self.__qp.drawRect(x0, y0, w, h)
-                    x0 += w + 5 + text_width + 10
-                else:
-                    self.__qp.drawRect(x0 - text_width - w - 5, y0, w, h)
-                    x0 -= w + 5 + text_width + 10
+        self.__qp.setPen(QColor(0, 0, 0, 0))
+        self.__qp.setBrush(background_color(self.__dark))
+        if self.__legend_loc == 'left':
+            self.__qp.drawRect(self._MIN_X, self._MIN_Y, self.__legend_width, 25)
+        else:
+            self.__qp.drawRect(self._MAX_X, self._MIN_Y, -self.__legend_width, 25)
+
+        txt_pen = text_color(self.__dark)
+        legend_width = 0
+        for i, name in enumerate(self.__data.values.keys()):
+            text_width = metrics.horizontalAdvance(name)
+            self.__qp.setPen(txt_pen)
+
+            if self.__legend_loc == 'left':
+                text_x0 = x0 + w + 5
+            else:
+                text_x0 = x0 - text_width
+            self.__qp.drawText(QRectF(text_x0, y0, text_width, metrics.height()), Qt.AlignmentFlag.AlignCenter, name)
+
+            legend_width += text_width
+
+            self.__qp.setPen(QColor(0, 0, 0, 0))
+            self.__qp.setBrush(QColor(self.__data.colors[i]))
+            if self.__legend_loc == 'left':
+                self.__qp.drawRect(x0, y0, w, h)
+                x0 += w + 5 + text_width + 10
+            else:
+                self.__qp.drawRect(x0 - text_width - w - 5, y0, w, h)
+                x0 -= w + 5 + text_width + 10
+            legend_width += w + 15
+
+        if legend_width != self.__legend_width:
+            self.__legend_width = legend_width
+            self.update()
 
     def __recalculate_window_coords(self):
         try:
@@ -237,18 +329,12 @@ class BarChart(QWidget):
         
         y0 = self.__real_to_window_y(0)
         self.__data.rects = list()
-        if self.__data.n_values > 1:
-            for i_val in range(self.__data.n_values):
-                self.__data.rects.append(list())
-                for i_cat in range(len(self.__data.categories)):
-                    x0 = self._MIN_X + step_x * (i_cat + gap) + width * i_val
-                    y = self.__real_to_window_y(self.__data.values[i_cat][i_val])
-                    self.__data.rects[-1].append(QRectF(x0, y, width, y0 - y))
-        else:
+
+        for i_val, val_list in enumerate(self.__data.values.values()):
             self.__data.rects.append(list())
             for i_cat in range(len(self.__data.categories)):
-                x0 = self._MIN_X + step_x * (i_cat + gap)
-                y = self.__real_to_window_y(self.__data.values[i_cat])
+                x0 = self._MIN_X + step_x * (i_cat + gap) + width * i_val
+                y = self.__real_to_window_y(val_list[i_cat])
                 self.__data.rects[-1].append(QRectF(x0, y, width, y0 - y))
     
     def __get_rounded_tick(self, val, step, digit_count):
@@ -276,14 +362,14 @@ class BarChart(QWidget):
             self.__step_grid_y = 1.0
         n = 0
 
-        if self.__real_height / self.__step_grid_y >= 10:
+        if self.__real_height / self.__step_grid_y >= 5:
             n = 3
-            while self.__real_height / self.__step_grid_y >= 10:
+            while self.__real_height / self.__step_grid_y >= 5:
                 n += 1
                 self.__step_grid_y *= self.__get_factor(n)
 
         elif self.__real_height / self.__step_grid_y < 8:
-            while self.__real_height / self.__step_grid_y <= 10:
+            while self.__real_height / self.__step_grid_y <= 5:
                 n += 1
                 self.__step_grid_y /= self.__get_factor(n)
 
@@ -302,3 +388,15 @@ class BarChart(QWidget):
     def __real_to_window_y(self, y: float) -> float:
         """Перевод реальных координат оси у в оконные"""
         return c_real_to_window_y(y, self._MIN_Y, self.__h, self.__real_height, self.__ystop)
+    
+    def set_dark(self, dark: bool):
+        if self.__dark != dark:
+            if dark:
+                self.__menu.setStyleSheet("""
+                                            QMenu {
+                                            background-color: grey;
+                                        }
+                                            """)
+            else:
+                self.__menu.setStyleSheet("")
+            self.__dark = dark
