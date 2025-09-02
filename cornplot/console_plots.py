@@ -1,11 +1,11 @@
-from typing import Iterable, cast
+from typing import Iterable
 
 import numpy as np
 from .console_plotter import _plotter
 from .plot_updater import PlotUpdater
 
 
-__all__ = ['set_style', 'set_dark', 'plot', 'scatter', 'polar_plot', 'polar_scatter', 
+__all__ = ['set_style', 'set_dark', 'plot', 'auxiliary_line', 'scatter', 'polar_plot', 'polar_scatter', 
            'animated_plot', 'add_point_to_animated_plot', 'add_plot_updater',
            'histogram', 'density_histogram', 'bar_chart', 'pie_chart', 'subplot', 'window', 'show', 'clear']
 
@@ -25,6 +25,10 @@ def plot(x_arr: Iterable[float], y_arr: Iterable[float] | None = None, x_label: 
         x_arr = np.arange(len(x_arr))
     _plotter.plot(x_arr, y_arr, x_label=x_label, y_label=y_label, plot_label=plot_label, linewidth=linewidth,
                 color=color, link_plots=synchronise_plots, axes=axes)
+    
+
+def auxiliary_line(equation: str):
+    _plotter.auxiliary_line(equation)
         
 
 def scatter(x_arr, y_arr=None, x_name="X", y_name="Y", name='', markerwidth=5, color="any", synchronise_plots=True, axes=True):

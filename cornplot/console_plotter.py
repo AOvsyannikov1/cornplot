@@ -95,6 +95,10 @@ class PlotWindow(QWidget):
         self.dashboards[index].set_plot_markerwidth(plt_name, markerwidth)
         self.dashboards[index].plot_draw_line(plt_name, not scatter)
 
+    def add_auxiliary_line(self, row, col, equation):
+        index = self.dashboard_locations.index((row, col))
+        self.dashboards[index].add_auxiliary_line(equation)
+
     def add_polar_plot(self, row, col, amplitudes, angles, color="any", linewidth=2, linestyle="solid", scatter=False):
         index = self.dashboard_locations.index((row, col))
         self.dashboards[index].add_plot(amplitudes, angles, color=color, linewidth=linewidth, linestyle=linestyle, scatter=scatter)
@@ -235,6 +239,12 @@ class CornPlotter:
         win.dashboards[-1].enable_x_label(draw_x)
         win.add_plot(self.__current_row, self.__current_col, x_arr, y_arr,
                                                              plot_label, linewidth, linestyle, color, scatter, markerwidth)
+        
+    def auxiliary_line(self, equation: str):
+        self.__create_qapp()
+        win = self.__add_window()
+        win.add_dashboard(self.__current_row, self.__current_col, self.__nrows, self.__ncols)
+        win.add_auxiliary_line(self.__current_row, self.__current_col, equation)
         
     def animated_plot(self, name: str, x_size=30, x_name="X", y_name="Y", linewidth=2, linestyle='solid', color='any', link_plots=True, axes=False):
         self.__create_qapp()

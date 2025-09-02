@@ -164,6 +164,18 @@ def show_demo_plots_4():
     plt.show()
 
 
+def show_demo_plots_5():
+    X = np.arange(-2, -0.5, 0.001)
+    X1 = np.arange(0.5, 2, 0.001)
+
+    plt.plot(X, 1 / X + 10, plot_label="", axes=True)
+    plt.plot(X1, 1 / X1 + 10, plot_label="", axes=True)
+    plt.auxiliary_line("10")
+    plt.auxiliary_line("-1*x+8")
+    plt.auxiliary_line("-x+12")
+    plt.show()
+
+
 def show_demo_histogram():
     X = np.random.beta(a=2, b=5, size=100000)
 

@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file './cornplot/forms/cornplot_gui.ui'
+# Form implementation generated from reading ui file 'cornplot/forms/cornplot_gui.ui'
 #
 # Created by: PyQt6 UI code generator 6.9.1
 #
@@ -1729,6 +1729,10 @@ class Ui_CornplotGui(object):
         self.action6 = QtGui.QAction(parent=CornplotGui)
         self.action6.setCheckable(True)
         self.action6.setObjectName("action6")
+        self.auxiliaryLinesAction = QtGui.QAction(parent=CornplotGui)
+        self.auxiliaryLinesAction.setCheckable(True)
+        self.auxiliaryLinesAction.setChecked(True)
+        self.auxiliaryLinesAction.setObjectName("auxiliaryLinesAction")
         self.menu.addAction(self.openGraphAction)
         self.menu.addAction(self.saveGraphAction)
         self.menu.addSeparator()
@@ -1753,6 +1757,7 @@ class Ui_CornplotGui(object):
         self.menu_4.addAction(self.drawOriginAction)
         self.menu_4.addAction(self.drawTicksAction)
         self.menu_4.addAction(self.drawLabelsAction)
+        self.menu_4.addAction(self.auxiliaryLinesAction)
         self.menu_4.addSeparator()
         self.menu_4.addAction(self.majorGridAction)
         self.menu_4.addAction(self.minorGridAction)
@@ -2037,7 +2042,7 @@ class Ui_CornplotGui(object):
         self.backgroundColorAction.setText(_translate("CornplotGui", "Цвет фона..."))
         self.drawOriginAction.setText(_translate("CornplotGui", "Рисовать оси"))
         self.drawTicksAction.setText(_translate("CornplotGui", "Подписи осей"))
-        self.drawLabelsAction.setText(_translate("CornplotGui", "Назвагия осей"))
+        self.drawLabelsAction.setText(_translate("CornplotGui", "Названия осей"))
         self.fontAction.setText(_translate("CornplotGui", "Шрифт..."))
         self.minorGridAction.setText(_translate("CornplotGui", "Побочная сетка"))
         self.gridSolidAction.setText(_translate("CornplotGui", "Сплошная"))
@@ -2052,6 +2057,7 @@ class Ui_CornplotGui(object):
         self.action4.setText(_translate("CornplotGui", "4"))
         self.action5.setText(_translate("CornplotGui", "5"))
         self.action6.setText(_translate("CornplotGui", "6"))
+        self.auxiliaryLinesAction.setText(_translate("CornplotGui", "Вспомогательные линии"))
 
 
 if __name__ == "__main__":

@@ -3555,6 +3555,7 @@
     <addaction name="drawOriginAction"/>
     <addaction name="drawTicksAction"/>
     <addaction name="drawLabelsAction"/>
+    <addaction name="auxiliaryLinesAction"/>
     <addaction name="separator"/>
     <addaction name="majorGridAction"/>
     <addaction name="minorGridAction"/>
@@ -3651,7 +3652,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Назвагия осей</string>
+    <string>Названия осей</string>
    </property>
   </action>
   <action name="fontAction">
@@ -3770,6 +3771,17 @@
    </property>
    <property name="text">
     <string>6</string>
+   </property>
+  </action>
+  <action name="auxiliaryLinesAction">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Вспомогательные линии</string>
    </property>
   </action>
  </widget>

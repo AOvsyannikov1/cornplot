@@ -242,6 +242,8 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.__digitsActionGroup.addAction(self.digitsAuto)
         self.__digitsActionGroup.triggered.connect(self.__change_digits_count)
 
+        self.auxiliaryLinesAction.toggled.connect(self.__dashboard.enable_auxiliary_lines)
+
         self.__fft_tmr = QTimer()
 
         self.__operation = MathOperation.ONE_POINT_DIFF

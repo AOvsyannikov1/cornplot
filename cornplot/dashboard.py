@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import QMessageBox, QWidget
 from PyQt6.QtGui import QPainter, QPen, QColor, QFont, QFontMetrics, QPolygonF, QLinearGradient
 
 from .axles import Axles
+from .auxiliary_line import AuxiliaryLine
 from .utils import *
 from .color_generator import ColorGenerator
 from .colors import *
@@ -43,6 +44,8 @@ class Dashboard(Axles):
         self.__msgBox: QMessageBox | None = None
 
         self.__points: dict[str, Point] = dict()
+        self.__auxiliary_lines: list[AuxiliaryLine] = list()
+        self.__draw_aux_lines = True
 
         self.__redraw_time = 0
 
@@ -385,8 +388,16 @@ class Dashboard(Axles):
                     return True
                 else:
                     break
-
         return False
+    
+    def add_auxiliary_line(self, equation: str) -> bool:
+        line = AuxiliaryLine()
+        if not line.set_equation(equation):
+            return False
+        line.set_x_limits(self._x_axis_min, self._x_axis_max)
+        line.recalculate()
+        self.__auxiliary_lines.append(line)
+        return True
     
     @Slot()
     def __process_checkbox_press(self):
@@ -483,6 +494,8 @@ class Dashboard(Axles):
         value_rects: list[list[ValueRectangle]] = [list() for _ in range(n_scanners)]
         
         self._qp.setClipRect(QRectF(self._MIN_X, self._MIN_Y - 1, self.width(), self.height() - self._OFFSET_Y_UP - self._OFFSET_Y_DOWN + 1))
+        self.__draw_auxiliary_lines()
+
         fill_between_plots: list[tuple[Plot, Plot]] = list()
         added_indexes = set()
         for i, plt in enumerate(self.__plots):
@@ -609,6 +622,12 @@ class Dashboard(Axles):
             self.__draw_histogram(plt)
         else:
             self.__draw_plot_lines_and_points(plt)
+
+    def __draw_auxiliary_lines(self):
+        if self.__draw_aux_lines:
+            self._qp.setPen(QPen(QColor(0xffffff if self.dark else 0), 1.5, Qt.PenStyle.DashLine))
+            for line in self.__auxiliary_lines:
+                self._qp.drawLine(line.line)
 
     def paintEvent(self, a0):
         self._qp.begin(self)
@@ -854,6 +873,14 @@ class Dashboard(Axles):
         super()._recalculate_window_coords()
         for plt in self.__plots:
             self.__recalculate_plot_coords(plt)
+
+        for line in self.__auxiliary_lines:
+            line.set_x_limits(self._x_axis_min, self._x_axis_max)
+            line.recalculate()
+            line.line = QLineF(
+                self._real_to_window_x(line.X[0]), self._real_to_window_y(line.Y[0]),
+                self._real_to_window_x(line.X[1]), self._real_to_window_y(line.Y[1]),
+            )
 
     def __recalculate_plot_coords(self, plt: Plot):
         if plt.animated and not self.is_paused():
@@ -1152,3 +1179,9 @@ class Dashboard(Axles):
     @property
     def redraw_time(self) -> float:
         return self.__redraw_time
+
+    @Slot(bool)
+    def enable_auxiliary_lines(self, enable: bool):
+        if self.__draw_aux_lines != enable:
+            self._force_redraw()
+        self.__draw_aux_lines = enable
