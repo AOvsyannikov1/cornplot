@@ -30,7 +30,7 @@ class Ui_CornplotGui(object):
         self.tabWidget.setTabShape(QtWidgets.QTabWidget.TabShape.Rounded)
         self.tabWidget.setObjectName("tabWidget")
         self.axlesTab = QtWidgets.QWidget()
-        self.axlesTab.setAutoFillBackground(True)
+        self.axlesTab.setAutoFillBackground(False)
         self.axlesTab.setObjectName("axlesTab")
         self.gridLayout_25 = QtWidgets.QGridLayout(self.axlesTab)
         self.gridLayout_25.setObjectName("gridLayout_25")
@@ -1773,7 +1773,7 @@ class Ui_CornplotGui(object):
         self.menubar.addAction(self.menu_2.menuAction())
 
         self.retranslateUi(CornplotGui)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(0)
         self.tabWidget_2.setCurrentIndex(4)
         self.yAuto.toggled['bool'].connect(self.yStep.setDisabled) # type: ignore
         self.yAuto.toggled['bool'].connect(self.yMin.setDisabled) # type: ignore
