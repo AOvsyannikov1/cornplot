@@ -143,6 +143,9 @@ class Axles(QWidget):
         self.grabGesture(Qt.GestureType.PinchGesture)
         self.grabGesture(Qt.GestureType.PanGesture)
         self.grabGesture(Qt.GestureType.TapAndHoldGesture)
+        self.grabGesture(Qt.GestureType.TapGesture)
+
+        self.__tapped = False
 
         self._update_step_x()
         self._update_step_y()
@@ -957,23 +960,25 @@ class Axles(QWidget):
 
     def __tap_gesture_event(self, gesture: QTapGesture):
         if gesture.state() == Qt.GestureState.GestureStarted:
-            pass
+            self.__tapped = True
         elif gesture.state() == Qt.GestureState.GestureUpdated:
             pass
         elif gesture.state() == Qt.GestureState.GestureCanceled:
-            pass
+            self.__tapped = False
         elif gesture.state() == Qt.GestureState.GestureFinished:
-            pass
+            self.__tapped = False
 
     def __tap_and_hold_gesture_event(self, gesture: QTapAndHoldGesture):
         if self.__animated and not self.__paused:
             return
         if gesture.state() == Qt.GestureState.GestureStarted:
-            self._zoom_out()
+            if self.__tapped:
+                self._zoom_out()
+                self.__tapped = False
         elif gesture.state() == Qt.GestureState.GestureUpdated:
             pass
         elif gesture.state() == Qt.GestureState.GestureFinished:
-            pass
+            self.__tapped = False
     
     def _get_width(self):
         return self.__w
