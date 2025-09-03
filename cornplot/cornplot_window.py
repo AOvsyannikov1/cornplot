@@ -293,10 +293,11 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.__dashboard.set_digits_count(count)
 
     def label_paint_event(self, a0):
+        if len(self.__plots) == 0:
+            return
+        plt = self.__plots[self.plotName.currentIndex()]
         qp = QPainter()
         qp.begin(self.pltImage)
-
-        plt = self.__plots[self.plotName.currentIndex()]
         qp.setPen(plt.pen)
         qp.drawLine(5, self.pltImage.height() // 2, self.pltImage.width() - 5, self.pltImage.height() // 2)
 
@@ -415,6 +416,8 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
     def update_plot_info(self, graph_list):
         old_len = len(self.__plots)
         new_len = len(graph_list)
+
+        self.tabWidget.setTabEnabled(1, new_len > 0)
 
         self.__plots = graph_list
         if self.xAuto.isChecked():
