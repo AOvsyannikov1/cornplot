@@ -723,9 +723,6 @@ class Axles(QWidget):
 
     def mouseReleaseEvent(self, a0):
         pos = a0.pos()
-
-        # if pos.y() < self._OFFSET_Y_UP and not self.__zoom_active:
-        #     return
         
         match a0.button():
             case Qt.MouseButton.LeftButton:

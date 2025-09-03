@@ -50,7 +50,7 @@ class VerticalLineList(list[VerticalLine]):
         return res
     
     def any_selected(self):
-        return any(l.is_selected() for l in self)
+        return any(l.is_selected() and l.is_visible() for l in self)
     
     def select_line(self):
         ...

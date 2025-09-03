@@ -522,7 +522,7 @@ class Dashboard(Axles):
                             value_rects[i].append(rect)
 
         self.__draw_points()
-        self._qp.setClipRect(QRectF(0, 0, self.width(), self.height()))
+        
         
         for rects in value_rects:
             for i_fixed in range(len(rects)):
@@ -539,6 +539,7 @@ class Dashboard(Axles):
         self._draw_scanner_lines(value_rects)
         self.__draw_point_on_graph()
         self._draw_x_slider()
+        self._qp.setClipRect(QRectF(0, 0, self.width(), self.height()))
         if not self.is_animated() or self.is_paused():
             self._redraw_required = False
         

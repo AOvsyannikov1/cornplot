@@ -483,7 +483,7 @@ class Ui_CornplotGui(object):
         self.gridLayout_25.addLayout(self.verticalLayout, 0, 0, 1, 1)
         self.tabWidget.addTab(self.axlesTab, "")
         self.plotTab = QtWidgets.QWidget()
-        self.plotTab.setAutoFillBackground(True)
+        self.plotTab.setAutoFillBackground(False)
         self.plotTab.setObjectName("plotTab")
         self.gridLayout_23 = QtWidgets.QGridLayout(self.plotTab)
         self.gridLayout_23.setObjectName("gridLayout_23")
