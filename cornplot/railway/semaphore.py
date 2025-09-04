@@ -1,6 +1,6 @@
 from enum import Enum
 from PyQt6.QtGui import QPen, QColor, QPainter, QFont
-from PyQt6.QtCore import QLineF, Qt
+from PyQt6.QtCore import QLineF, Qt, QPointF, QRectF
 from PyQt6.QtWidgets import QWidget
 
 
@@ -45,9 +45,9 @@ class Semaphore:
 
     def draw(self, qp:QPainter, x, y, up=True):
         if self.dark:
-            qp.setPen(QPen(QColor(255, 255, 255), 1))
+            qp.setPen(QPen(QColor(0xffffff), 1))
         else:
-            qp.setPen(QPen(QColor(0, 0, 0), 1))
+            qp.setPen(QPen(QColor(0), 1))
         h = self.h
         r = self.r
         if up:
@@ -62,31 +62,31 @@ class Semaphore:
             y0 = round(y - h - r)
 
             qp.setPen(QPen(QColor(self.__color.value[0]), r, cap=Qt.PenCapStyle.RoundCap))
-            qp.drawPoint(x + r // 2, y0 + r // 2)
+            qp.drawPoint(QPointF(x + r / 2, y0 + r / 2))
             if self.four_digit:
                 qp.setPen(QPen(QColor(self.__color.value[1]), r, cap=Qt.PenCapStyle.RoundCap))
-                qp.drawPoint(x + r // 2, y0 - r // 2)
+                qp.drawPoint(QPointF(x + r / 2, y0 - r / 2))
 
             if self.dark:
-                qp.setPen(QPen(QColor(255, 255, 255), 1))
+                qp.setPen(QPen(QColor(0xffffff), 1))
             else:
-                qp.setPen(QPen(QColor(0, 0, 0), 1))
+                qp.setPen(QPen(QColor(0), 1))
             qp.drawText(x + r // 2 - 20, y0 - 2*r - r // 2, 40, 2*r, Qt.AlignmentFlag.AlignHCenter, self.__name)
         else:
             y0 = round(y + h)
 
             if self.four_digit:
                 qp.setPen(QPen(QColor(self.__color.value[1]), r, cap=Qt.PenCapStyle.RoundCap))
-                qp.drawPoint(x + r // 2, y0 + r // 2)
+                qp.drawPoint(QPointF(x + r / 2, y0 + r / 2))
 
             qp.setPen(QPen(QColor(self.__color.value[0]), r, cap=Qt.PenCapStyle.RoundCap))
-            qp.drawPoint(x + r // 2, y0 + r + (r if self.four_digit else 0) // 2)
+            qp.drawPoint(QPointF(x + r / 2, y0 + r + (r if self.four_digit else 0) / 2))
 
             if self.dark:
-                qp.setPen(QPen(QColor(255, 255, 255), 1))
+                qp.setPen(QPen(QColor(0xffffff), 1))
             else:
-                qp.setPen(QPen(QColor(0, 0, 0), 1))
-            qp.drawText(x + r // 2 - 20, y0 + 2 * r + r // 2, 40, 2*r, Qt.AlignmentFlag.AlignHCenter, self.__name)
+                qp.setPen(QPen(QColor(0), 1))
+            qp.drawText(QRectF(x + r / 2 - 20, y0 + 2 * r + r / 2, 40, 2 * r), Qt.AlignmentFlag.AlignHCenter, self.__name)
 
 
 
