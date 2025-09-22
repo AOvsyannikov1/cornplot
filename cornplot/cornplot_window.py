@@ -260,7 +260,10 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
 
     @Slot(bool)
     def __change_theme(self, dark: bool):
-        QGuiApplication.styleHints().setColorScheme(Qt.ColorScheme.Dark if dark else Qt.ColorScheme.Light)
+        try:
+            QGuiApplication.styleHints().setColorScheme(Qt.ColorScheme.Dark if dark else Qt.ColorScheme.Light)
+        except:
+            pass
 
     @Slot(bool)
     def __x_autoscale_event(self, val: bool):

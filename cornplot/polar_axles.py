@@ -106,12 +106,15 @@ class PolarAxles(QWidget):
             self.__redraw_required = False
 
     def __check_color_theme(self):
-        if self.__dark and QGuiApplication.styleHints().colorScheme() != Qt.ColorScheme.Dark:
-            self.set_dark(False)
-            self.__redraw_required = True
-        elif not self.__dark and QGuiApplication.styleHints().colorScheme() != Qt.ColorScheme.Light:
-            self.set_dark(True)
-            self.__redraw_required = True
+        try:
+            if self.__dark and QGuiApplication.styleHints().colorScheme() != Qt.ColorScheme.Dark:
+                self.set_dark(False)
+                self.__redraw_required = True
+            elif not self.__dark and QGuiApplication.styleHints().colorScheme() != Qt.ColorScheme.Light:
+                self.set_dark(True)
+                self.__redraw_required = True
+        except:
+            pass
 
     def _force_redraw(self):
         self.__redraw_required = True

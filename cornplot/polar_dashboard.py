@@ -59,7 +59,10 @@ class DashboardPolar(PolarAxles):
 
     @Slot(bool)
     def __set_dark_theme(self, dark: bool):
-        QGuiApplication.styleHints().setColorScheme(Qt.ColorScheme.Dark if dark else Qt.ColorScheme.Light)
+        try:
+            QGuiApplication.styleHints().setColorScheme(Qt.ColorScheme.Dark if dark else Qt.ColorScheme.Light)
+        except:
+            pass
 
     @Slot()
     def __save_picture(self):

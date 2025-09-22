@@ -327,8 +327,11 @@ class CornPlotter:
         if self.app is None:
             self.app = QApplication(sys.argv)
             self.app.setStyle(self.__app_style)
-            if self.__dark:
-                QGuiApplication.styleHints().setColorScheme(Qt.ColorScheme.Dark)
+            try:
+                if self.__dark:
+                    QGuiApplication.styleHints().setColorScheme(Qt.ColorScheme.Dark)
+            except:
+                pass
 
     def __add_window(self):
         if len(self.__windows) == 0:

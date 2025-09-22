@@ -191,12 +191,15 @@ class Axles(QWidget):
             self.update()
 
     def __check_color_theme(self):
-        if self.__dark and QGuiApplication.styleHints().colorScheme() != Qt.ColorScheme.Dark:
-            self.set_dark(False)
-            self._redraw_required = True
-        elif not self.__dark and QGuiApplication.styleHints().colorScheme() != Qt.ColorScheme.Light:
-            self.set_dark(True)
-            self._redraw_required = True
+        try:
+            if self.__dark and QGuiApplication.styleHints().colorScheme() != Qt.ColorScheme.Dark:
+                self.set_dark(False)
+                self._redraw_required = True
+            elif not self.__dark and QGuiApplication.styleHints().colorScheme() != Qt.ColorScheme.Light:
+                self.set_dark(True)
+                self._redraw_required = True
+        except:
+            pass
 
     @property
     def visible(self):

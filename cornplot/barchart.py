@@ -95,8 +95,11 @@ class BarChart(QWidget):
 
     @Slot(bool)
     def __set_dark_theme(self, dark: bool):
-        QGuiApplication.styleHints().setColorScheme(Qt.ColorScheme.Dark if dark else Qt.ColorScheme.Light)
-        self.set_dark(dark)
+        try:
+            QGuiApplication.styleHints().setColorScheme(Qt.ColorScheme.Dark if dark else Qt.ColorScheme.Light)
+            self.set_dark(dark)
+        except:
+            pass
 
     @Slot(bool)
     def display_legend(self, display: bool):
