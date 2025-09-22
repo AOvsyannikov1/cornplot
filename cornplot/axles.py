@@ -116,8 +116,6 @@ class Axles(QWidget):
         self.__initial_x = 0
         self.__initial_y = 0
 
-        self.__mouse_on = False
-
         self.__initial_timestamp = 0
 
         self._qp = QPainter()
@@ -566,7 +564,6 @@ class Axles(QWidget):
 
     def leaveEvent(self, a0):
         self.clearFocus()
-        self.__mouse_on = False
         self.__ctrl_pressed = False
         self.__shift_pressed = False
         self.__left_button_pressed = False
@@ -576,7 +573,6 @@ class Axles(QWidget):
 
     def enterEvent(self, a0):
         self.setFocus()
-        self.__mouse_on = True
 
     def mouseMoveEvent(self, a0):
         pos = a0.pos()

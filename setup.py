@@ -17,7 +17,7 @@ def readme():
 
 setup(
     name="cornplot",
-    version="0.9.4",
+    version="0.9.5",
     packages=find_packages(include=['cornplot', 'cornplot.*']),
     long_description=readme(),
     ext_modules=[extension],
@@ -36,7 +36,7 @@ setup(
     },
     install_requires=[
         "scipy>=1.16.1",
-        "PyQt6>=6.9.0"
+        "PyQt6>=6.1.0"
     ],
     
     author="Ovsyannikov Andrey",
