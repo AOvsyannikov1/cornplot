@@ -48,7 +48,10 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
+      </property>
+      <property name="documentMode">
+       <bool>false</bool>
       </property>
       <widget class="QWidget" name="axlesTab">
        <property name="autoFillBackground">
@@ -1091,6 +1094,9 @@
                 <family>Bahnschrift</family>
                 <pointsize>11</pointsize>
                </font>
+              </property>
+              <property name="maxVisibleItems">
+               <number>5</number>
               </property>
              </widget>
             </item>
@@ -3513,6 +3519,7 @@
     </property>
     <addaction name="openGraphAction"/>
     <addaction name="saveGraphAction"/>
+    <addaction name="saveAllCsv"/>
     <addaction name="separator"/>
     <addaction name="exitAction"/>
    </widget>
@@ -3600,7 +3607,7 @@
   </action>
   <action name="exitAction">
    <property name="text">
-    <string>Выход</string>
+    <string>Закрыть</string>
    </property>
   </action>
   <action name="exportToCSV">
@@ -3791,6 +3798,14 @@
    </property>
    <property name="text">
     <string>Тёмная тема</string>
+   </property>
+  </action>
+  <action name="saveAllCsv">
+   <property name="text">
+    <string>Сохранить в CSV</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
    </property>
   </action>
  </widget>
@@ -4433,6 +4448,22 @@
     <hint type="destinationlabel">
      <x>570</x>
      <y>470</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>exitAction</sender>
+   <signal>triggered()</signal>
+   <receiver>CornplotGui</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>395</x>
+     <y>319</y>
     </hint>
    </hints>
   </connection>

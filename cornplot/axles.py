@@ -297,9 +297,9 @@ class Axles(QWidget):
             self._recalculate_window_coords()
             self._redraw_required = True
 
-    def _update_step_x(self) -> float:
+    def _update_step_x(self, force=False) -> float:
         """Вычисление шага по оси Х"""
-        if not self._x_axle.autoscale:
+        if not self._x_axle.autoscale and not force:
             return self.__step_grid_x
         try:
             new_step = 10 ** (round(log10(self._real_width)) - 1)
@@ -331,10 +331,10 @@ class Axles(QWidget):
         self.__step_grid_x = new_step        
         return new_step
 
-    def _update_step_y(self) -> float:
+    def _update_step_y(self, force=False) -> float:
         """Вычисление шага по оси У"""
 
-        if not self._y_axle.autoscale:
+        if not self._y_axle.autoscale and not force:
             return self._step_grid_y
 
         if self._ystart == self._ystop:
@@ -1530,21 +1530,13 @@ class Axles(QWidget):
         self._step_grid_y = step
         self._redraw_required = True
 
-    def set_x_borders(self, xmin: float, xmax: float):
-        if self._x_axle.autoscale or xmin >= xmax:
-            return
-        self._set_x_start(xmin)
-        self._set_x_stop(xmax)
-        self._recalculate_window_coords()
-        self.__group.update_x_borders(self._xstart, self._xstop)
-        self._redraw_required = True
-
     def set_x_start(self, x: float):
         if self._x_axle.autoscale or x >= self._xstop:
             return
         if self._xstart == x:
             return
         self._set_x_start(x)
+        self._update_step_x(force=True)
         self.__group.update_x_borders(self._xstart, self._xstop)
         self._recalculate_window_coords()
         self._redraw_required = True
@@ -1555,18 +1547,8 @@ class Axles(QWidget):
         if self._xstop == x:
             return
         self._set_x_stop(x)
+        self._update_step_x(force=True)
         self.__group.update_x_borders(self._xstart, self._xstop)
-        self._recalculate_window_coords()
-        self._redraw_required = True
-
-    def set_y_borders(self, ymin: float, ymax: float):
-        if self._y_axle.autoscale or ymin >= ymax:
-            return
-        if self._ystart == ymin and self._ystop == ymax:
-            return
-        self._set_y_start(ymin)
-        self._set_y_stop(ymax)
-        self._calculate_y_parameters()
         self._recalculate_window_coords()
         self._redraw_required = True
 
@@ -1576,7 +1558,7 @@ class Axles(QWidget):
         if self._ystart == y:
             return
         self._set_y_start(y)
-        self._update_step_y()
+        self._update_step_y(force=True)
         self._recalculate_window_coords()
         self._redraw_required = True
 
@@ -1586,7 +1568,7 @@ class Axles(QWidget):
         if self._ystop == y:
             return
         self._set_y_stop(y)
-        self._update_step_y()
+        self._update_step_y(force=True)
         self._recalculate_window_coords()
         self._redraw_required = True
 

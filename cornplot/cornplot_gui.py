@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'cornplot/forms/cornplot_gui.ui'
+# Form implementation generated from reading ui file './cornplot/forms/cornplot_gui.ui'
 #
 # Created by: PyQt6 UI code generator 6.9.1
 #
@@ -28,6 +28,7 @@ class Ui_CornplotGui(object):
         self.tabWidget = QtWidgets.QTabWidget(parent=self.centralwidget)
         self.tabWidget.setAutoFillBackground(False)
         self.tabWidget.setTabShape(QtWidgets.QTabWidget.TabShape.Rounded)
+        self.tabWidget.setDocumentMode(False)
         self.tabWidget.setObjectName("tabWidget")
         self.axlesTab = QtWidgets.QWidget()
         self.axlesTab.setAutoFillBackground(False)
@@ -517,6 +518,7 @@ class Ui_CornplotGui(object):
         font.setFamily("Bahnschrift")
         font.setPointSize(11)
         self.plotName.setFont(font)
+        self.plotName.setMaxVisibleItems(5)
         self.plotName.setObjectName("plotName")
         self.horizontalLayout_32.addWidget(self.plotName)
         self.verticalLayout_10.addLayout(self.horizontalLayout_32)
@@ -1736,8 +1738,11 @@ class Ui_CornplotGui(object):
         self.darkThemeAction = QtGui.QAction(parent=CornplotGui)
         self.darkThemeAction.setCheckable(True)
         self.darkThemeAction.setObjectName("darkThemeAction")
+        self.saveAllCsv = QtGui.QAction(parent=CornplotGui)
+        self.saveAllCsv.setObjectName("saveAllCsv")
         self.menu.addAction(self.openGraphAction)
         self.menu.addAction(self.saveGraphAction)
+        self.menu.addAction(self.saveAllCsv)
         self.menu.addSeparator()
         self.menu.addAction(self.exitAction)
         self.menu_2.addAction(self.aboutProgramAction)
@@ -1773,7 +1778,7 @@ class Ui_CornplotGui(object):
         self.menubar.addAction(self.menu_2.menuAction())
 
         self.retranslateUi(CornplotGui)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(1)
         self.tabWidget_2.setCurrentIndex(4)
         self.yAuto.toggled['bool'].connect(self.yStep.setDisabled) # type: ignore
         self.yAuto.toggled['bool'].connect(self.yMin.setDisabled) # type: ignore
@@ -1815,6 +1820,7 @@ class Ui_CornplotGui(object):
         self.minorTicksCheckY.toggled['bool'].connect(self.minorTicksStepY.setEnabled) # type: ignore
         self.minorTicksCheckX.toggled['bool'].connect(self.minorTicksStepX.setEnabled) # type: ignore
         self.kdeHmanual.toggled['bool'].connect(self.kdeHvalue.setEnabled) # type: ignore
+        self.exitAction.triggered.connect(CornplotGui.close) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(CornplotGui)
 
     def retranslateUi(self, CornplotGui):
@@ -2036,7 +2042,7 @@ class Ui_CornplotGui(object):
         self.openGraphAction.setText(_translate("CornplotGui", "Открыть"))
         self.openGraphAction.setShortcut(_translate("CornplotGui", "Ctrl+O"))
         self.aboutProgramAction.setText(_translate("CornplotGui", "О программе"))
-        self.exitAction.setText(_translate("CornplotGui", "Выход"))
+        self.exitAction.setText(_translate("CornplotGui", "Закрыть"))
         self.exportToCSV.setText(_translate("CornplotGui", "Экспорт в CSV"))
         self.exportToCSV.setShortcut(_translate("CornplotGui", "Shift+S"))
         self.importFromCSV.setText(_translate("CornplotGui", "Импорт из CSV"))
@@ -2063,6 +2069,8 @@ class Ui_CornplotGui(object):
         self.action6.setText(_translate("CornplotGui", "6"))
         self.auxiliaryLinesAction.setText(_translate("CornplotGui", "Вспомогательные линии"))
         self.darkThemeAction.setText(_translate("CornplotGui", "Тёмная тема"))
+        self.saveAllCsv.setText(_translate("CornplotGui", "Сохранить в CSV"))
+        self.saveAllCsv.setShortcut(_translate("CornplotGui", "Ctrl+Shift+S"))
 
 
 if __name__ == "__main__":

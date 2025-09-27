@@ -133,7 +133,6 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.saveGraphAction.triggered.connect(self.__save_plots_to_file)
         self.openGraphAction.triggered.connect(self.__load_plots_from_file)
         self.newGraphEquationAction.triggered.connect(self.eqWin.show)
-        self.exitAction.triggered.connect(self.close)
         self.plotName.currentTextChanged.connect(self.display_plot_info)
 
         self.xName.textChanged.connect(self.__dashboard.set_x_name)
@@ -220,6 +219,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
 
         self.exportToCSV.triggered.connect(self.__export_plot_to_csv)
         self.importFromCSV.triggered.connect(self.__import_plot_from_csv)
+        self.saveAllCsv.triggered.connect(self.__save_all_to_csv)
 
         self.periodicalFft.clicked.connect(self.__start_periodical_fft)
 
@@ -262,6 +262,8 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
     def __change_theme(self, dark: bool):
         try:
             QGuiApplication.styleHints().setColorScheme(Qt.ColorScheme.Dark if dark else Qt.ColorScheme.Light)
+            self.hide()
+            self.show()
         except:
             pass
 
@@ -450,6 +452,8 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.plotName.clear()
         for plt in self.__plots:
             self.plotName.addItem(plt.name)
+        self.plotName.setMaxVisibleItems(5)
+        self.plotName.setMaximumHeight(100)
 
         if new_len >= old_len and 0 <= last_index < self.plotName.count():
             self.plotName.setCurrentIndex(last_index)
@@ -1203,6 +1207,23 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
             return QColor(0, 0, 0)
         else:
             return QColor(255, 255, 255)
+        
+    @Slot()
+    def __save_all_to_csv(self):
+        fileName, _ = QFileDialog.getSaveFileName(self, "Экспорт всех графиков", filter="CSV Files (*.csv)")
+        X = max((plt.X for plt in self.__plots), key=lambda x: len(x))
+
+        with open(fileName, 'w', newline='') as f:
+            writer = csv.writer(f)
+            for i in range(len(X)):
+                row = (X[i], )
+                for plt in self.__plots:
+                    try:
+                        row += plt.Y[i],
+                    except IndexError:
+                        row += 0,
+                writer.writerow(row)
+        self.__message("Экспорт графиков завершён.")
     
     @Slot()
     def __export_plot_to_csv(self):

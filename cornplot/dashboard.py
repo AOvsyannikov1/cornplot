@@ -466,7 +466,6 @@ class Dashboard(Axles):
 
         if self.__window:
             self.__window.update_plot_info(self.__plots)
-            self.__window.display_plot_info()
 
         w = self._MIN_X
         for plt in self.__plots:
