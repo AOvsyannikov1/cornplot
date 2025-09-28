@@ -1211,19 +1211,46 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
     @Slot()
     def __save_all_to_csv(self):
         fileName, _ = QFileDialog.getSaveFileName(self, "Экспорт всех графиков", filter="CSV Files (*.csv)")
-        X = max((plt.X for plt in self.__plots), key=lambda x: len(x))
+        
+        if len(fileName):
+            all_x_equals = True
+            for i, plt in enumerate(self.__plots[1:], start=1):
+                x_equals = all(x1 == x2 for x1, x2 in zip(plt.X, self.__plots[i - 1].X))
+                if not x_equals:
+                    all_x_equals = False
+                    break
+            
+            with open(fileName, 'w', newline='') as f:
+                writer = csv.writer(f)
+                if all_x_equals:
 
-        with open(fileName, 'w', newline='') as f:
-            writer = csv.writer(f)
-            for i in range(len(X)):
-                row = (X[i], )
-                for plt in self.__plots:
-                    try:
-                        row += plt.Y[i],
-                    except IndexError:
-                        row += 0,
-                writer.writerow(row)
-        self.__message("Экспорт графиков завершён.")
+                    X = self.__plots[0].X
+                    for i in range(len(X)):
+                        row = (X[i], )
+                        for plt in self.__plots:
+                            try:
+                                row += plt.Y[i],
+                            except IndexError:
+                                row += 0,
+                        writer.writerow(row)
+                else:
+                    header = tuple()
+                    sorted_plots = sorted(self.__plots, key=lambda plt: len(plt.X), reverse=True)
+                    for plt in sorted_plots:
+                        name_with_underlines = plt.name.replace(' ', '_')
+                        header += f"{name_with_underlines}_X", f"{name_with_underlines}_Y"
+                    writer.writerow(header)
+                    
+                    for i in range(len(sorted_plots[0].X)):
+                        row = tuple()
+                        for plt in sorted_plots:
+                            try:
+                                row += plt.X[i], plt.Y[i]
+                            except IndexError:
+                                continue
+                        writer.writerow(row)
+
+            self.__message("Экспорт графиков завершён.")
     
     @Slot()
     def __export_plot_to_csv(self):
@@ -1235,6 +1262,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
                 writer.writerow([self.__dashboard.x_name, self.__dashboard.y_name])
                 for x, y in zip(plt.X, plt.Y):
                     writer.writerow([x, y])
+            self.__message("Экспорт графика завершён.")
 
     @Slot()
     def __import_plot_from_csv(self):
