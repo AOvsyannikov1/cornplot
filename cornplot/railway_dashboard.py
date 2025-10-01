@@ -286,16 +286,19 @@ try:
             if self.__track_data is None or not self.__draw_track_data:
                 return
 
-            for semphr in self.__track_data.semaphores:
+            prev_x = 0
+            for i, semphr in enumerate(self.__track_data.semaphores):
+                
                 if self._xstart < semphr.x < self._xstop:
-                    semphr.draw(self._qp, semphr.x_win, semphr.y_win, up=(semphr.y_win - 2*semphr.r - semphr.h) > self._MIN_Y)
-
-
+                    if i == 0 or semphr.x_win - prev_x > semphr.r:
+                        semphr.draw(self._qp, semphr.x_win, semphr.y_win, up=(semphr.y_win - 2*semphr.r - semphr.h) > self._MIN_Y)
+                        prev_x = semphr.x_win
+                    
             for station in self.__track_data.stations:
                 if not (self._xstart - station.l < station.x < self._xstop):
                     continue
 
-                station.draw(self._qp, up_txt=(station.polygon[0].y() - 40 - station.h) > self._MIN_Y)
+                station.draw(self._qp, up_txt=False)
 
         def _redraw(self):
             if not self.visible:
