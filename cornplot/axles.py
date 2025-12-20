@@ -318,11 +318,12 @@ class Axles(QWidget):
                 n += 1
                 new_step /= self.__get_factor(n)
         tick_width_px = new_step / self._real_width * self.__w
+
         while (tick_width_px := new_step / self._real_width * self.__w) < self._x_axle.met_size + 15:
             new_step *= self.__get_factor(n)
             n += 1
 
-        if 150 < tick_width_px:
+        if not self.__convert_to_hhmmss and 150 < tick_width_px:
             new_step /= self.__get_factor(n)
 
         if new_step == 0:
@@ -1073,7 +1074,7 @@ class Axles(QWidget):
             x_metki_coords = [10 ** i for i in range(initial_x_power, end_x_power + 1)]
         else:
             x_metki_coords = np.round(arange(x0, xk + self.__step_grid_x, self.__step_grid_x), 15)
-        new_x_met_width = self._x_axle.met_size
+        old_x_met_width = self._x_axle.met_size
         self._x_axle.met_size = 0
 
         divised_step = self.__step_grid_x / self._x_axle.divisor
@@ -1128,7 +1129,7 @@ class Axles(QWidget):
                 if self._MIN_X < x_m < self._MAX_X and x_w != x_m:
                     self._qp.drawLine(QLineF(x_m, self._MAX_Y, x_m, self._MIN_Y))
         
-        if new_x_met_width != self._x_axle.met_size:
+        if old_x_met_width != self._x_axle.met_size:
             old_step = self.__step_grid_x
             new_step = self._update_step_x()
             old_width_px = new_step / self._real_width * self.__w
