@@ -1163,7 +1163,7 @@ class Dashboard(Axles):
             self.__points[name].setX(x)
             self.__points[name].setY(y)
             self.__points[name].text = text
-            self._force_redraw()
+            self.update()
 
     def __draw_points(self):
         font = QFont("Consolas, Courier New", 12)
