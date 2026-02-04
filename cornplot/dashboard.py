@@ -522,7 +522,6 @@ class Dashboard(Axles):
 
         self.__draw_points()
         
-        
         for rects in value_rects:
             for i_fixed in range(len(rects)):
                 for i_mobile in range(i_fixed + 1, len(rects)):

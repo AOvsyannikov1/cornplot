@@ -7,7 +7,7 @@ from .plot_updater import PlotUpdater
 
 __all__ = ['set_style', 'set_dark', 'plot', 'auxiliary_line', 'scatter', 'polar_plot', 'polar_scatter', 
            'animated_plot', 'add_point_to_animated_plot', 'add_plot_updater',
-           'histogram', 'density_histogram', 'bar_chart', 'pie_chart', 'subplot', 'window', 'show', 'clear']
+           'histogram', 'density_histogram', 'bar_chart', 'pie_chart', 'subplot', 'figure', 'show', 'clear']
 
 
 def set_style(style: str):
@@ -81,7 +81,7 @@ def subplot(rows, cols, number):
     _plotter.subplot(rows, cols, number)
 
 
-def window(num, name="", x=100, y=100):
+def figure(num, name="", x=100, y=100):
     _plotter.window(num, name, x, y)
 
 
