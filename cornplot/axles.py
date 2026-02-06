@@ -302,8 +302,9 @@ class Axles(QWidget):
         if not self._x_axle.autoscale and not force:
             return self.__step_grid_x
         try:
-            new_step = 10 ** (round(log10(self._real_width)) - 1)
-        except ValueError:
+            log_val = log10(abs(self._real_width)) if self._real_width != 0 else 0
+            new_step = 10 ** (round(log_val) - 1)
+        except (ValueError, ZeroDivisionError):
             new_step = 1.0
 
         ticks_count = self._real_width / new_step
@@ -320,11 +321,16 @@ class Axles(QWidget):
         tick_width_px = new_step / self._real_width * self.__w
 
         while (tick_width_px := new_step / self._real_width * self.__w) < self._x_axle.met_size + 15:
+            if self._real_width / new_step < 5:
+                break
             new_step *= self.__get_factor(n)
             n += 1
 
         if not self.__convert_to_hhmmss and 150 < tick_width_px:
-            new_step /= self.__get_factor(n)
+            if self._real_width / new_step > 20:  # Не больше 20 делений
+                pass
+            else:
+                new_step /= self.__get_factor(n)
 
         if new_step == 0:
             new_step = self._real_width / 1
@@ -1128,17 +1134,37 @@ class Axles(QWidget):
             for x_m in x_minor:
                 if self._MIN_X < x_m < self._MAX_X and x_w != x_m:
                     self._qp.drawLine(QLineF(x_m, self._MAX_Y, x_m, self._MIN_Y))
-        
-        if old_x_met_width != self._x_axle.met_size:
-            old_step = self.__step_grid_x
-            new_step = self._update_step_x()
-            old_width_px = new_step / self._real_width * self.__w
-            if old_step > new_step:
-                if old_width_px <= self._x_axle.met_size:
+
+            if abs(old_x_met_width - self._x_axle.met_size) > 5:  # Порог 5 пикселей
+                old_step = self.__step_grid_x
+                new_step = self._update_step_x()
+                old_width_px = old_step / self._real_width * self.__w
+                new_width_px = new_step / self._real_width * self.__w
+                required_width = self._x_axle.met_size + 15
+                
+                # Гистерезис: изменение меньше 10% от текущей ширины деления
+                if abs(old_x_met_width - self._x_axle.met_size) < 0.1 * old_width_px:
+                    self.__step_grid_x = old_step
+                # Принимаем новый шаг если:
+                # 1. Улучшает ситуацию при недостаточной ширине ИЛИ
+                # 2. Делает ширину достаточной
+                elif (new_width_px > old_width_px and old_width_px < required_width) \
+                    or new_width_px >= required_width:
                     self._redraw_required = True
                     self.__step_grid_x = new_step
                 else:
                     self.__step_grid_x = old_step
+        
+        # if old_x_met_width != self._x_axle.met_size:
+        #     old_step = self.__step_grid_x
+        #     new_step = self._update_step_x()
+        #     old_width_px = new_step / self._real_width * self.__w
+        #     if old_step > new_step:
+        #         if old_width_px <= self._x_axle.met_size:
+        #             self._redraw_required = True
+        #             self.__step_grid_x = new_step
+        #         else:
+        #             self.__step_grid_x = old_step
 
     def __draw_grid_y(self):
         font = QFont(self.__font)
