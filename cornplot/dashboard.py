@@ -34,7 +34,6 @@ class Dashboard(Axles):
         self.__plots: list[Plot] = list()
 
         self.__color_generator = ColorGenerator()
-        self.__zero_y_fixed = False
         self.__window: CornplotWindow | None = None
 
         self._pointsToSelect = 0
@@ -761,7 +760,7 @@ class Dashboard(Axles):
             max_y += abs(max_y * 0.1)
             min_y -= abs(min_y * 0.1)
 
-        if self.__zero_y_fixed:
+        if self._zero_y_fixed:
             if min_y > 0:
                 min_y = 0
             if max_y < 0:
@@ -773,15 +772,18 @@ class Dashboard(Axles):
                 self._set_y_start(self._y_axis_min)
                 self._set_y_stop(self._y_axis_max)
             else:
-                ystart = min_y if self.__zero_y_fixed and min_y == 0 else min_y - self._Y_STOP_COEFF
+                ystart = min_y if self._zero_y_fixed and min_y == 0 else min_y - self._Y_STOP_COEFF
                 if all_hist:
                     ystart = 0
-                ystop = max_y if self.__zero_y_fixed and max_y == 0 else max_y + self._Y_STOP_COEFF
+                ystop = max_y if self._zero_y_fixed and max_y == 0 else max_y + self._Y_STOP_COEFF
                 self._set_y_start(ystart)
                 self._set_y_stop(ystop)
         
         if self._y_axis_max == self._y_axis_min:
-            self._y_axis_max += 10
+            self._y_axis_min = -1
+            self._y_axis_max = 1
+            self._set_y_start(self._y_axis_min)
+            self._set_y_stop(self._y_axis_max)
 
     def __draw_point_on_graph(self):
         if self._selectingPointGraph < 0:

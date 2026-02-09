@@ -85,7 +85,7 @@ class Axles(QWidget):
         self._redraw_required = True               # в графике что-то поменялось, нужно перерисовать
         self._point_added = False
         self.__paused = False
-        self.__zero_y_fixed = False              # ноль по Х всегда виден
+        self._zero_y_fixed = False              # ноль по Х всегда виден
         self.__zoom_active = False
         self.__ctrl_pressed = False
         self.__shift_pressed = False
@@ -134,7 +134,7 @@ class Axles(QWidget):
         self.__btn_group.more_button.clicked.connect(self._show_extended_window)
         self.__btn_group.pause_button.clicked.connect(lambda: self.pause(not self.__paused))
         self.__btn_group.restart_button.clicked.connect(lambda: self.restart_animation(signal=True))
-        self.__btn_group.fix_button.clicked.connect(lambda: self.fix_y_zero(not self.__zero_y_fixed))
+        self.__btn_group.fix_button.clicked.connect(lambda: self.fix_y_zero(not self._zero_y_fixed))
 
         self._value_rect_max_y = self._MAX_Y
 
@@ -290,8 +290,8 @@ class Axles(QWidget):
             self.update()
 
     def fix_y_zero(self, fix: bool) -> None:
-        if fix != self.__zero_y_fixed:
-            self.__zero_y_fixed = fix
+        if fix != self._zero_y_fixed:
+            self._zero_y_fixed = fix
             self._calculate_y_parameters()
             self._update_step_y()
             self._recalculate_window_coords()
@@ -638,9 +638,9 @@ class Axles(QWidget):
 
                 tmpY = self.__initial_y - self._window_to_real_y(pos.y())
                 self._ystart += tmpY
-                min_possible_y = (0 if self.__zero_y_fixed and self._y_axis_min >= 0
+                min_possible_y = (0 if self._zero_y_fixed and self._y_axis_min >= 0
                                     else self._y_axis_min - self._Y_STOP_COEFF)
-                max_possible_y = self._y_axis_max + (0 if (self.__zero_y_fixed and self._y_axis_max <= 0)
+                max_possible_y = self._y_axis_max + (0 if (self._zero_y_fixed and self._y_axis_max <= 0)
                                                         else self._Y_STOP_COEFF)
                 if self._ystart < min_possible_y:
                     self._ystart = min_possible_y
