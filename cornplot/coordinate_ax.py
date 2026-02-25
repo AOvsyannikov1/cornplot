@@ -25,6 +25,7 @@ class CoordinateAx:
         self.divisor = 1
 
         self.label_size = 100
-        self.met_size = 50
+        self.met_width = 50
+        self.met_height = 12
 
         self.name = ""

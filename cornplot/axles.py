@@ -97,16 +97,18 @@ class Axles(QWidget):
         self._x_axle = CoordinateAx()
         self._y_axle = CoordinateAx()
 
-        self._x_axle.met_size = 50
+        self._x_axle.met_width = 50
         self._x_axle.label_size = 100
         self._x_axle.name = "X"
 
-        self._y_axle.met_size = self._OFFSET_X
+        self._y_axle.met_width = self._OFFSET_X
         self._y_axle.label_size = 20
         self._y_axle.name = "Y"        
        
         self.__background_color = QColor(255, 255, 255)
         self.__font = QFont("Bahnschrift, Arial", 11)
+
+        self._y_axle.met_height = QFontMetrics(self.__font).height()
 
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
@@ -320,7 +322,7 @@ class Axles(QWidget):
                 new_step /= self.__get_factor(n)
         tick_width_px = new_step / self._real_width * self.__w
 
-        while (tick_width_px := new_step / self._real_width * self.__w) < self._x_axle.met_size + 15:
+        while (tick_width_px := new_step / self._real_width * self.__w) < self._x_axle.met_width + 15:
             if self._real_width / new_step < 5:
                 break
             new_step *= self.__get_factor(n)
@@ -366,13 +368,17 @@ class Axles(QWidget):
                 n += 1
                 self._step_grid_y /= self.__get_factor(n)
 
-        while self._step_grid_y / self._real_height * self.__h < 25:  # высота не менее 30 пикселей
+        while self._step_grid_y / self._real_height * self.__h < 30:  # высота не менее 30 пикселей
             n += 1
             self._step_grid_y *= self.__get_factor(n)
 
         if self._step_grid_y / self._real_height * self.__h > 100:
             self._step_grid_y /= self.__get_factor(n)
+            n += 1
 
+        if self._step_grid_y / self._real_height * self.__h < self._y_axle.met_height + 5:
+            self._step_grid_y *= self.__get_factor(n)
+        
         return self._step_grid_y
 
     def __get_factor(self, n):
@@ -433,7 +439,11 @@ class Axles(QWidget):
             self._set_x_stop(min(self._x_axis_max, round(x_center + self.__MAXIMUM_X_WIDTH / 2)))
         self._update_step_x()
         self._y_scaled = False
-        self._set_y_start(self._y_axis_min)
+
+        if self._zero_y_fixed:
+            self._set_y_start(self._y_axis_min if self._y_axis_min < 0 else 0)
+        else:
+            self._set_y_start(self._y_axis_min)
         self._set_y_stop(self._y_axis_max)
         self._update_step_y()
         self.__delete_scale_lines()
@@ -1080,8 +1090,8 @@ class Axles(QWidget):
             x_metki_coords = [10 ** i for i in range(initial_x_power, end_x_power + 1)]
         else:
             x_metki_coords = np.round(arange(x0, xk + self.__step_grid_x, self.__step_grid_x), 15)
-        old_x_met_width = self._x_axle.met_size
-        self._x_axle.met_size = 0
+        old_x_met_width = self._x_axle.met_width
+        self._x_axle.met_width = 0
 
         divised_step = self.__step_grid_x / self._x_axle.divisor
         digit_count = max(get_digit_count_after_dot(x / self._x_axle.divisor) for x in x_metki_coords)
@@ -1111,8 +1121,8 @@ class Axles(QWidget):
                             tmp_str = self.__get_rounded_tick(x, divised_step, digit_count if self._digits_count < 0 else self._digits_count)
 
                     tmp_str_width = QFontMetrics(font).horizontalAdvance(tmp_str)
-                    if tmp_str_width > self._x_axle.met_size:
-                        self._x_axle.met_size = tmp_str_width
+                    if tmp_str_width > self._x_axle.met_width:
+                        self._x_axle.met_width = tmp_str_width
 
                     if self._MIN_X + 30 < x_w < self._MAX_X - self._x_axle.label_size - tmp_str_width:
                         self._qp.drawText(QRectF(x_w - (tmp_str_width >> 1), self._MAX_Y + 1, tmp_str_width, 20),
@@ -1135,15 +1145,15 @@ class Axles(QWidget):
                 if self._MIN_X < x_m < self._MAX_X and x_w != x_m:
                     self._qp.drawLine(QLineF(x_m, self._MAX_Y, x_m, self._MIN_Y))
 
-            if abs(old_x_met_width - self._x_axle.met_size) > 5:  # Порог 5 пикселей
+            if abs(old_x_met_width - self._x_axle.met_width) > 5:  # Порог 5 пикселей
                 old_step = self.__step_grid_x
                 new_step = self._update_step_x()
                 old_width_px = old_step / self._real_width * self.__w
                 new_width_px = new_step / self._real_width * self.__w
-                required_width = self._x_axle.met_size + 15
+                required_width = self._x_axle.met_width + 15
                 
                 # Гистерезис: изменение меньше 10% от текущей ширины деления
-                if abs(old_x_met_width - self._x_axle.met_size) < 0.1 * old_width_px:
+                if abs(old_x_met_width - self._x_axle.met_width) < 0.1 * old_width_px:
                     self.__step_grid_x = old_step
                 # Принимаем новый шаг если:
                 # 1. Улучшает ситуацию при недостаточной ширине ИЛИ
@@ -1155,12 +1165,12 @@ class Axles(QWidget):
                 else:
                     self.__step_grid_x = old_step
         
-        # if old_x_met_width != self._x_axle.met_size:
+        # if old_x_met_width != self._x_axle.met_width:
         #     old_step = self.__step_grid_x
         #     new_step = self._update_step_x()
         #     old_width_px = new_step / self._real_width * self.__w
         #     if old_step > new_step:
-        #         if old_width_px <= self._x_axle.met_size:
+        #         if old_width_px <= self._x_axle.met_width:
         #             self._redraw_required = True
         #             self.__step_grid_x = new_step
         #         else:
@@ -1184,6 +1194,7 @@ class Axles(QWidget):
         
         font.setBold(False)
         self._qp.setFont(font)
+        self._y_axle.met_height = QFontMetrics(font).height()
 
         y0 = round_custom(self._ystart, self._step_grid_y)
 
@@ -1256,8 +1267,8 @@ class Axles(QWidget):
                 if self._MIN_Y <= y_m <= self._MAX_Y and y_w != y_m:
                     self._qp.drawLine(QLineF(self._MIN_X, y_m, self._MAX_X, y_m))
 
-        if self._y_axle.met_size != max_y_label_width:
-            self._y_axle.met_size = max_y_label_width
+        if self._y_axle.met_width != max_y_label_width:
+            self._y_axle.met_width = max_y_label_width
             self._resize_frame()
 
     def __get_rounded_tick(self, val, step, digit_count):
@@ -1273,7 +1284,7 @@ class Axles(QWidget):
         return tmp_str
 
     def _resize_frame(self):
-        self._OFFSET_X = self._y_axle.met_size
+        self._OFFSET_X = self._y_axle.met_width
         self._MIN_X = self._OFFSET_X
         self._MAX_X = self._MIN_X + self.__w
         super().setGeometry(self.__x - self._OFFSET_X, self.__y - self._OFFSET_Y_UP, self.__w + self._OFFSET_X, self.__h + self._OFFSET_Y_UP + self._OFFSET_Y_DOWN)
