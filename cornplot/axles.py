@@ -3,7 +3,7 @@ from math import log10, floor, ceil, pow
 from typing import overload
 
 from PyQt6.QtCore import Qt, QLineF, QRectF, pyqtSlot as Slot, QRect, QTimer
-from PyQt6.QtGui import QPen, QColor, QPainter, QFont, QFontMetrics, QGuiApplication
+from PyQt6.QtGui import QPen, QColor, QPainter, QFont, QFontMetrics, QGuiApplication, QIcon
 from PyQt6.QtWidgets import (
     QFileDialog, QWidget, QGestureEvent, 
     QPinchGesture, QPanGesture, QTapGesture, 
@@ -294,10 +294,16 @@ class Axles(QWidget):
     def fix_y_zero(self, fix: bool) -> None:
         if fix != self._zero_y_fixed:
             self._zero_y_fixed = fix
+
             self._calculate_y_parameters()
-            self._update_step_y()
             self._recalculate_window_coords()
-            self._redraw_required = True
+            self._update_step_y()            
+            self.update()
+
+            if fix:
+                self.__btn_group.fix_button.setIcon(QIcon(get_image_path("unfix.png")))
+            else:
+                self.__btn_group.fix_button.setIcon(QIcon(get_image_path("fix.png")))
 
     def _update_step_x(self, force=False) -> float:
         """Вычисление шага по оси Х"""
@@ -372,7 +378,7 @@ class Axles(QWidget):
             n += 1
             self._step_grid_y *= self.__get_factor(n)
 
-        if self._step_grid_y / self._real_height * self.__h > 100:
+        if self._step_grid_y / self._real_height * self.__h > 4 * self._y_axle.met_height:
             self._step_grid_y /= self.__get_factor(n)
             n += 1
 
@@ -440,15 +446,10 @@ class Axles(QWidget):
         self._update_step_x()
         self._y_scaled = False
 
-        if self._zero_y_fixed:
-            self._set_y_start(self._y_axis_min if self._y_axis_min < 0 else 0)
-        else:
-            self._set_y_start(self._y_axis_min)
-        self._set_y_stop(self._y_axis_max)
-        self._update_step_y()
         self.__delete_scale_lines()
         self._calculate_y_parameters()
         self._recalculate_window_coords()
+        self._update_step_y()
         self.__group.update_x_borders(self._xstart, self._xstop)
         self._redraw_required = True
 

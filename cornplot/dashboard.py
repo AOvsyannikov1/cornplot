@@ -726,8 +726,8 @@ class Dashboard(Axles):
         if len(self.__plots) > 0:
             all_hist = all(plt.is_hist for plt in self.__plots)
             try:
-                self._y_axis_max = max([plt.max(1) for plt in self.__plots if plt.visible])
-                self._y_axis_min = min([plt.min(1) if not plt.is_hist else 0 for plt in self.__plots if plt.visible])
+                self._y_axis_max = max(plt.max(1) for plt in self.__plots if plt.visible)
+                self._y_axis_min = min(plt.min(1) if not plt.is_hist else 0 for plt in self.__plots if plt.visible)
             except ValueError:
                 self._y_axis_max = 1
                 self._y_axis_min = 0
