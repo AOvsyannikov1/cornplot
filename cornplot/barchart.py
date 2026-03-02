@@ -98,7 +98,7 @@ class BarChart(QWidget):
         try:
             QGuiApplication.styleHints().setColorScheme(Qt.ColorScheme.Dark if dark else Qt.ColorScheme.Light)
             self.set_dark(dark)
-        except:
+        except Exception as e:
             pass
 
     @Slot(bool)

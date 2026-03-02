@@ -1,6 +1,5 @@
 import pickle
 from math import log2, floor
-from time import monotonic
 from typing import Any
 
 from PyQt6.QtCore import QPointF, QLineF, QRectF, pyqtSlot as Slot, Qt
@@ -45,8 +44,6 @@ class Dashboard(Axles):
         self.__points: dict[str, Point] = dict()
         self.__auxiliary_lines: list[AuxiliaryLine] = list()
         self.__draw_aux_lines = True
-
-        self.__redraw_time = 0
 
     def hideEvent(self, a0):
         if self.__window and self.__window.isVisible():
@@ -484,7 +481,6 @@ class Dashboard(Axles):
     def _redraw(self) -> None:
         if not self.visible:
             return
-        t0 = monotonic()
         super()._redraw()
 
         scanner_coords = self._scanner_coords()
@@ -539,8 +535,6 @@ class Dashboard(Axles):
         self._qp.setClipRect(QRectF(0, 0, self.width(), self.height()))
         if not self.is_animated() or self.is_paused():
             self._redraw_required = False
-        
-        self.__redraw_time = monotonic() - t0
 
     def __create_value_pointer(self, xwin, plt: Plot):
         if len(plt.Y) <= 1:
@@ -1180,10 +1174,6 @@ class Dashboard(Axles):
             text_height = metr.size(0, point.text).height()
             self._qp.drawText(QRectF(xwin - text_width / 2, ywin - text_height * 3 / 2, text_width, text_height),
                                 Qt.AlignmentFlag.AlignCenter, point.text)
-
-    @property
-    def redraw_time(self) -> float:
-        return self.__redraw_time
 
     @Slot(bool)
     def enable_auxiliary_lines(self, enable: bool):

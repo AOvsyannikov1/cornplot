@@ -411,8 +411,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
     def __show_about(self):
         self.__message_box = QMessageBox()
         self.__message_box.setIcon(QMessageBox.Icon.Information)
-        self.__message_box.setText(f"Время перерисовки: {self.__dashboard.redraw_time * 1000:.2f} мс")
-        self.__message_box.setInformativeText(f"Версия {VERSION} | {DATE}")
+        self.__message_box.setText(f"Версия {VERSION} | {DATE}")
         self.__message_box.setWindowTitle("О программе")
         self.__message_box.setStandardButtons(QMessageBox.StandardButton.Yes)
         self.__message_box.button(QMessageBox.StandardButton.Yes).setText("Очень рад!")
@@ -792,7 +791,9 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
 
         self.__kde_thread = KdeCalcThread(self.__dashboard, plt, h, self.kdeKernel.currentText(), self.kdeCumulative.isChecked())
         self.__kde_thread.plt_signal.connect(self.__add_kde_plot)
+        self.__kde_thread.msg_signal.connect(self.statusbar.showMessage)
         self.__kde_thread.start()
+
 
     @Slot(str, list, list)
     def __add_kde_plot(self, plt_name, x, y):
@@ -1308,6 +1309,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
 
 class KdeCalcThread(QThread):
     plt_signal = Signal(str, list, list)
+    msg_signal = Signal(str, int)
 
     def __init__(self, dashboard, plt: Plot, h: float, kernel: str, cumulative: bool):
         super().__init__()
@@ -1318,6 +1320,7 @@ class KdeCalcThread(QThread):
         self.cumulative = cumulative
 
     def run(self):
+        self.msg_signal.emit("Расчёт выполняется...", 60000)
         try:
             kde_result = statistics.kde(self.plt.hist_data, kernel=self.kernel, h=self.h, cumulative=self.cumulative)
             dx = self.plt.X[-1] - self.plt.X[0]
@@ -1328,5 +1331,7 @@ class KdeCalcThread(QThread):
             X = np.arange(x0, xk, step)
             Y = [kde_result(x) for x in X]
             self.plt_signal.emit(self.plt.name, list(X), Y)
-        except:
+            self.msg_signal.emit("Расчёт завершён.", 5000)
+        except Exception as e:
+            self.msg_signal.emit("Ошибка расчёта!", 5000)
             pass

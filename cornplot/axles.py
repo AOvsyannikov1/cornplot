@@ -466,14 +466,25 @@ class Axles(QWidget):
             self._redraw_required = True
 
     def __delete_scanner_lines(self):
+        deleted = False
         for line in self.__scanner_lines:
+            if line.is_visible():
+                deleted = True
             line.hide()
             line.select(False)
+        if deleted:
+            self._redraw_required = True
+            self.__group.line_move_signal.emit()
 
     def __delete_scale_lines(self):
+        deleted = False
         for line in self.__scale_lines:
+            if line.is_visible():
+                deleted = True
             line.hide()
             line.select(False)
+        if deleted:
+            self._redraw_required = True
 
     def __deselect_all_lines(self):
         for line in self.__scanner_lines:
@@ -807,8 +818,6 @@ class Axles(QWidget):
 
             case Qt.MouseButton.MiddleButton:
                 self.__delete_scanner_lines()
-                self._redraw_required = True
-                self.__group.line_move_signal.emit()
     
     def keyPressEvent(self, a0):
         match a0.key():
@@ -1525,10 +1534,12 @@ class Axles(QWidget):
             return
         self._redraw_required = True
         self.__convert_to_hhmmss = True
+        self._update_step_x()
 
     def disable_human_time_display(self):
         self._redraw_required = True
         self.__convert_to_hhmmss = False
+        self._update_step_x()
 
     def human_time_display_enabled(self) -> bool:
         return self.__convert_to_hhmmss
