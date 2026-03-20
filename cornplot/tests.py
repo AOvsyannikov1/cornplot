@@ -169,7 +169,7 @@ def show_demo_plots_4(dark=False):
 
 def show_demo_plots_5(dark=False):
     X = np.arange(-2, 2, 0.0011)
-    # X1 = np.arange(0.5, 2, 0.001)
+    X1 = np.arange(0.5, 2, 0.001)
 
     plt.set_dark(dark)
     plt.plot(X, 1 / X, plot_label="", axes=True)
