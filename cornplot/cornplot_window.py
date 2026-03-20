@@ -794,7 +794,6 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.__kde_thread.msg_signal.connect(self.statusbar.showMessage)
         self.__kde_thread.start()
 
-
     @Slot(str, list, list)
     def __add_kde_plot(self, plt_name, x, y):
         self.__dashboard.delete_plot(self.plotName.currentText() + " (KDE)")

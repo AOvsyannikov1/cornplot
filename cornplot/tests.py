@@ -168,11 +168,11 @@ def show_demo_plots_4(dark=False):
 
 
 def show_demo_plots_5(dark=False):
-    X = np.arange(-2, -0.5, 0.001)
-    X1 = np.arange(0.5, 2, 0.001)
+    X = np.arange(-2, 2, 0.0011)
+    # X1 = np.arange(0.5, 2, 0.001)
 
     plt.set_dark(dark)
-    plt.plot(X, 1 / X + 10, plot_label="", axes=True)
+    plt.plot(X, 1 / X, plot_label="", axes=True)
     plt.plot(X1, 1 / X1 + 10, plot_label="", axes=True)
     plt.auxiliary_line("10")
     plt.auxiliary_line("-1*x+8")

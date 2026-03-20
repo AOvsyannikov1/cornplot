@@ -774,8 +774,8 @@ class Dashboard(Axles):
                 self._set_y_stop(ystop)
         
         if self._y_axis_max == self._y_axis_min:
-            self._y_axis_min = -1
-            self._y_axis_max = 1
+            self._y_axis_min -=1
+            self._y_axis_max += 1
             self._set_y_start(self._y_axis_min)
             self._set_y_stop(self._y_axis_max)
 
