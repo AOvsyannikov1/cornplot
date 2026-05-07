@@ -99,10 +99,10 @@ class PlotWindow(QWidget):
         index = self.dashboard_locations.index((row, col))
         self.dashboards[index].add_plot(amplitudes, angles, color=color, linewidth=linewidth, linestyle=linestyle, scatter=scatter)
 
-    def add_animated_plot(self, row, col, name='', x_size=20, linewidth=2, linestyle='solid', color='any'):
+    def add_animated_plot(self, row, col, name='', x_size=20, linewidth=2, linestyle='solid', color='any', limit_data=True, save_data=False):
         index = self.dashboard_locations.index((row, col))
         self.__datasets[name] = index
-        self.dashboards[index].add_animated_plot(name, x_size=x_size, linewidth=linewidth, linestyle=linestyle, color=color)
+        self.dashboards[index].add_animated_plot(name, x_size=x_size, linewidth=linewidth, linestyle=linestyle, color=color, limit_data=limit_data, save_data=save_data)
 
     def add_animated_plot_updater(self, updater: PlotUpdater):
         self.__plt_updaters.append(updater)
@@ -242,15 +242,14 @@ class CornPlotter:
         win.add_dashboard(self.__current_row, self.__current_col, self.__nrows, self.__ncols)
         win.add_auxiliary_line(self.__current_row, self.__current_col, equation)
         
-    def animated_plot(self, name: str, x_size=30, x_name="X", y_name="Y", linewidth=2, linestyle='solid', color='any', link_plots=True, axes=False):
+    def animated_plot(self, name: str, x_size=30, x_name="X", y_name="Y", linewidth=2, linestyle='solid', color='any', link_plots=True, axes=False, limit_data=True, save_data=False):
         self.__create_qapp()
         win = self.__add_window()
         win.add_dashboard(self.__current_row, self.__current_col, rows=self.__nrows, cols=self.__ncols,
                                                              x_name=x_name, y_name=y_name, link_plots=link_plots, draw_axes=axes)
         win.dashboards[-1].set_x_name(x_name)
         win.dashboards[-1].set_y_name(y_name)
-        win.add_animated_plot(self.__current_row, self.__current_col,
-                                                                        name, x_size, linewidth, linestyle, color)
+        win.add_animated_plot(self.__current_row, self.__current_col, name, x_size, linewidth, linestyle, color, limit_data, save_data)
         self.__datasets[name] = self.__current_window_index
         
     def add_plot_updater(self, updater: PlotUpdater):

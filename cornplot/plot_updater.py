@@ -2,7 +2,6 @@ import warnings
 from PyQt6.QtCore import QThread
 
 
-
 class PlotUpdater(QThread):
 
     def __init__(self):

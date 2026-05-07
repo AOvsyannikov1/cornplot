@@ -2,7 +2,7 @@ import pickle
 from math import log2, floor
 from typing import Any
 
-from PyQt6.QtCore import QPointF, QLineF, QRectF, pyqtSlot as Slot, Qt
+from PyQt6.QtCore import QPointF, QLineF, QRectF, pyqtSlot as Slot, Qt, QMutexLocker, QMutex
 from PyQt6.QtWidgets import QMessageBox, QWidget
 from PyQt6.QtGui import QPainter, QPen, QColor, QFont, QFontMetrics, QPolygonF, QLinearGradient
 
@@ -21,6 +21,9 @@ from .array_utils import *
 FULL_VERSION = True
 VALUE_FONT = QFont("Consolas, Courier New", 10)
 VALUE_FONT.setBold(True)
+
+
+mutex = QMutex()
 
 
 class Dashboard(Axles):
@@ -206,7 +209,7 @@ class Dashboard(Axles):
                 self._force_redraw()
                 break
     
-    def add_animated_plot(self, name: str, color='any', x_size=30, linewidth=2, linestyle='solid') -> bool:
+    def add_animated_plot(self, name: str, color='any', x_size=30, linewidth=2, linestyle='solid', limit_data=True, save_data=False) -> bool:
         if len(name) == 0:
             return False
         
@@ -218,7 +221,8 @@ class Dashboard(Axles):
             self._x_axis_min = 0
             self._update_step_x()
             self._update_x_borders(self._x_axis_min, self._x_axis_max)
-        self.__plots.append(Plot(self, list(), list(), self.__get_pen(color, linewidth, linestyle), name=name, checkbox_x=self.__get_checkbox_x(), animated=True, x_size=x_size))
+        self.__plots.append(Plot(self, list(), list(), self.__get_pen(color, linewidth, linestyle), name=name, checkbox_x=self.__get_checkbox_x(), 
+                                 animated=True, x_size=x_size, limited=limit_data, save_data=save_data))
         self.__plots[-1].redraw_signal.connect(self.__process_checkbox_press)
         self.__plots[-1].set_dark(self.dark)
         self._set_animated(True)
@@ -370,8 +374,12 @@ class Dashboard(Axles):
                     if x > self._xstop:
                         self._xstop = x
                         self._x_axis_max = x
-                        self._xstart = self._xstop - self._real_width
-                        self._x_axis_min = self._xstart
+                        if plt.limited:
+                            self._xstart = self._xstop - self._real_width
+                            self._x_axis_min = self._xstart
+                        else:
+                            self._real_width = self._xstop - self._xstart
+                            self._update_step_x()
                         self._update_x_borders(self._xstart, self._xstop)
 
                     self._calculate_y_parameters()
@@ -379,7 +387,7 @@ class Dashboard(Axles):
 
                     self._recalculate_window_coords()
 
-                    if len(plt.X) > 2 and plt.X[-1] - plt.X[-2] > plt.x_size:
+                    if plt.limited and len(plt.X) > 2 and plt.X[-1] - plt.X[-2] > plt.x_size:
                         self.restart_animation()
                     return True
                 else:
@@ -505,10 +513,11 @@ class Dashboard(Axles):
                 self._qp.setPen(QColor(0, 0, 0, 0))
                 self._qp.setBrush(plt1.pen.color())
                 self._qp.drawPolygon(QPolygonF(plt1.points + list(reversed(plt2.points))))
-
+        
         for plt in self.__plots:
             if plt.visible:
-                self.__redraw_plot(plt)
+                with QMutexLocker(mutex):
+                    self.__redraw_plot(plt)
                 for i in range(n_scanners):
                     rects = self.__create_value_pointer(scanner_coords[i], plt)
                     if rects:
@@ -1087,10 +1096,19 @@ class Dashboard(Axles):
         super().pause(pause)
         if not self.is_animated():
             return
+        any_save_data = any(plt.save_data for plt in self.__plots)
+
         if pause:
-            self._recalculate_window_coords()
+            # if any_save_data:
+            #     self._xstart = min(plt.X[0] for plt in self.__plots)
+            #     self._xstop = max(plt.X[-1] for plt in self.__plots)
+            #     self._real_width = self._xstop - self._xstart
+            #     self._update_x_borders(self._xstart, self._xstop)
             self._x_axis_min = self._xstart
             self._x_axis_max = self._xstop
+            self._recalculate_window_coords()
+            # self._update_step_x()
+            
         x_size = 10
         for plt in self.__plots:
             if plt.animated:
@@ -1111,7 +1129,7 @@ class Dashboard(Axles):
                 plots_to_delete.append(plt)
             else:
                 x_size = plt.x_size
-            plt.remove_all()
+            plt.remove_all_points()
 
         for plt in plots_to_delete:
             self.__plots.remove(plt)

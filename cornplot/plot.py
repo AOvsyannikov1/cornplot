@@ -11,27 +11,30 @@ class Plot(QObject):
     redraw_signal = Signal()
 
     def __init__(self, widget, x_arr, y_arr, pen: QPen, is_dotted=False, name="",
-                 accurate=False, hist=False, heatmap=False, animated=False, x_size=10, checkbox_x: int | None=None, hist_data=None):
+                 accurate=False, hist=False, heatmap=False, animated=False, x_size=10, checkbox_x: int | None=None, hist_data=None, limited=True, save_data=False):
         super().__init__()
         self.pen = pen
-        self.animated = animated
+        self.__animated = animated
 
         self.lines: list[QLineF] = list()
         self.points: list[QPointF] = list()
         self.rects: list[QRectF] = list()
 
-        if self.animated:
+        self.__limited = limited
+        self.__save_data = save_data
+
+        if self.__animated:
             self.X: array = array("d")
             self.Y: array = array("d")
             self.x_size = x_size
-            self.first_point = True
+            self.__first_point = True
             self.x0 = 0
             self.length = 0
         else:
             self.X: array = array("d", x_arr)
             self.Y: array = array("d", y_arr)
             self.x0 = x_arr[0]
-            self.first_point = False
+            self.__first_point = False
             self.x_size = 0
             self.length = len(x_arr)
 
@@ -50,14 +53,14 @@ class Plot(QObject):
         self.accurate = accurate
         self.selectedPoints: list[SelectedPoint] = list()
 
-        self.x_ascending = self.analyze_x_sequence()
+        self.x_ascending = self.__check_if_x_accending()
         self.is_hist = hist
 
-        self.maximums = [0.0, 0.0]
-        self.minimums = [0.0, 0.0]
+        self.__maximums = [0.0, 0.0]
+        self.__minimums = [0.0, 0.0]
         if not animated and len(x_arr) > 0 and len(y_arr) > 0:
-            self.maximums = [max(x_arr), max(y_arr)]
-            self.minimums = [min(x_arr), min(y_arr)]
+            self.__maximums = [max(x_arr), max(y_arr)]
+            self.__minimums = [min(x_arr), min(y_arr)]
 
         font = QFont("Consolas, Courier New", 12)
         font.setBold(False)
@@ -80,6 +83,18 @@ class Plot(QObject):
             palette.setColor(QPalette.ColorRole.WindowText, pen.color())
             self.__checkbox.setPalette(palette)
             self.__checkbox.show()
+
+    @property
+    def animated(self):
+        return self.__animated
+    
+    @property
+    def limited(self):
+        return self.__limited
+    
+    @property
+    def save_data(self):
+        return self.__save_data
 
     def set_dark(self, dark: bool):
         if not self.__checkbox:
@@ -141,7 +156,7 @@ class Plot(QObject):
         if w >= 0:
             self.__marker_width = w
 
-    def analyze_x_sequence(self):
+    def __check_if_x_accending(self):
         """Анализ, является ли Х возрастающей последовательностью"""
         if len(self.X) == 0:
             return True
@@ -154,39 +169,40 @@ class Plot(QObject):
         return True
 
     def set_x_size(self, size):
-        if self.animated:
+        if self.__animated:
             self.x_size = size
 
     def add_element(self, x: float, y: float) -> tuple[float, float]:
-        if not self.animated:
+        if not self.__animated:
             return 0.0, 0.0
 
-        if self.first_point:
+        if self.__first_point:
             self.x0 = x
-            self.first_point = False
-            self.maximums[0] = x
-            self.maximums[1] = y
-            self.minimums[0] = x
-            self.minimums[1] = y
+            self.__first_point = False
+            self.__maximums[0] = x
+            self.__maximums[1] = y
+            self.__minimums[0] = x
+            self.__minimums[1] = y
 
-        if len(self.X) >= 2 and self.X[-1] - self.X[0] >= self.x_size:
+        if self.__limited and len(self.X) >= 2 and self.X[-1] - self.X[0] >= self.x_size:
+            # if not self.__save_data:
             self.X.pop(0)
             self.Y.pop(0)
-            self.maximums[1] = max(self.Y)
-            self.minimums[1] = min(self.Y)
-            self.minimums[0] = self.X[0]
-            self.maximums[0] = x
+            self.__maximums[1] = max(self.Y)
+            self.__minimums[1] = min(self.Y)
+            self.__minimums[0] = self.X[0]
+            self.__maximums[0] = x
         else:
             self.length += 1
 
-            if self.maximums[0] < x:
-                self.maximums[0] = x
-            elif self.minimums[0] > x:
-                self.minimums[0] = x
-            if self.maximums[1] < y:
-                self.maximums[1] = y
-            elif self.minimums[1] > y:
-                self.minimums[1] = y
+            if self.__maximums[0] < x:
+                self.__maximums[0] = x
+            elif self.__minimums[0] > x:
+                self.__minimums[0] = x
+            if self.__maximums[1] < y:
+                self.__maximums[1] = y
+            elif self.__minimums[1] > y:
+                self.__minimums[1] = y
 
         self.X.append(x - self.x0)
         self.Y.append(y)
@@ -233,27 +249,33 @@ class Plot(QObject):
             ret += [nearest_x, nearest_i],
         return ret
 
-    def remove_all(self):
-        self.first_point = True
+    def remove_all_points(self):
+        self.__first_point = True
         self.X = array("d")
         self.Y = array("d")
         self.length = 0
 
     def update_x_array(self, x):
         self.X = x
-        self.maximums[0] = max(x)
-        self.minimums[0] = min(x)
+        self.__maximums[0] = max(x)
+        self.__minimums[0] = min(x)
 
     def update_y_array(self, y):
         self.Y = y
-        self.maximums[1] = max(y)
-        self.minimums[1] = min(y)
+        self.__maximums[1] = max(y)
+        self.__minimums[1] = min(y)
 
-    def min(self, axis):
-        return self.minimums[axis] if not self.is_hist else 0
+    def min(self, axis: int) -> float:
+        return self.__minimums[axis] if not self.is_hist else 0
 
-    def max(self, axis):
-        return self.maximums[axis]
+    def max(self, axis: int) -> float:
+        return self.__maximums[axis]
+    
+    def get_real_width(self) -> float:
+        if not self.__save_data:
+            return self.x_size
+        else:
+            return self.X[-1] - self.X[0]
     
     def __del__(self):
         try:
