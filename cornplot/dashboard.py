@@ -209,10 +209,14 @@ class Dashboard(Axles):
                 self._force_redraw()
                 break
     
-    def add_animated_plot(self, name: str, color='any', x_size=30, linewidth=2, linestyle='solid', limit_data=True, save_data=False) -> bool:
+    def add_animated_plot(self, name: str, color='any', x_size=30, linewidth=2, linestyle='solid', 
+                          limit_data=True, save_data=False, real_time=False) -> bool:
         if len(name) == 0:
             return False
         
+        if real_time:
+            self.enable_human_time_display()
+
         if len(self.__plots) == 0 or self._real_width < x_size:
             self._xstop = x_size
             self._x_axis_max = x_size
@@ -222,7 +226,7 @@ class Dashboard(Axles):
             self._update_step_x()
             self._update_x_borders(self._x_axis_min, self._x_axis_max)
         self.__plots.append(Plot(self, list(), list(), self.__get_pen(color, linewidth, linestyle), name=name, checkbox_x=self.__get_checkbox_x(), 
-                                 animated=True, x_size=x_size, limited=limit_data, save_data=save_data))
+                                 animated=True, x_size=x_size, limited=limit_data, save_data=save_data, real_time=real_time))
         self.__plots[-1].redraw_signal.connect(self.__process_checkbox_press)
         self.__plots[-1].set_dark(self.dark)
         self._set_animated(True)
@@ -368,30 +372,31 @@ class Dashboard(Axles):
             return False
         for plt in self.__plots:
             if plt.name == name:
-                if plt.animated:
-                    x, y = plt.add_element(x, y)
-
-                    if x > self._xstop:
-                        self._xstop = x
-                        self._x_axis_max = x
-                        if plt.limited:
-                            self._xstart = self._xstop - self._real_width
-                            self._x_axis_min = self._xstart
-                        else:
-                            self._real_width = self._xstop - self._xstart
-                            self._update_step_x()
-                        self._update_x_borders(self._xstart, self._xstop)
-
-                    self._calculate_y_parameters()
-                    self._update_step_y()
-
-                    self._recalculate_window_coords()
-
-                    if plt.limited and len(plt.X) > 2 and plt.X[-1] - plt.X[-2] > plt.x_size:
-                        self.restart_animation()
-                    return True
-                else:
+                if not plt.animated:
                     break
+
+                x, y = plt.add_element(x, y)
+
+                if x > self._xstop:
+                    self._xstop = x
+                    self._x_axis_max = x
+                    if plt.limited:
+                        self._xstart = self._xstop - self._real_width
+                        if not plt.save_data:
+                            self._x_axis_min = self._xstart
+                    else:
+                        self._real_width = self._xstop - self._xstart
+                        self._update_step_x()
+                    self._update_x_borders(self._xstart, self._xstop)
+
+                self._calculate_y_parameters()
+                self._update_step_y()
+
+                self._recalculate_window_coords()
+
+                if plt.limited and len(plt.X) > 2 and plt.X[-1] - plt.X[-2] > plt.x_size:
+                    self.restart_animation()
+                return True
         return False
     
     def add_auxiliary_line(self, equation: str) -> bool:
@@ -1099,20 +1104,17 @@ class Dashboard(Axles):
         any_save_data = any(plt.save_data for plt in self.__plots)
 
         if pause:
-            # if any_save_data:
-            #     self._xstart = min(plt.X[0] for plt in self.__plots)
-            #     self._xstop = max(plt.X[-1] for plt in self.__plots)
-            #     self._real_width = self._xstop - self._xstart
-            #     self._update_x_borders(self._xstart, self._xstop)
+            if any_save_data:
+                self._xstart = min(plt.X[0] for plt in self.__plots if len(plt.X))
+                self._xstop = max(plt.X[-1] for plt in self.__plots if len(plt.X))
+                self._real_width = self._xstop - self._xstart
+                self._update_x_borders(self._xstart, self._xstop)
             self._x_axis_min = self._xstart
             self._x_axis_max = self._xstop
             self._recalculate_window_coords()
-            # self._update_step_x()
+            self._update_step_x()
             
-        x_size = 10
-        for plt in self.__plots:
-            if plt.animated:
-                x_size = plt.x_size
+        x_size = max(plt.x_size for plt in self.__plots if plt.animated)
         if self._real_width < x_size:
             self._real_width = x_size
             self._update_step_x()

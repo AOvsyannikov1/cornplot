@@ -185,11 +185,11 @@ def show_demo_histogram(dark=False):
 
     plt.set_dark(dark)
     plt.window(1)
-    plt.histogram(X, name="Бета-распределение", probabilities=True)
+    plt.histogram(X, hist_label="Бета-распределение", probabilities=True)
     plt.window(2)
     X = np.random.chisquare(df=10, size=100000)
     
-    plt.histogram(X, name=f"Распределение χ{UPPER_INDEXES[2]} (k = 10)", probabilities=True, color="#73C991")
+    plt.histogram(X, hist_label=f"Распределение χ{UPPER_INDEXES[2]} (k = 10)", probabilities=True, color="#73C991")
     plt.show()
 
 
@@ -209,10 +209,12 @@ def show_demo_animation(dark=False):
     import time
     from .plot_updater import PlotUpdater
 
+    t0 = time.monotonic()
+
     class Update(PlotUpdater):
         def update_plot(self):
             t = time.monotonic()
-            plt.add_point_to_animated_plot("Sin", t, 100000*np.sin(t))
+            plt.add_point_to_animated_plot("Sin", t, 100000*(np.sin(t) * np.sin(t / 10)))
             plt.add_point_to_animated_plot("Cos", t, 100000*np.cos(t))
             plt.add_point_to_animated_plot("SinSin", t, np.sin(2 * t))
             plt.add_point_to_animated_plot("CosCos", t, np.cos(2 * t))
@@ -226,17 +228,17 @@ def show_demo_animation(dark=False):
     plt.set_dark(dark)
     plt.window(1, name="Sin, cos")
     plt.subplot(2, 1, 1)
-    plt.animated_plot("Sin", x_size=10)
-    plt.animated_plot("Cos", x_size=10)
+    plt.animated_plot("Sin", x_size=30)
+    plt.animated_plot("Cos", x_size=30)
     plt.subplot(2, 1, 2)
-    plt.animated_plot("SinSin", x_size=10)
-    plt.animated_plot("CosCos", x_size=10)
+    plt.animated_plot("SinSin", x_size=30)
+    plt.animated_plot("CosCos", x_size=30)
     plt.add_plot_updater(Update())
 
     plt.window(2, name="Sinsin", x=500, y=200)
-    plt.animated_plot("sinsinsin")
+    plt.animated_plot("sinsinsin", real_time=True)
     updater = Update1()
-    updater.set_delay_ms(1)
+    updater.set_delay_ms(25)
     plt.add_plot_updater(updater)
     plt.show()
 

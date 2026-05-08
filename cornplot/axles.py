@@ -701,7 +701,8 @@ class Axles(QWidget):
                 self.__scaling_rect.setBottom(min(max(pos.y() - self._MIN_Y, 0), self.__h))
                 self._redraw_required = True
         else:
-            self.__slider.set_mouse_on(self.__slider.x <= pos.x() <= self.__slider.x + self.__slider.w and 
+            button_w = (self.__btn_group.pause_button.width() * 2) if self.is_animated() else 0
+            self.__slider.set_mouse_on(self.__slider.x - button_w <= pos.x() <= self.__slider.x + self.__slider.w - button_w and 
                                     self.__slider.y <= pos.y() <= self.__slider.y + self.__slider.h)
 
     def mousePressEvent(self, a0):
@@ -1155,6 +1156,7 @@ class Axles(QWidget):
                 if self._MIN_X < x_m < self._MAX_X and x_w != x_m:
                     self._qp.drawLine(QLineF(x_m, self._MAX_Y, x_m, self._MIN_Y))
 
+            print(old_x_met_width, self._x_axle.met_width)
             if abs(old_x_met_width - self._x_axle.met_width) > 5:  # Порог 5 пикселей
                 old_step = self.__step_grid_x
                 new_step = self._update_step_x()
@@ -1175,16 +1177,16 @@ class Axles(QWidget):
                 else:
                     self.__step_grid_x = old_step
         
-        # if old_x_met_width != self._x_axle.met_width:
-        #     old_step = self.__step_grid_x
-        #     new_step = self._update_step_x()
-        #     old_width_px = new_step / self._real_width * self.__w
-        #     if old_step > new_step:
-        #         if old_width_px <= self._x_axle.met_width:
-        #             self._redraw_required = True
-        #             self.__step_grid_x = new_step
-        #         else:
-        #             self.__step_grid_x = old_step
+        if old_x_met_width != self._x_axle.met_width:
+            old_step = self.__step_grid_x
+            new_step = self._update_step_x()
+            old_width_px = new_step / self._real_width * self.__w
+            if old_step > new_step:
+                if old_width_px <= self._x_axle.met_width:
+                    self.update()
+                    self.__step_grid_x = new_step
+                else:
+                    self.__step_grid_x = old_step
 
     def __draw_grid_y(self):
         font = QFont(self.__font)
@@ -1485,9 +1487,11 @@ class Axles(QWidget):
             return
         if self._xstart <= self._x_axis_min and self._xstop >= self._x_axis_max:
             return
+        
+        button_w = (self.__btn_group.pause_button.width() * 2) if self.is_animated() else 0
 
         R = 5
-        x0 = self._MIN_X + round((1 - self.__slider.length - 0.01) * self.__w)
+        x0 = self._MIN_X + round((1 - self.__slider.length - 0.01) * self.__w) - button_w
         x1 = x0 + round(self.__w * self.__slider.length)
         y0 = self.__slider.y
 
@@ -1506,7 +1510,7 @@ class Axles(QWidget):
             color = QColor(150, 150, 150, 100)
 
         self._qp.setBrush(color)
-        self._qp.drawRoundedRect(QRectF(self.__slider.x, y0, self.__slider.w, self.__slider.h), R, R)
+        self._qp.drawRoundedRect(QRectF(self.__slider.x - button_w, y0, self.__slider.w, self.__slider.h), R, R)
 
     def _draw_scaling_rect(self):
         if self.__scaling_rect_drawing:
@@ -1737,7 +1741,7 @@ class Axles(QWidget):
             self.__btn_group.pause(pause)
             self.__group.pause_signal.emit(pause)
         self.__paused = pause
-        self._redraw_required = True
+        self.update()
 
     @Slot(bool)
     def __pause(self, pause: bool):

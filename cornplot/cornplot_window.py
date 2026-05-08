@@ -601,7 +601,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
             dlg.setCustomColor(i, QColor(color))
 
         if dlg.exec():
-            plt.pen.setColor(QColor(dlg.currentColor().name()))
+            plt.set_color(QColor(dlg.currentColor().name()))
             self.colorButton.setStyleSheet(f"""QPushButton
                                             {{
                                                 background-color: '{plt.pen.color().name()}'; 

@@ -52,9 +52,9 @@ def get_nearest_value(iterable, value):
 
 def convert_timestamp_to_human_time(timestamp, millis=False):
     if millis:
-        return datetime.fromtimestamp(timestamp, timezone.utc).time().strftime("%H:%M:%S.%f")[:-3]
+        return datetime.fromtimestamp(timestamp).time().strftime("%H:%M:%S.%f")[:-3]
     else:
-        return datetime.fromtimestamp(int(timestamp), timezone.utc).time().strftime("%H:%M:%S")
+        return datetime.fromtimestamp(int(timestamp)).time().strftime("%H:%M:%S")
 
 
 def round_custom(num, step):

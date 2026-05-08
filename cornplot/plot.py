@@ -1,5 +1,7 @@
+from time import time
+
 from PyQt6.QtWidgets import QCheckBox
-from PyQt6.QtGui import QPen, QPalette, QFont, QFontMetrics
+from PyQt6.QtGui import QPen, QPalette, QFont, QFontMetrics, QColor
 from PyQt6.QtCore import QObject, pyqtSignal as Signal, QLineF, QPointF, QRectF
 
 from .array_utils import *
@@ -10,8 +12,8 @@ from .utils import SelectedPoint
 class Plot(QObject):
     redraw_signal = Signal()
 
-    def __init__(self, widget, x_arr, y_arr, pen: QPen, is_dotted=False, name="",
-                 accurate=False, hist=False, heatmap=False, animated=False, x_size=10, checkbox_x: int | None=None, hist_data=None, limited=True, save_data=False):
+    def __init__(self, widget, x_arr, y_arr, pen: QPen, is_dotted=False, name="", accurate=False, hist=False, heatmap=False, animated=False, 
+                 x_size=10, checkbox_x: int | None=None, hist_data=None, limited=True, save_data=False, real_time=False):
         super().__init__()
         self.pen = pen
         self.__animated = animated
@@ -22,18 +24,20 @@ class Plot(QObject):
 
         self.__limited = limited
         self.__save_data = save_data
+        self.__real_time = real_time
+        self.__dark = False
 
         if self.__animated:
             self.X: array = array("d")
             self.Y: array = array("d")
             self.x_size = x_size
             self.__first_point = True
-            self.x0 = 0
+            self.__x0 = 0
             self.length = 0
         else:
             self.X: array = array("d", x_arr)
             self.Y: array = array("d", y_arr)
-            self.x0 = x_arr[0]
+            self.__x0 = x_arr[0]
             self.__first_point = False
             self.x_size = 0
             self.length = len(x_arr)
@@ -95,10 +99,15 @@ class Plot(QObject):
     @property
     def save_data(self):
         return self.__save_data
+    
+    def set_color(self, clr_name):
+        self.pen.setColor(QColor(clr_name))
+        self.set_dark(self.__dark)
 
     def set_dark(self, dark: bool):
         if not self.__checkbox:
             return
+        self.__dark = dark
         rgb = self.pen.color().getRgb()
         self.__checkbox.setStyleSheet(f"""
                                     QCheckBox {{
@@ -177,7 +186,7 @@ class Plot(QObject):
             return 0.0, 0.0
 
         if self.__first_point:
-            self.x0 = x
+            self.__x0 = x
             self.__first_point = False
             self.__maximums[0] = x
             self.__maximums[1] = y
@@ -185,9 +194,9 @@ class Plot(QObject):
             self.__minimums[1] = y
 
         if self.__limited and len(self.X) >= 2 and self.X[-1] - self.X[0] >= self.x_size:
-            # if not self.__save_data:
-            self.X.pop(0)
-            self.Y.pop(0)
+            if not self.__save_data:
+                self.X.pop(0)
+                self.Y.pop(0)
             self.__maximums[1] = max(self.Y)
             self.__minimums[1] = min(self.Y)
             self.__minimums[0] = self.X[0]
@@ -203,8 +212,10 @@ class Plot(QObject):
                 self.__maximums[1] = y
             elif self.__minimums[1] > y:
                 self.__minimums[1] = y
-
-        self.X.append(x - self.x0)
+        if self.__real_time:
+            self.X.append(time())
+        else:
+            self.X.append(x - self.__x0)
         self.Y.append(y)
         self.index0 = 0
         self.index1 = self.length - 1
@@ -220,7 +231,7 @@ class Plot(QObject):
     def get_nearest(self, x_real):
         X = list(self.X[self.index0:self.index1+1])
         if self.x_ascending:
-            x, indx = c_get_nearest_value(X, x_real)        # type: ignore
+            x, indx = c_get_nearest_value(X, x_real)
             indx += self.index0
             return [x, indx],
 

@@ -99,10 +99,11 @@ class PlotWindow(QWidget):
         index = self.dashboard_locations.index((row, col))
         self.dashboards[index].add_plot(amplitudes, angles, color=color, linewidth=linewidth, linestyle=linestyle, scatter=scatter)
 
-    def add_animated_plot(self, row, col, name='', x_size=20, linewidth=2, linestyle='solid', color='any', limit_data=True, save_data=False):
+    def add_animated_plot(self, row, col, name='', x_size=20, linewidth=2, linestyle='solid', color='any', limit_data=True, save_data=False, real_time=False):
         index = self.dashboard_locations.index((row, col))
         self.__datasets[name] = index
-        self.dashboards[index].add_animated_plot(name, x_size=x_size, linewidth=linewidth, linestyle=linestyle, color=color, limit_data=limit_data, save_data=save_data)
+        self.dashboards[index].add_animated_plot(name, x_size=x_size, linewidth=linewidth, linestyle=linestyle, color=color, 
+                                                 limit_data=limit_data, save_data=save_data, real_time=real_time)
 
     def add_animated_plot_updater(self, updater: PlotUpdater):
         self.__plt_updaters.append(updater)
@@ -200,6 +201,16 @@ class CornPlotter:
         self.__dark = dark
 
     def window(self, num, name="", x=100, y=100, w=1000, h=600):
+        """
+            Создание окна для отображения осей.
+
+            :param num: Номер окна (начинается с единицы).
+            :param name: Имя окна.
+            :param x: 
+            :param y: 
+            :param w: 
+            :param h: Координаты и размер окна в пикселях.
+        """
         self.__create_qapp()
         self.__current_window_index = num - 1
         if len(self.__windows) < num:
@@ -214,7 +225,14 @@ class CornPlotter:
         self.__nrows = 1
         self.__ncols = 1
 
-    def subplot(self, rows, cols, number):
+    def subplot(self, rows: int, cols: int, number: int):
+        """
+            Объявляет положение осей в окне.
+
+            :param rows: Количество осей по вертикали.
+            :param cols: Количество осей по горизонтали.
+            :param number: Номер осей в окне.
+        """
         self.__create_qapp()
         self.__add_window()
         self.__current_col = np.ceil(number / rows)
@@ -225,6 +243,23 @@ class CornPlotter:
 
     def plot(self, x_arr, y_arr, x_label="X", y_label="Y", plot_label='',
              linewidth=2.0, linestyle='solid', color='any', link_plots=True, axes=False, scatter=False, markerwidth=5.0, draw_x=True):
+        """
+            Добавить статичный график.
+
+            :param x_arr: Массив значений Х.
+            :param y_arr: Массив значений У.
+            :param x_label: Имя оси Х.
+            :param y_label: Имя оси У.
+            :param plot_label: Название графика.
+            :param linewidth: Толщина линии.
+            :param linestyle: Стиль линии (solid/dash/dot/dash-dot/dash-dot-dot).
+            :param color: Цвет графика. Если равен any, генерируется автоматически.
+            :param link_plots: Синхронизировать ли оси, расположенные в одном окне.
+            :param axes: Рисовать ли оси.
+            :param scatter: Отображать график точками.
+            :param markerwidth: Размер точки.
+            :param draw_x: Рисовать ли подписи оси Х.
+        """
         self.__create_qapp()
         win = self.__add_window()
         win.add_dashboard(self.__current_row, self.__current_col, rows=self.__nrows, cols=self.__ncols,
@@ -237,73 +272,165 @@ class CornPlotter:
                                                              plot_label, linewidth, linestyle, color, scatter, markerwidth)
         
     def auxiliary_line(self, equation: str):
+        """
+            Добавить вспомогательную прямую линию на оси. Такая линия "только для чтения", её нельзя анализировать, как обычный график.
+
+            :param equation: Уравнение линии вида kx+b.
+        """
         self.__create_qapp()
         win = self.__add_window()
         win.add_dashboard(self.__current_row, self.__current_col, self.__nrows, self.__ncols)
         win.add_auxiliary_line(self.__current_row, self.__current_col, equation)
         
-    def animated_plot(self, name: str, x_size=30, x_name="X", y_name="Y", linewidth=2, linestyle='solid', color='any', link_plots=True, axes=False, limit_data=True, save_data=False):
+    def animated_plot(self, plot_label: str, x_size=30, x_label="X", y_label="Y", linewidth=2, linestyle='solid', color='any', 
+                      link_plots=True, axes=False, limit_data=True, save_data=False, real_time=False):
+        """
+            Добавить анимированный график.
+
+            :param plot_label: Название графика.
+            :param x_size: Размер окна отображения при включённой анимации или начальная длина оси Х при limit_data == False.
+            :param x_label: Имя оси Х.
+            :param y_label: Имя оси У.
+            :param linewidth: Толщина линии.
+            :param linestyle: Стиль линии (solid/dash/dot/dash-dot/dash-dot-dot).
+            :param color: Цвет графика. Если равен any, генерируется автоматически.
+            :param link_plots: Синхронизировать ли оси, расположенные в одном окне.
+            :param axes: Рисовать ли оси.
+            :param limit_data: Ограничивать ли размер окна отображения величиной x_size.
+            :param save_data: Сохранять ли все предыдущие точки анимированного графика.
+            :param real_time: Отображать метки времени компьютера в качестве меток оси Х.
+        """
         self.__create_qapp()
         win = self.__add_window()
         win.add_dashboard(self.__current_row, self.__current_col, rows=self.__nrows, cols=self.__ncols,
-                                                             x_name=x_name, y_name=y_name, link_plots=link_plots, draw_axes=axes)
-        win.dashboards[-1].set_x_name(x_name)
-        win.dashboards[-1].set_y_name(y_name)
-        win.add_animated_plot(self.__current_row, self.__current_col, name, x_size, linewidth, linestyle, color, limit_data, save_data)
-        self.__datasets[name] = self.__current_window_index
+                                                             x_name=x_label, y_name=y_label, link_plots=link_plots, draw_axes=axes)
+        win.dashboards[-1].set_x_name(x_label)
+        win.dashboards[-1].set_y_name(y_label)
+        win.add_animated_plot(self.__current_row, self.__current_col, plot_label, x_size, linewidth, linestyle, color, limit_data, save_data, real_time)
+        self.__datasets[plot_label] = self.__current_window_index
         
     def add_plot_updater(self, updater: PlotUpdater):
+        """
+            Задаёт пользовательский класс, который реализует логику обновления данных на анимированном графике.
+
+            :param updater: Созданный пользователем класс, унаследованный от PlotUpdater. 
+            Пользователем должен быть реализован метод update_plot().
+        """
         if len(self.__windows) == 0:
             raise AttributeError("Window has not been created.")
         self.__windows[self.__current_window_index].add_animated_plot_updater(updater)
         
-    def add_point_to_animated_plot(self, name, x, y):
-        self.__create_qapp()
-        index = self.__datasets[name]
-        self.__windows[index].add_point_to_dataset(name, x, y)
+    def add_point_to_animated_plot(self, plot_label: str, x: float, y: float):
+        """
+            Добавляет точку в анимированный график.
 
-    def histogram(self, data, intervals_count=0, x_name="X", y_name="Y", name="", color='any', link_plots=False, probabilities=False):
+            :param plot_label: Имя графика.
+            :param x: Значение Х. Если при объявлении графика аргумент real_time == True, значение игнорируется.
+            :param y: Значение У. 
+        """
+        self.__create_qapp()
+        index = self.__datasets[plot_label]
+        self.__windows[index].add_point_to_dataset(plot_label, x, y)
+
+    def histogram(self, data, intervals_count=0, x_label="X", y_label="Y", hist_label="", color='any', link_plots=False, probabilities=False):
+        """
+            Добавляет гистограмму.
+
+            :param data: Одномерный массив с данными, по которым требуется построить гистограмму.
+            :param intervals_count: Число интервалов, на который должна быть разбита ось данных. Если меньше или равно нулю, вычисляется по правилу Стерджесса.
+            :param x_label: Имя оси Х.
+            :param y_label: Имя оси У.
+            :param hist_label: Имя гистограммы.
+            :param color: Цвет гистограммы. Если равен any, генерируется автоматически.
+            :param link_plots: Синхронизировать ли оси, расположенные в одном окне.
+            :param probabilities: Если равно True, по оси У отображаются не абсолютные частоты, а относительные (вероятность попадания в интервал).
+        """
         self.__create_qapp()
         win = self.__add_window()
         win.add_dashboard(self.__current_row, self.__current_col, self.__nrows, self.__ncols,
-                                                             x_name=x_name, y_name=y_name, link_plots=link_plots, draw_axes=False)
-        win.dashboards[-1].set_x_name(x_name)
-        win.dashboards[-1].set_y_name(y_name)
-        win.add_histogram(self.__current_row, self.__current_col, data, intervals_count=intervals_count, name=name, color=color, probabilities=probabilities)
+                                                             x_name=x_label, y_name=y_label, link_plots=link_plots, draw_axes=False)
+        win.dashboards[-1].set_x_name(x_label)
+        win.dashboards[-1].set_y_name(y_label)
+        win.add_histogram(self.__current_row, self.__current_col, data, intervals_count=intervals_count, name=hist_label, color=color, probabilities=probabilities)
 
-    def density_histogram(self, data, intervals_count=0, x_name="X", y_name="Y", name="", color='any', link_plots=False):
+    def density_histogram(self, data, intervals_count=0, x_label="X", y_label="Y", hist_label="", color='any', link_plots=False):
+        """
+            Добавляет гистограмму плотности распределения.
+
+            :param data: Одномерный массив с данными, по которым требуется построить гистограмму.
+            :param intervals_count: Число интервалов, на который должна быть разбита ось данных. Если меньше или равно нулю, вычисляется по правилу Стерджесса.
+            :param x_label: Имя оси Х.
+            :param y_label: Имя оси У.
+            :param hist_label: Имя гистограммы.
+            :param color: Цвет гистограммы. Если равен any, генерируется автоматически.
+            :param link_plots: Синхронизировать ли оси, расположенные в одном окне.
+        """
         self.__create_qapp()
         win = self.__add_window()
         win.add_dashboard(self.__current_row, self.__current_col, self.__nrows, self.__ncols,
-                                                             x_name=x_name, y_name=y_name, link_plots=link_plots, draw_axes=False)
-        win.dashboards[-1].set_x_name(x_name)
-        win.dashboards[-1].set_y_name(y_name)
-        win.add_density_histogram(self.__current_row, self.__current_col, data, intervals_count=intervals_count, name=name, color=color)
+                                                             x_name=x_label, y_name=y_label, link_plots=link_plots, draw_axes=False)
+        win.dashboards[-1].set_x_name(x_label)
+        win.dashboards[-1].set_y_name(y_label)
+        win.add_density_histogram(self.__current_row, self.__current_col, data, intervals_count=intervals_count, name=hist_label, color=color)
 
     def polar_plot(self, amplitudes, angles, color='any', linewidth=2, linestyle='solid', scatter=False):
+        """
+            Добавляет график в полярных координатах.
+
+            :param amplitudes: Массив амплитуд.
+            :param angles: Массив углов (в радианах).
+            :param color: Цвет графика. Если равен any, генерируется автоматически.
+            :param linewidth: Толщина линии.
+            :param linestyle: Стиль линии (solid/dash/dot/dash-dot/dash-dot-dot).
+            :param scatter: Отображать график точками.
+        """
         self.__create_qapp()
         win = self.__add_window()
         win.add_polar_axes(self.__current_row, self.__current_col, self.__nrows, self.__ncols)
         win.add_polar_plot(self.__current_row, self.__current_col, amplitudes, angles, color, linewidth, linestyle, scatter)
 
     def bar_chart(self, categories: list[str], values: dict[str, list[float]], y_label="Y", value_colors=None, draw_legend=True, legend_loc='left'):
+        """
+            Добавляет столбчатую диаграмму.
+
+            :param categories: Массив названий категорий (например, месяцы).
+            :param values: Словарь, где ключом является название величины, а значением - список значений, соответствующих каждой категории (см пример в tests.py).
+            :param y_label: Имя оси У.
+            :param value_colors: Список цветов для каждой величины. Если равен None - генерируется автоматически.
+            :param draw_legend: Отображать легенду
+            :param legend_loc: Расположение легенды (left/right).
+        """
         self.__create_qapp()
         win = self.__add_window()
         win.add_bar_axes(self.__current_row, self.__current_col, self.__nrows, self.__ncols)
         win.add_bar_chart(self.__current_row, self.__current_col, categories, values, y_label, value_colors, draw_legend, legend_loc)
 
-    def pie_chart(self, percentages, category_names, category_descriptions=None):
+    def pie_chart(self, percentages: list[float], category_names: list[str], category_descriptions: list[str] | None = None):
+        """
+            Добавляет круговую диаграмму.
+
+            :param percentages: Список процентных значений для каждой категории.
+            :param category_names: Список имён категорий.
+            :param category_descriptions: Список описанй категорий.
+        """
         self.__create_qapp()
         win = self.__add_window()
         win.add_pie_chart_axes(self.__current_row, self.__current_col, self.__nrows, self.__ncols)
         win.add_pie_chart(self.__current_row, self.__current_col, percentages, category_names, category_descriptions)
 
     def show(self):
+        """
+            Отобразить заданные графики.
+        """
         for win in self.__windows:
             win.show()
-        self.app.exec()
+        if self.app:
+            self.app.exec()
 
     def clear(self):
+        """
+            Очистить все окна от графиков.
+        """
         for i in range(len(self.__windows)):
             self.__windows[i].stop()
             for j in range(len(self.__windows[i].dashboards)):
