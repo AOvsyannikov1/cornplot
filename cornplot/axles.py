@@ -1078,7 +1078,7 @@ class Axles(QWidget):
         self._qp.setFont(font)
 
         txt_pen = QPen(text_color(self.__dark))
-        self._qp.setPen(txt_pen)
+        self._qp.setPen(text_color(self.__dark))
 
         self._x_axle.label_size = QFontMetrics(font).horizontalAdvance(self._x_axle.name)
           
@@ -1102,15 +1102,27 @@ class Axles(QWidget):
         else:
             x_metki_coords = np.round(arange(x0, xk + self.__step_grid_x, self.__step_grid_x), 15)
         old_x_met_width = self._x_axle.met_width
-        self._x_axle.met_width = 0
 
         divised_step = self.__step_grid_x / self._x_axle.divisor
         digit_count = max(get_digit_count_after_dot(x / self._x_axle.divisor) for x in x_metki_coords)
         digit_count = max(get_digit_count_after_dot(divised_step), digit_count)
         if divised_step < 0.5:
             digit_count = max(2, digit_count)
+
+        # формирование подписей осей
+        if self.__convert_to_hhmmss and self._x_axis_min >= 0:
+            metki_str = [convert_timestamp_to_human_time(x / self._x_axle.divisor + self.__initial_timestamp, divised_step < 1) for x in x_metki_coords]
+        else:
+            if self._x_axle.logarithmic:
+                metki_str = ["10" + get_upper_index(int(log10(x / self._x_axle.divisor))) for x in x_metki_coords]
+            else:
+                metki_str = [self.__get_rounded_tick(x / self._x_axle.divisor, divised_step, digit_count if self._digits_count < 0 else self._digits_count) for x in x_metki_coords]
+        metrics = QFontMetrics(font)
+        # расчёт максимальной ширины подписи
+        self._x_axle.met_width = max(metrics.horizontalAdvance(st) for st in metki_str)
         
-        for x in x_metki_coords:
+        prev_met_x = -1000
+        for i, x in enumerate(x_metki_coords):
             x_w = self._real_to_window_x(x)  # оконная координата метки
             
             if self._MIN_X < x_w < self._MAX_X:
@@ -1122,22 +1134,13 @@ class Axles(QWidget):
                     # подписи осей
                     self._qp.setPen(txt_pen)
                     x = x / self._x_axle.divisor
-                    if self.__convert_to_hhmmss and self._x_axis_min >= 0:
-                        tmp_str = convert_timestamp_to_human_time(x + self.__initial_timestamp, divised_step < 1)
-                    else:
-                        if self._x_axle.logarithmic:
-                            power_of_ten = int(log10(x))
-                            tmp_str = "10" + get_upper_index(power_of_ten)
-                        else:
-                            tmp_str = self.__get_rounded_tick(x, divised_step, digit_count if self._digits_count < 0 else self._digits_count)
-
-                    tmp_str_width = QFontMetrics(font).horizontalAdvance(tmp_str)
-                    if tmp_str_width > self._x_axle.met_width:
-                        self._x_axle.met_width = tmp_str_width
+                    tmp_str_width = metrics.horizontalAdvance(metki_str[i])
 
                     if self._MIN_X + 30 < x_w < self._MAX_X - self._x_axle.label_size - tmp_str_width:
-                        self._qp.drawText(QRectF(x_w - (tmp_str_width >> 1), self._MAX_Y + 1, tmp_str_width, 20),
-                                          Qt.AlignmentFlag.AlignCenter, tmp_str)
+                        if x_w - prev_met_x >= self._x_axle.met_width + 10:
+                            self._qp.drawText(QRectF(x_w - tmp_str_width / 2, self._MAX_Y + 1, tmp_str_width, 20),
+                                            Qt.AlignmentFlag.AlignCenter, metki_str[i])
+                            prev_met_x = x_w
 
             if self._x_axle.logarithmic:
                 x0_minor = 2 * x
@@ -1156,37 +1159,35 @@ class Axles(QWidget):
                 if self._MIN_X < x_m < self._MAX_X and x_w != x_m:
                     self._qp.drawLine(QLineF(x_m, self._MAX_Y, x_m, self._MIN_Y))
 
-            print(old_x_met_width, self._x_axle.met_width)
-            if abs(old_x_met_width - self._x_axle.met_width) > 5:  # Порог 5 пикселей
-                old_step = self.__step_grid_x
-                new_step = self._update_step_x()
-                old_width_px = old_step / self._real_width * self.__w
-                new_width_px = new_step / self._real_width * self.__w
-                required_width = self._x_axle.met_width + 15
-                
-                # Гистерезис: изменение меньше 10% от текущей ширины деления
-                if abs(old_x_met_width - self._x_axle.met_width) < 0.1 * old_width_px:
-                    self.__step_grid_x = old_step
-                # Принимаем новый шаг если:
-                # 1. Улучшает ситуацию при недостаточной ширине ИЛИ
-                # 2. Делает ширину достаточной
-                elif (new_width_px > old_width_px and old_width_px < required_width) \
-                    or new_width_px >= required_width:
-                    self._redraw_required = True
-                    self.__step_grid_x = new_step
-                else:
-                    self.__step_grid_x = old_step
+        # if abs(old_x_met_width - self._x_axle.met_width) > 5:  # Порог 5 пикселей
+        #     old_step = self.__step_grid_x
+        #     new_step = self._update_step_x()
+        #     old_width_px = old_step / self._real_width * self.__w
+        #     new_width_px = new_step / self._real_width * self.__w
+        #     required_width = self._x_axle.met_width + 15
+        #     # Гистерезис: изменение меньше 10% от текущей ширины деления
+        #     if abs(old_x_met_width - self._x_axle.met_width) < 0.1 * old_width_px:
+        #         self.__step_grid_x = old_step
+        #     # Принимаем новый шаг если:
+        #     # 1. Улучшает ситуацию при недостаточной ширине ИЛИ
+        #     # 2. Делает ширину достаточной
+        #     elif (new_width_px > old_width_px and old_width_px < required_width) \
+        #         or new_width_px >= required_width:
+        #         self.update()
+        #         self.__step_grid_x = new_step
+        #     else:
+        #         self.__step_grid_x = old_step
         
-        if old_x_met_width != self._x_axle.met_width:
-            old_step = self.__step_grid_x
-            new_step = self._update_step_x()
-            old_width_px = new_step / self._real_width * self.__w
-            if old_step > new_step:
-                if old_width_px <= self._x_axle.met_width:
-                    self.update()
-                    self.__step_grid_x = new_step
-                else:
-                    self.__step_grid_x = old_step
+        # if old_x_met_width != self._x_axle.met_width:
+        #     old_step = self.__step_grid_x
+        #     new_step = self._update_step_x()
+        #     old_width_px = new_step / self._real_width * self.__w
+        #     if old_step > new_step:
+        #         if old_width_px <= self._x_axle.met_width:
+        #             self.update()
+        #             self.__step_grid_x = new_step
+        #         else:
+        #             self.__step_grid_x = old_step
 
     def __draw_grid_y(self):
         font = QFont(self.__font)
