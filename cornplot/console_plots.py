@@ -216,3 +216,11 @@ def clear():
         Очистить все окна от графиков.
     """
     _plotter.clear()
+
+
+def set_font(font_name: str, font_size: int):
+    _plotter.set_font(font_name, font_size)
+
+
+def reset_font():
+    _plotter.set_font(None)

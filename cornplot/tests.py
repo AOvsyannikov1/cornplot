@@ -16,13 +16,14 @@ def show_demo_plots_1(dark=False):
 
     plt.set_dark(dark)
     plt.window(1, x=50, y=50)
-    plt.plot(X, Y1, plot_label="Sin x")
-    plt.plot(X, Y2, plot_label="Cos x")
-    plt.plot(X, Y3, plot_label="Gauss")
-    plt.plot(X, Y4, plot_label="Sigmoid")
+    plt.plot(X, Y1, plot_label="Sin x", axes=True)
+    plt.plot(X, Y2, plot_label="Cos x", axes=True)
+    plt.plot(X, Y3, plot_label="Gauss", axes=True)
+    plt.plot(X, Y4, plot_label="Sigmoid", axes=True)
 
     plt.window(2, x=200, y=100)
     plt.subplot(2, 3, 1)
+    plt.set_font("Times new roman", 14)
     plt.plot(X, Y1, plot_label="Sin x")
 
     plt.subplot(2, 3, 2)

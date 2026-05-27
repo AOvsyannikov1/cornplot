@@ -98,7 +98,8 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         
         self.xTypeNormal.clicked.connect(self.__dashboard.disable_human_time_display)
         self.xTypeTime.clicked.connect(self.__dashboard.enable_human_time_display)
-        self.originCheckX.setChecked(self.__dashboard.origin_is_drawing)
+        self.originCheckX.setChecked(self.__dashboard.x_origin_drawing)
+        self.originCheckY.setChecked(self.__dashboard.y_origin_drawing)
 
         self.majorTicksWidthX.setValue(self.__dashboard.x_major_grid_width)
         self.minorTicksWidthX.setValue(self.__dashboard.x_minor_grid_width)

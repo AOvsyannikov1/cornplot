@@ -2,7 +2,7 @@ import sys, uuid
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QWidget, QApplication, QStyleFactory
-from PyQt6.QtGui import QIcon, QGuiApplication
+from PyQt6.QtGui import QIcon, QGuiApplication, QFont
 
 import numpy as np
 
@@ -196,6 +196,7 @@ class CornPlotter:
         self.__datasets: dict[str, int] = dict()
         self.__dark = False
         self.__app_style = "Fusion"
+        self.__font = None
 
     def set_dark(self, dark=True):
         self.__dark = dark
@@ -268,8 +269,16 @@ class CornPlotter:
         win.dashboards[-1].set_y_name(y_label)
         win.dashboards[-1].enable_x_ticks(draw_x)
         win.dashboards[-1].enable_x_label(draw_x)
+        if self.__font:
+            win.dashboards[-1].set_font(self.__font)
         win.add_plot(self.__current_row, self.__current_col, x_arr, y_arr,
                                                              plot_label, linewidth, linestyle, color, scatter, markerwidth)
+        
+    def set_font(self, font_name: str, font_size: int) -> None:
+        self.__font = QFont(font_name, font_size)
+
+    def reset_font(self) -> None:
+        self.__font = None
         
     def auxiliary_line(self, equation: str):
         """

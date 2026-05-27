@@ -78,7 +78,6 @@ class Axles(QWidget):
         self.__convert_to_hhmmss = False    # конвертировать ли значения Х в ЧЧ:ММ:СС
         self.__animated = False
         self._visible = True
-        self.__draw_origin = False
         self._y_scaled = False
         self.__left_button_pressed = False
         self.__scaling_rect_drawing = False
@@ -1126,7 +1125,7 @@ class Axles(QWidget):
             x_w = self._real_to_window_x(x)  # оконная координата метки
             
             if self._MIN_X < x_w < self._MAX_X:
-                if not (x == 0 and self.__draw_origin) and self._x_axle.draw_major_grid:
+                if self._x_axle.draw_major_grid:
                     self._qp.setPen(self._x_axle.pen_major)
                     self._qp.drawLine(QLineF(x_w, self._MAX_Y, x_w, self._MIN_Y))
 
@@ -1233,7 +1232,7 @@ class Axles(QWidget):
                 self._step_grid_y = y
 
             if self._MIN_Y < y_w < self._MAX_Y:
-                if not (y == 0 and self.__draw_origin) and self._y_axle.draw_major_grid:
+                if self._y_axle.draw_major_grid:
                     self._qp.setPen(self._y_axle.pen_major)
                     self._qp.drawLine(QLineF(self._MIN_X, y_w, self._MAX_X, y_w))
                 if self._y_axle.draw_ticks:
@@ -1853,10 +1852,6 @@ class Axles(QWidget):
         return self._y_axle.draw_label
     
     @property
-    def origin_is_drawing(self):
-        return self.__draw_origin
-    
-    @property
     def step_x(self):
         return self.__step_grid_x
     
@@ -1903,6 +1898,14 @@ class Axles(QWidget):
     @property
     def x_axis_max(self):
         return self._x_axis_max
+    
+    @property
+    def x_origin_drawing(self):
+        return self._x_axle.draw_ax
+    
+    @property
+    def y_origin_drawing(self):
+        return self._y_axle.draw_ax
     
     @property
     def x_major_grid_width(self):
