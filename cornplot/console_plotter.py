@@ -29,6 +29,7 @@ class PlotWindow(QWidget):
         self.__datasets: dict[str, int] = dict()
         self.axles_num = 0
         self.__dark = False
+        self.setStyleSheet("background-color: white;")
 
         self.n_rows = 1
         self.n_cols = 1
@@ -43,6 +44,10 @@ class PlotWindow(QWidget):
     def set_dark(self, dark: bool):
         if dark != self.__dark:
             self.__dark = dark
+            if dark:
+                self.setStyleSheet("")
+            else:
+                self.setStyleSheet("background-color: white;")
 
     def add_dashboard(self, row=1, col=1, rows=1, cols=1, x_name='X', y_name='Y', link_plots=True, draw_axes=False):
         if self.__add_axes(row, col, rows, cols):

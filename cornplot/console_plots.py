@@ -7,7 +7,8 @@ from .plot_updater import PlotUpdater
 
 __all__ = ['set_style', 'set_dark', 'plot', 'auxiliary_line', 'scatter', 'polar_plot', 'polar_scatter', 
            'animated_plot', 'add_point_to_animated_plot', 'add_plot_updater',
-           'histogram', 'density_histogram', 'bar_chart', 'pie_chart', 'subplot', 'figure', 'show', 'clear']
+           'histogram', 'density_histogram', 'bar_chart', 'pie_chart', 'subplot', 'figure', 'show', 'clear',
+           "set_font", "reset_font"]
 
 
 def set_style(style: str):

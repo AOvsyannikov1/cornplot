@@ -1945,6 +1945,12 @@ class Axles(QWidget):
             self.__btn_group.set_dark(dark)
             self._redraw_required = True
             self.__dark = dark
+            if dark:
+                self._x_axle.origin_pen.setColor(QColor(0, 0, 0))
+                self._y_axle.origin_pen.setColor(QColor(0, 0, 0))
+            else:
+                self._x_axle.origin_pen.setColor(QColor(255, 255, 255))
+                self._y_axle.origin_pen.setColor(QColor(255, 255, 255))
 
     def _set_buttons_visible(self, visible: bool):
         self.__btn_group.set_buttons_visible(visible)
