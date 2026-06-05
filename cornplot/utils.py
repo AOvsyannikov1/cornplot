@@ -126,7 +126,7 @@ def get_digit_count_after_dot(num: float):
 
 def round_value(num: float, digit_count=-1) -> str:
     st = str(num)
-    if num < 0.001:
+    if abs(num) < 0.001:
         st = f"{num:.3e}"
 
     if 'e' in st or 'E' in st:
