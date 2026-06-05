@@ -224,7 +224,9 @@ def show_demo_animation(dark=False):
     class Update1(PlotUpdater):
         def update_plot(self):
             t = time.monotonic()
-            plt.add_point_to_animated_plot("sinsinsin", t, np.sin(t) + 0.3 * np.cos(3.5 * t))
+            # plt.add_point_to_animated_plot("sinsinsin", t, np.sin(t) + 0.3 * np.cos(3.5 * t))
+
+            plt.add_point_to_animated_plot("sinsinsin", t, np.exp(-(t - t0) / 5))
 
     plt.set_dark(dark)
     plt.window(1, name="Sin, cos")
@@ -237,7 +239,7 @@ def show_demo_animation(dark=False):
     plt.add_plot_updater(Update())
 
     plt.window(2, name="Sinsin", x=500, y=200)
-    plt.animated_plot("sinsinsin", real_time=True)
+    plt.animated_plot("sinsinsin", x_size=20, real_time=True)
     updater = Update1()
     updater.set_delay_ms(25)
     plt.add_plot_updater(updater)
