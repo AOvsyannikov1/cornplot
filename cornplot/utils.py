@@ -28,13 +28,22 @@ def arange(x0, xk, dx):
     return ret
 
 
+def get_digits(a):
+    a = abs(a)
+    digits = []
+    while a > 0:
+        digits.append(a % 10)
+        a //= 10
+    digits.reverse()
+    return digits
+
+
 def get_upper_index(number):
-    dozens = abs(number) // 10
-    ones = abs(number) % 10
-    if dozens == 0:
-        return ("⁻" if number < 0 else "") + UPPER_INDEXES[ones]
-    else:
-        return ("⁻" if number < 0 else "") + UPPER_INDEXES[dozens] + UPPER_INDEXES[ones]
+    res = ("⁻" if number < 0 else "")
+    digits = get_digits(number)
+    for dig in digits:
+        res += UPPER_INDEXES[dig]
+    return res
 
 
 def arabic_to_romanian(number):
@@ -117,6 +126,8 @@ def get_digit_count_after_dot(num: float):
 
 def round_value(num: float, digit_count=-1) -> str:
     st = str(num)
+    if num < 0.001:
+        st = f"{num:.3e}"
 
     if 'e' in st or 'E' in st:
         if 'e' in st:

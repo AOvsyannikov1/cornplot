@@ -569,7 +569,6 @@ class Dashboard(Axles):
             if self._step_grid_y <= 1.0:
                 digits_count = max(3, digits_count)
             y /= self._y_axle.divisor
-
             tmp_str = round_value(y, digits_count)
 
             text_width = QFontMetrics(VALUE_FONT).horizontalAdvance(tmp_str)
