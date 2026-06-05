@@ -181,9 +181,12 @@ class Plot(QObject):
         if self.__animated:
             self.x_size = size
 
-    def add_element(self, x: float, y: float) -> tuple[float, float]:
+    def add_element(self, x: float, y: float) -> tuple[float, float, bool]:
         if not self.__animated:
-            return 0.0, 0.0
+            return 0.0, 0.0, False
+        
+        if self.__real_time:
+            x = time()
 
         if self.__first_point:
             self.__x0 = x
@@ -192,6 +195,9 @@ class Plot(QObject):
             self.__maximums[1] = y
             self.__minimums[0] = x
             self.__minimums[1] = y
+            first = True
+        else:
+            first = False
 
         if self.__limited and len(self.X) >= 2 and self.X[-1] - self.X[0] >= self.x_size:
             if not self.__save_data:
@@ -213,13 +219,13 @@ class Plot(QObject):
             elif self.__minimums[1] > y:
                 self.__minimums[1] = y
         if self.__real_time:
-            self.X.append(time())
+            self.X.append(x)
         else:
             self.X.append(x - self.__x0)
         self.Y.append(y)
         self.index0 = 0
         self.index1 = self.length - 1
-        return self.X[-1], self.Y[-1]
+        return self.X[-1], self.Y[-1], first
 
     def get_element(self, index):
         if len(self.X) == 0:

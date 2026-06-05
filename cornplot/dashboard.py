@@ -375,18 +375,26 @@ class Dashboard(Axles):
                 if not plt.animated:
                     break
 
-                x, y = plt.add_element(x, y)
+                x, y, first_point = plt.add_element(x, y)
 
-                if x > self._xstop:
-                    self._xstop = x
-                    self._x_axis_max = x
-                    if plt.limited:
-                        self._xstart = self._xstop - self._real_width
-                        if not plt.save_data:
-                            self._x_axis_min = self._xstart
-                    else:
-                        self._real_width = self._xstop - self._xstart
-                        self._update_step_x()
+                if first_point:
+                    if x > self._xstart:
+                        self._xstart = x
+                        self._xstop = x + self._real_width
+                        self._x_axis_min = x
+                        self._x_axis_max = self._xstop
+                        self._update_x_borders(self._xstart, self._xstop)
+                else:
+                    if x > self._xstop:
+                        self._xstop = x
+                        self._x_axis_max = x
+                        if plt.limited:
+                            self._xstart = self._xstop - self._real_width
+                            if not plt.save_data:
+                                self._x_axis_min = self._xstart
+                        else:
+                            self._real_width = self._xstop - self._xstart
+                            self._update_step_x()
                     self._update_x_borders(self._xstart, self._xstop)
 
                 self._calculate_y_parameters()
@@ -1122,7 +1130,6 @@ class Dashboard(Axles):
     def restart_animation(self, **kwargs) -> None:
         super().restart_animation(**kwargs)
         x_size = 10
-
         self._zoom_out()
         plots_to_delete = list()
         for plt in self.__plots:
