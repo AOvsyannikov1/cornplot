@@ -794,11 +794,12 @@ class Dashboard(Axles):
                 self._set_y_start(ystart)
                 self._set_y_stop(ystop)
         
-        if self._y_axis_max == self._y_axis_min:
-            self._y_axis_min -=1
-            self._y_axis_max += 1
-            self._set_y_start(self._y_axis_min)
-            self._set_y_stop(self._y_axis_max)
+        if self._ystart == self._ystop:
+            self._ystart -=1
+            self._ystop += 1
+            self._real_height = self._ystop - self._ystart
+            # self._set_y_start(self._y_axis_min)
+            # self._set_y_stop(self._y_axis_max)
 
     def __draw_point_on_graph(self):
         if self._selectingPointGraph < 0:
