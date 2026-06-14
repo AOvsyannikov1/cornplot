@@ -42,7 +42,7 @@ class CustomButton(QPushButton):
 
 class ButtonGroup:
     def __init__(self, widget: QWidget, w, h):
-        self.pause_button = CustomButton(widget)
+        self.pause_button = CustomButton(widget, self.__restart_timer)
         self.pause_button.setGeometry(w - 56, 22, 25, 25)
         self.pause_button.setIcon(QIcon(get_image_path("pause.png")))
         self.pause_button.setToolTip("Пауза / Старт")
@@ -50,7 +50,7 @@ class ButtonGroup:
         self.pause_button.show()
         self.pause_button.setVisible(False)
 
-        self.restart_button = CustomButton(widget)
+        self.restart_button = CustomButton(widget, self.__restart_timer)
         self.restart_button.setGeometry(w - 28, 22, 25, 25)
         self.restart_button.setIcon(QIcon(get_image_path("restart.png")))
         self.restart_button.setToolTip("Перезапуск анимации")
@@ -106,12 +106,16 @@ class ButtonGroup:
         self.fix_button.setToolTip("Закрепить нуль Y")
         self.fix_button.setStyleSheet(button_style(False))
 
-        self.lower_buttons = (
+        self.__lower_buttons = (
             self.more_button, self.save_button, self.back_button, 
             self.zoom_button, self.add_vert_button, self.clear_button, self.fix_button
         )
 
-        for btn in self.lower_buttons:
+        self.__upper_buttons = (
+            self.restart_button, self.pause_button
+        )
+
+        for btn in self.__lower_buttons:
             btn.raise_()
             btn.raise_()
             btn.raise_()
@@ -131,7 +135,7 @@ class ButtonGroup:
 
     def set_buttons_visible(self, visible):
         self.__visible = visible
-        for button in self.lower_buttons:
+        for button in self.__lower_buttons:
             button.setVisible(visible)
 
         self.pause_button.setVisible(visible and self.__animated)
@@ -142,7 +146,7 @@ class ButtonGroup:
         button_step = 28
         button_y0 = offset_y + ax_h - 7
         button_size = 25
-        for i, button in enumerate(self.lower_buttons):
+        for i, button in enumerate(self.__lower_buttons):
             button.setGeometry(button_x0 - button_step * i, button_y0, button_size, button_size)
 
         button_y0 = 22
@@ -156,7 +160,7 @@ class ButtonGroup:
         TIMEOUT = 2
         T = monotonic() - self.__button_tmr
         if T <= TIMEOUT and not self.__buttons_visible:
-            for button in self.lower_buttons:
+            for button in self.__lower_buttons + self.__upper_buttons:
                 opacity = QGraphicsOpacityEffect(button)
                 opacity.setOpacity(1.0)
                 button.setGraphicsEffect(opacity)
@@ -164,7 +168,7 @@ class ButtonGroup:
             self.__buttons_visible = True
 
         elif T > TIMEOUT and self.__buttons_visible:
-            for button in self.lower_buttons:
+            for button in self.__lower_buttons + self.__upper_buttons:
                 opacity = QGraphicsOpacityEffect(button)
                 opacity.setOpacity(0.2)
                 button.setGraphicsEffect(opacity)
@@ -173,7 +177,7 @@ class ButtonGroup:
 
     def set_dark(self, dark: bool):
         if self.__dark != dark:
-            for button in self.lower_buttons:
+            for button in self.__lower_buttons:
                 button.setStyleSheet(button_style(dark))
 
             self.pause_button.setStyleSheet(button_style(dark))
