@@ -181,6 +181,16 @@ def show_demo_plots_5(dark=False):
     plt.show()
 
 
+def show_demo_plots_6(dark=False):
+    X = np.arange(-3.14, 3.14, 0.01)
+    Y1 = np.sin(X)
+    Y2 = np.cos(X)
+
+    plt.set_dark(dark)
+    plt.fill_between(X, Y1, Y2, plot_label="Sin and Cos")
+    plt.show()
+
+
 def show_demo_histogram(dark=False):
     X = np.random.beta(a=2, b=5, size=100000)
 

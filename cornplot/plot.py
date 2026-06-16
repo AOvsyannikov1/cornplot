@@ -75,7 +75,7 @@ class Plot(QObject):
             self.__checkbox = QCheckBox(widget)
             self.__checkbox.setText(self.name)
             self.__checkbox.setChecked(True)
-            self.__checkbox.setGeometry(checkbox_x, 2, self.__chb_width, 20)
+            self.__checkbox.setGeometry(checkbox_x, 0, self.__chb_width, 20)
             self.__checkbox.setFont(font)
             self.__checkbox.toggled["bool"].connect(self.set_visible)
 

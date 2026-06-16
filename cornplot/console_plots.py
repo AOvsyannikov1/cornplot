@@ -8,7 +8,7 @@ from .plot_updater import PlotUpdater
 __all__ = ['set_style', 'set_dark', 'plot', 'auxiliary_line', 'scatter', 'polar_plot', 'polar_scatter', 
            'animated_plot', 'add_point_to_animated_plot', 'add_plot_updater',
            'histogram', 'density_histogram', 'bar_chart', 'pie_chart', 'subplot', 'figure', 'show', 'clear',
-           "set_font", "reset_font"]
+           "set_font", "reset_font", "fill_between", "hide_buttons"]
 
 
 def set_style(style: str):
@@ -17,6 +17,10 @@ def set_style(style: str):
 
 def set_dark(dark: bool = True):
     _plotter.set_dark(dark)
+
+
+def hide_buttons(hide: bool = True):
+    _plotter.hide_buttons(hide)
 
 
 def plot(x_arr: Iterable[float], y_arr: Iterable[float] | None = None, x_label: str="X", 
@@ -33,6 +37,7 @@ def plot(x_arr: Iterable[float], y_arr: Iterable[float] | None = None, x_label: 
         :param color: Цвет графика. Если равен any, генерируется автоматически.
         :param synchronise_plots: Синхронизировать ли оси, расположенные в одном окне.
         :param axes: Рисовать ли оси.
+        :param hide_buttons: Скрывать кнопки полностью.
     """
     if y_arr is None:
         y_arr = list(x_arr)
@@ -40,6 +45,23 @@ def plot(x_arr: Iterable[float], y_arr: Iterable[float] | None = None, x_label: 
     _plotter.plot(x_arr, y_arr, x_label=x_label, y_label=y_label, plot_label=plot_label, linewidth=linewidth,
                 color=color, link_plots=synchronise_plots, axes=axes)
     
+
+def fill_between(x_arr: Iterable[float], y_arr1: Iterable[float], y_arr2: Iterable[float], x_label: str="X", 
+         y_label: str = "Y", plot_label: str = '', color="any", opacity=128):
+    """
+        Добавить заливку между графиками.
+
+        :param x_arr: Массив значений Х.
+        :param y_arr1: Массив значений У первого графика.
+        :param y_arr2: Массив значений У второго графика.
+        :param x_label: Имя оси Х.
+        :param y_label: Имя оси У.
+        :param plot_label: Название заливки.
+        :param color: Цвет графика. Если равен any, генерируется автоматически.
+        :param opacity: Непрозрачность (0 - 255).
+    """
+    _plotter.fill_between(x_arr, y_arr1, y_arr2, x_label=x_label, y_label=y_label, plot_label=plot_label, color=color, opacity=opacity)
+
 
 def auxiliary_line(equation: str):
     """

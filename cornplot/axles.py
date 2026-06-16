@@ -161,6 +161,9 @@ class Axles(QWidget):
         self._redraw()
         self._qp.end()
 
+    def set_buttons_idle_opacity(self, opacity):
+        self.__btn_group.set_idle_opacity(opacity)
+
     def _redraw(self) -> None:
         if not self.__visible:
             return

@@ -125,7 +125,18 @@ class ButtonGroup:
         self.__animated = False
         self.__visible = True
         self.__dark = False
+        self.__idle_opacity = 0.2
+        self.__need_to_change_opacity = False
         self.setGeometry(0, 0, w, h)
+
+    def set_idle_opacity(self, opacity):
+        if opacity < 0:
+            opacity = 0
+        if opacity > 1:
+            opacity = 1
+        if opacity != self.__idle_opacity:
+            self.__need_to_change_opacity = True
+            self.__idle_opacity = opacity
 
     def set_animated(self, animated: bool):
         self.__animated = animated
@@ -167,12 +178,12 @@ class ButtonGroup:
 
             self.__buttons_visible = True
 
-        elif T > TIMEOUT and self.__buttons_visible:
+        elif T > TIMEOUT and self.__buttons_visible or self.__need_to_change_opacity:
             for button in self.__lower_buttons + self.__upper_buttons:
                 opacity = QGraphicsOpacityEffect(button)
-                opacity.setOpacity(0.2)
+                opacity.setOpacity(self.__idle_opacity)
                 button.setGraphicsEffect(opacity)
-
+            self.__need_to_change_opacity = False
             self.__buttons_visible = False
 
     def set_dark(self, dark: bool):

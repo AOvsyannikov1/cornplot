@@ -49,7 +49,7 @@ class PlotWindow(QWidget):
             else:
                 self.setStyleSheet("background-color: white;")
 
-    def add_dashboard(self, row=1, col=1, rows=1, cols=1, x_name='X', y_name='Y', link_plots=True, draw_axes=False):
+    def add_dashboard(self, row=1, col=1, rows=1, cols=1, x_name='X', y_name='Y', link_plots=True, draw_axes=False, hide_buttons=False):
         if self.__add_axes(row, col, rows, cols):
             dashboard = Dashboard(self, 0, 0, self.width() - 200, self.height() - 100)
             dashboard.set_y_name(y_name)
@@ -57,6 +57,7 @@ class PlotWindow(QWidget):
             dashboard.enable_origin_drawing_x(draw_axes)
             dashboard.enable_origin_drawing_y(draw_axes)
             dashboard.set_dark(self.__dark)
+            dashboard.set_buttons_idle_opacity(0 if hide_buttons else 0.2)
             if link_plots:
                 dashboard.move_to_group(self.__group_id)
             self.dashboards.append(dashboard)
@@ -95,6 +96,10 @@ class PlotWindow(QWidget):
         self.dashboards[index].set_plot_markerstyle(plt_name, Qt.PenCapStyle.RoundCap)
         self.dashboards[index].set_plot_markerwidth(plt_name, markerwidth)
         self.dashboards[index].plot_draw_line(plt_name, not scatter)
+
+    def fill_between_plots(self, row, col, x_arr, y_arr1, y_arr2, name='', opacity=128, color='any'):
+        index = self.dashboard_locations.index((row, col))
+        self.dashboards[index].fill_between(x_arr, y_arr1, y_arr2, name=name, opacity=opacity, color=color)
 
     def add_auxiliary_line(self, row, col, equation):
         index = self.dashboard_locations.index((row, col))
@@ -202,9 +207,13 @@ class CornPlotter:
         self.__dark = False
         self.__app_style = "Fusion"
         self.__font = None
+        self.__hide_buttons = False
 
     def set_dark(self, dark=True):
         self.__dark = dark
+
+    def hide_buttons(self, hide):
+        self.__hide_buttons = hide
 
     def window(self, num, name="", x=100, y=100, w=1000, h=600):
         """
@@ -269,7 +278,7 @@ class CornPlotter:
         self.__create_qapp()
         win = self.__add_window()
         win.add_dashboard(self.__current_row, self.__current_col, rows=self.__nrows, cols=self.__ncols,
-                          x_name=x_label, y_name=y_label, link_plots=link_plots, draw_axes=axes)
+                          x_name=x_label, y_name=y_label, link_plots=link_plots, draw_axes=axes, hide_buttons=self.__hide_buttons)
         win.dashboards[-1].set_x_name(x_label)
         win.dashboards[-1].set_y_name(y_label)
         win.dashboards[-1].enable_x_ticks(draw_x)
@@ -278,6 +287,19 @@ class CornPlotter:
             win.dashboards[-1].set_font(self.__font)
         win.add_plot(self.__current_row, self.__current_col, x_arr, y_arr,
                                                              plot_label, linewidth, linestyle, color, scatter, markerwidth)
+        
+    def fill_between(self, x_arr, y_arr1, y_arr2, x_label="X", y_label="Y", plot_label='', opacity=128, color='any', link_plots=True, axes=False, draw_x=True):
+        self.__create_qapp()
+        win = self.__add_window()
+        win.add_dashboard(self.__current_row, self.__current_col, rows=self.__nrows, cols=self.__ncols,
+                          x_name=x_label, y_name=y_label, link_plots=link_plots, draw_axes=axes, hide_buttons=self.__hide_buttons)
+        win.dashboards[-1].set_x_name(x_label)
+        win.dashboards[-1].set_y_name(y_label)
+        win.dashboards[-1].enable_x_ticks(draw_x)
+        win.dashboards[-1].enable_x_label(draw_x)
+        if self.__font:
+            win.dashboards[-1].set_font(self.__font)
+        win.fill_between_plots(self.__current_row, self.__current_col, x_arr, y_arr1, y_arr2, name=plot_label, opacity=opacity, color=color)
         
     def set_font(self, font_name: str, font_size: int) -> None:
         self.__font = QFont(font_name, font_size)
@@ -293,7 +315,7 @@ class CornPlotter:
         """
         self.__create_qapp()
         win = self.__add_window()
-        win.add_dashboard(self.__current_row, self.__current_col, self.__nrows, self.__ncols)
+        win.add_dashboard(self.__current_row, self.__current_col, self.__nrows, self.__ncols, hide_buttons=self.__hide_buttons)
         win.add_auxiliary_line(self.__current_row, self.__current_col, equation)
         
     def animated_plot(self, plot_label: str, x_size=30, x_label="X", y_label="Y", linewidth=2, linestyle='solid', color='any', 
@@ -317,7 +339,7 @@ class CornPlotter:
         self.__create_qapp()
         win = self.__add_window()
         win.add_dashboard(self.__current_row, self.__current_col, rows=self.__nrows, cols=self.__ncols,
-                                                             x_name=x_label, y_name=y_label, link_plots=link_plots, draw_axes=axes)
+                                                             x_name=x_label, y_name=y_label, link_plots=link_plots, draw_axes=axes, hide_buttons=self.__hide_buttons)
         win.dashboards[-1].set_x_name(x_label)
         win.dashboards[-1].set_y_name(y_label)
         win.add_animated_plot(self.__current_row, self.__current_col, plot_label, x_size, linewidth, linestyle, color, limit_data, save_data, real_time)
@@ -362,7 +384,7 @@ class CornPlotter:
         self.__create_qapp()
         win = self.__add_window()
         win.add_dashboard(self.__current_row, self.__current_col, self.__nrows, self.__ncols,
-                                                             x_name=x_label, y_name=y_label, link_plots=link_plots, draw_axes=False)
+                                                             x_name=x_label, y_name=y_label, link_plots=link_plots, draw_axes=False, hide_buttons=self.__hide_buttons)
         win.dashboards[-1].set_x_name(x_label)
         win.dashboards[-1].set_y_name(y_label)
         win.add_histogram(self.__current_row, self.__current_col, data, intervals_count=intervals_count, name=hist_label, color=color, probabilities=probabilities)
@@ -382,7 +404,7 @@ class CornPlotter:
         self.__create_qapp()
         win = self.__add_window()
         win.add_dashboard(self.__current_row, self.__current_col, self.__nrows, self.__ncols,
-                                                             x_name=x_label, y_name=y_label, link_plots=link_plots, draw_axes=False)
+                                                             x_name=x_label, y_name=y_label, link_plots=link_plots, draw_axes=False, hide_buttons=self.__hide_buttons)
         win.dashboards[-1].set_x_name(x_label)
         win.dashboards[-1].set_y_name(y_label)
         win.add_density_histogram(self.__current_row, self.__current_col, data, intervals_count=intervals_count, name=hist_label, color=color)
