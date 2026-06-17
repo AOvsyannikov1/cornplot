@@ -44,5 +44,7 @@ class ExponentialFilter:
             self.prev_val = data
             return data
 
-        self.prev_val += self.k * (data - self.prev_val)
+        # self.prev_val += self.k * (data - self.prev_val)
+        y = self.k * data + (1 - self.k) * self.prev_val
+        self.prev_val = y
         return self.prev_val
