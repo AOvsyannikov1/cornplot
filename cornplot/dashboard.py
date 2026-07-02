@@ -1,6 +1,7 @@
-import pickle
+import pickle, csv
 from math import log2, floor
 from typing import Any
+from pathlib import Path
 
 from PyQt6.QtCore import QPointF, QLineF, QRectF, pyqtSlot as Slot, Qt, QMutexLocker, QMutex
 from PyQt6.QtWidgets import QMessageBox, QWidget
@@ -57,6 +58,32 @@ class Dashboard(Axles):
         for plt in self.__plots:
             chb_x += plt.get_checkbox_width()
         return chb_x
+    
+    def add_plots_from_csv(self, file_name: str, plot_labels=None):
+        if len(file_name) <= 0:
+            return
+        try:
+            with open(file_name, "r") as f:
+                reader = csv.reader(f)
+                x_arr = list()
+                y_arrays = list()
+                for i, row in enumerate(reader):
+                    if i == 0:
+                        for j in range(len(row) - 1):
+                            y_arrays.append(list())
+                    try:
+                        values = list(map(float, row))     
+                    except:
+                        continue
+                    x_arr.append(values[0])
+                    for j in range(len(values) - 1):
+                        y_arrays[j].append(values[j + 1])
+        except FileNotFoundError:
+            return
+        
+        for i, y_arr in enumerate(y_arrays):
+            label = Path(file_name).stem + f" - {i + 1}" if plot_labels is None or i >= len(plot_labels) else plot_labels[i]
+            self.add_plot(x_arr, y_arr, name=label)
 
     def add_plot(self, x_arr, y_arr=None, name='', linewidth=2.0, linestyle='solid',
                  color='any', accurate=False, initial_ts=0) -> str | None:

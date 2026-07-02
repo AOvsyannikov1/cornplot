@@ -1268,28 +1268,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
     @Slot()
     def __import_plot_from_csv(self):
         fileName, _ = QFileDialog.getOpenFileName(self, "Импорт из файла", filter="CSV files (*.csv)")
-        if len(fileName) > 0:
-            try:
-                with open(fileName, "r") as f:
-                    reader = csv.reader(f)
-                    x_arr = list()
-                    y_arrays = list()
-                    for i, row in enumerate(reader):
-                        if i == 0:
-                            for j in range(len(row) - 1):
-                                y_arrays.append(list())
-                        try:
-                            values = list(map(float, row))     
-                        except:
-                            continue
-                        x_arr.append(values[0])
-                        for j in range(len(values) - 1):
-                            y_arrays[j].append(values[j + 1])
-            except FileNotFoundError:
-                self.__show_error("Файл не найден!")
-            
-            for i, y_arr in enumerate(y_arrays):
-                self.__dashboard.add_plot(x_arr, y_arr, name=pathlib.Path(fileName).stem)
+        self.__dashboard.add_plots_from_csv(fileName)
         
     def __show_error(self, error: str):
         self.__errBox = QMessageBox()
