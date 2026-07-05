@@ -97,9 +97,9 @@ class PlotWindow(QWidget):
         self.dashboards[index].set_plot_markerwidth(plt_name, markerwidth)
         self.dashboards[index].plot_draw_line(plt_name, not scatter)
 
-    def add_plots_csv(self, row, col, file_name: str, plot_labels=None):
+    def add_plots_from_file(self, row, col, file_name: str, plot_labels=None):
         index = self.dashboard_locations.index((row, col))
-        self.dashboards[index].add_plots_from_csv(file_name, plot_labels=plot_labels)
+        self.dashboards[index].add_plots_from_file(file_name, plot_labels=plot_labels)
 
     def fill_between_plots(self, row, col, x_arr, y_arr1, y_arr2, name='', opacity=128, color='any'):
         index = self.dashboard_locations.index((row, col))
@@ -292,7 +292,7 @@ class CornPlotter:
         win.add_plot(self.__current_row, self.__current_col, x_arr, y_arr,
                                                              plot_label, linewidth, linestyle, color, scatter, markerwidth)
         
-    def plot_csv(self, file_name: str, x_label="X", y_label="Y", plot_labels=None, link_plots=True, axes=False, draw_x=True):
+    def plot_from_file(self, file_name: str, x_label="X", y_label="Y", plot_labels=None, link_plots=True, axes=False, draw_x=True):
         self.__create_qapp()
         win = self.__add_window()
         win.add_dashboard(self.__current_row, self.__current_col, rows=self.__nrows, cols=self.__ncols,
@@ -301,7 +301,7 @@ class CornPlotter:
         win.dashboards[-1].set_y_name(y_label)
         win.dashboards[-1].enable_x_ticks(draw_x)
         win.dashboards[-1].enable_x_label(draw_x)
-        win.add_plots_csv(self.__current_row, self.__current_col, file_name, plot_labels)
+        win.add_plots_from_file(self.__current_row, self.__current_col, file_name, plot_labels)
         
     def fill_between(self, x_arr, y_arr1, y_arr2, x_label="X", y_label="Y", plot_label='', opacity=128, color='any', link_plots=True, axes=False, draw_x=True):
         self.__create_qapp()

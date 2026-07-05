@@ -8,7 +8,7 @@ from .plot_updater import PlotUpdater
 __all__ = ['set_style', 'set_dark', 'plot', 'auxiliary_line', 'scatter', 'polar_plot', 'polar_scatter', 
            'animated_plot', 'add_point_to_animated_plot', 'add_plot_updater',
            'histogram', 'density_histogram', 'bar_chart', 'pie_chart', 'subplot', 'figure', 'show', 'clear',
-           "set_font", "reset_font", "fill_between", "hide_buttons", "plot_csv"]
+           "set_font", "reset_font", "fill_between", "hide_buttons", "plot_from_file"]
 
 
 def set_style(style: str):
@@ -23,18 +23,18 @@ def hide_buttons(hide: bool = True):
     _plotter.hide_buttons(hide)
 
 
-def plot_csv(file_name, x_label: str="X", y_label: str = "Y", plot_labels: list[str] | None = None, synchronise_plots=True, axes=True):
+def plot_from_file(file_name, x_label: str="X", y_label: str = "Y", plot_labels: list[str] | None = None, synchronise_plots=True, axes=True):
     """
         Добавить статичные графики из файла csv. Данные должны быть записаны в формате X,Y1,Y2...Yn.
 
-        :param file_name: Путь к csv файлу.
+        :param file_name: Путь к csv/cplt файлу.
         :param x_label: Имя оси Х.
         :param y_label: Имя оси У.
         :param plot_labels: Коллекция названий графиков.
         :param synchronise_plots: Синхронизировать ли оси, расположенные в одном окне.
         :param axes: Рисовать ли оси.
     """
-    _plotter.plot_csv(file_name, x_label=x_label, y_label=y_label, plot_labels=plot_labels, link_plots=synchronise_plots, axes=axes)
+    _plotter.plot_from_file(file_name, x_label=x_label, y_label=y_label, plot_labels=plot_labels, link_plots=synchronise_plots, axes=axes)
 
 
 

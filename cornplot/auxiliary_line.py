@@ -4,6 +4,8 @@ from array import array
 from PyQt6.QtCore import QLineF
 
 class AuxiliaryLine:
+    __slots__ = ["X", "Y", "line", "__equation", "__xmin", "__xmax"]
+
     def __init__(self):
         self.X = array("d")
         self.Y = array("d")
@@ -12,9 +14,6 @@ class AuxiliaryLine:
 
         self.__xmin = 0.0
         self.__xmax = 10.0
-
-        self.__k = 1
-        self.__b = 0
 
     def set_x_limits(self, xmin: float, xmax: float) -> None:
         if xmin < xmax:

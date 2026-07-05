@@ -1030,6 +1030,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
 
     @Slot()
     def __filter_plot(self):
+        from .utils import total_size
         plot = self.__plots[self.plotName.currentIndex()]
         x_arr = plot.X
         y_arr = plot.Y

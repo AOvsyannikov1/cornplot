@@ -1,12 +1,13 @@
 import dataclasses
 from math import log, exp, pow
 from array import array
-from datetime import datetime, timezone
+from datetime import datetime
 import importlib.resources as pkg_resources
 from pathlib import Path
 
 from PyQt6.QtGui import QColor
 import numpy as np
+import sys
 
 
 UPPER_INDEXES = ('⁰', '¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹')
@@ -68,6 +69,22 @@ def convert_timestamp_to_human_time(timestamp, millis=False):
 
 def round_custom(num, step):
     return round(num / step) * step
+
+
+def total_size(obj):
+    """Рекурсивно подсчитывает полный размер объекта"""
+    seen = set()
+    def _sizeof(o):
+        if id(o) in seen:
+            return 0
+        seen.add(id(o))
+        size = sys.getsizeof(o)
+        if hasattr(o, '__dict__'):
+            size += _sizeof(o.__dict__)
+        if isinstance(o, (list, tuple, set, frozenset)):
+            size += sum(_sizeof(i) for i in o)
+        return size
+    return _sizeof(obj)
 
 
 class Gradient:

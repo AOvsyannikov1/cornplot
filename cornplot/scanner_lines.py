@@ -1,4 +1,5 @@
 class VerticalLine:
+    __slots__ = ("__x", "__selected", "__visible")
 
     def __init__(self):
         self.__x = 0.0
@@ -52,9 +53,6 @@ class VerticalLineList(list[VerticalLine]):
     def any_selected(self):
         return any(l.is_selected() and l.is_visible() for l in self)
     
-    def select_line(self):
-        ...
-
     def add_line(self, coord):
         for l in self:
             if not l.is_visible():

@@ -1,6 +1,7 @@
 from PyQt6.QtCore import QLineF
 
 class PolarScannerLine:
+    __slots__ = ("angle", "selected", "visible", "rotate", "line")
 
     def __init__(self):
         self.angle = 0

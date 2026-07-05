@@ -7,6 +7,8 @@ from PyQt6.QtGui import QPen
 
 
 class PolarPlot:
+    __slots__ = ("radiuses", "angles", "X", "Y", "pen", "points", "lines",
+                 "draw_line", "draw_markers", "accurate")
 
     def __init__(self, r: Iterable[float], a: Iterable[float], pen: QPen):
         self.radiuses: array = array('d', r)

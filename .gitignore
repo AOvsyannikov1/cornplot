@@ -7,3 +7,4 @@ venv/
 *.csv
 CSV/
 main.py
+*.cplt
