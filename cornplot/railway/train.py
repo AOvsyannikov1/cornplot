@@ -1,30 +1,25 @@
-from time import monotonic
 from PyQt6.QtGui import QPainter, QColor
+from ..color_generator import ColorGenerator
 
-from ..filters import MovingAverageFilter
+train_color_generator = ColorGenerator()
 
 
 class Train:
+    __slots__ = ("L", "X", "h", "last_len", "dark", "colors")
 
     def __init__(self, car_lengths: list[float], dark: bool = False, colors: list[QColor] | None = None) -> None:
         self.L = [l for l in car_lengths]
         self.X = [i * self.L[i] for i in range(len(self.L))]
-        self.__speed: float = 0
         if colors:
             self.colors = [QColor(color) for color in colors]
         else:
-            self.colors = [QColor("blue") for _ in range(len(self.L))]
+            color = QColor(train_color_generator.get_color())
+            self.colors = [color for _ in range(len(self.L))]
         self.h = 10
         self.last_len = 0
         self.dark = dark
-        self.__speed_tmr = monotonic()
-        self.__speed_filter = MovingAverageFilter(20)
 
     def update(self, first_car_coord_meters: float):
-        dx = first_car_coord_meters - self.X[0]
-        self.__speed = self.__speed_filter.filter_data(3.6 * dx / (monotonic() - self.__speed_tmr))
-        self.__speed_tmr = monotonic()
-
         self.X[0] = first_car_coord_meters
         for i in range(1, len(self.X)):
             self.X[i] = self.X[i - 1] - self.L[i - 1]
@@ -50,8 +45,4 @@ class Train:
 
     def set_dark(self, dark: bool):
         self.dark = dark
-
-    @property
-    def speed(self) -> float:
-        return self.__speed
     

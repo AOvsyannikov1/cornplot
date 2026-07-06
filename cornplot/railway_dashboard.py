@@ -7,6 +7,7 @@ from PyQt6.QtCore import QPointF, QRectF, Qt, QLineF
 from .dashboard import Dashboard
 from .railway.semaphore import SemaphoreColor
 from .railway.train_data import TrainData
+from .utils import total_size
 from .railway.track_data import TrackData
 try:
     from track_profile import SlopeCreator
@@ -23,7 +24,9 @@ try:
                 self.set_x_divisor(1000)
 
             self.__train_data = TrainData()
-            self.__track_data = TrackData(widget)
+            self.__track_data = TrackData()
+
+            print(total_size(self.__train_data) + total_size(self.__track_data))
 
             self.__follow_train = False
 
@@ -103,12 +106,12 @@ try:
                     X = train.X
 
                 if self.__follow_train and first:
-                    w = self._real_width
+                    w = self._x_axle.real_size
                     xtrg = X[0] - w / 2
-                    if xtrg + w <= self._x_axis_max and xtrg >= self._x_axis_min:
+                    if xtrg + w <= self._x_axle.max and xtrg >= self._x_axle.min:
                         self._set_x_start(xtrg)
-                        self._set_x_stop(self._xstart + w)
-                        self._update_x_borders(xtrg, self._xstart + w)
+                        self._set_x_stop(self._x_axle.start + w)
+                        self._update_x_borders(xtrg, self._x_axle.start + w)
                     coord_changed = True
                     first = False
 
@@ -121,14 +124,14 @@ try:
                 if abs(self._real_to_window_x(train.X[0]) - self._real_to_window_x(train.X[-1])) <= 15:
                     x = self._real_to_window_x(X[0])
                     y = self._real_to_window_y(self.__profile_data.get_absolute_height(X[0]))
-                    adder = (self._ystop - self._ystart) / (self._MAX_Y - self._MIN_Y) * 5
+                    adder = (self._y_axle.stop - self._y_axle.start) / (self._MAX_Y - self._MIN_Y) * 5
                     ydown.append(y)
                     y -= adder
                     self._qp.setPen(QPen(QColor(128, 128, 128), 1, Qt.PenStyle.DashDotDotLine))
                     self._qp.drawLine(QLineF(x, y, x, self._MAX_Y))
                     self._qp.drawText(QPointF(x + 5, self._MAX_Y - 14), str(num))
-                    self._qp.drawText(QPointF(x + 5, self._MAX_Y - 2), f"x = {X[0] / self._x_axle.divisor:.2f} {'км' if self.__km else 'м'}; v = {train.speed:3.1f} км/ч")
-                    self._qp.setPen(QPen(QColor(0xFF8000), 10, cap=Qt.PenCapStyle.SquareCap))
+                    self._qp.drawText(QPointF(x + 5, self._MAX_Y - 2), f"x = {X[0] / self._x_axle.divisor:.2f} {'км' if self.__km else 'м'}")
+                    self._qp.setPen(QPen(train.colors[0], 10, cap=Qt.PenCapStyle.SquareCap))
                     self._qp.drawPoint(QPointF(x, y))
 
                     x_stop.append(x + 5)
@@ -137,9 +140,9 @@ try:
                 else:
                     first_car = True
                     for x, l in zip(X, train.L):
-                        if self._xstart < x < self._xstop + l:
-                            x0 = max(x - l, self._xstart)
-                            xk = min(x, self._xstop)
+                        if self._x_axle.start < x < self._x_axle.stop + l:
+                            x0 = max(x - l, self._x_axle.start)
+                            xk = min(x, self._x_axle.stop)
                             y0 = self.__profile_data.get_absolute_height(x0)
                             yk = self.__profile_data.get_absolute_height(xk)
 
@@ -147,19 +150,19 @@ try:
                                 delta = 0.4
                                 up_point = max(y0, yk)
                                 down_point = min(y0, yk)
-                                hh = self._real_height
-                                if up_point + delta >= self._ystop:
-                                    if up_point + delta <= self._y_axis_max:
+                                hh = self._y_axle.real_size
+                                if up_point + delta >= self._y_axle.stop:
+                                    if up_point + delta <= self._y_axle.max:
                                         self.set_y_stop(up_point + delta)
-                                        self.set_y_start(self._ystop - hh)
+                                        self.set_y_start(self._y_axle.stop - hh)
                                         coord_changed = True
 
-                                if down_point - delta <= self._ystart:
-                                    if down_point - delta >= self._y_axis_min:
+                                if down_point - delta <= self._y_axle.start:
+                                    if down_point - delta >= self._y_axle.min:
                                         self.set_y_start(down_point - delta)
-                                        self.set_y_stop(self._ystart + hh)
+                                        self.set_y_stop(self._y_axle.start + hh)
                                         coord_changed = True
-                            if not (self._ystart < y0 < self._ystop):
+                            if not (self._y_axle.start < y0 < self._y_axle.stop):
                                 continue
 
                             ywin0 = self._real_to_window_y(y0)
@@ -202,7 +205,7 @@ try:
                                 self._qp.drawLine(QLineF(xwink, ywin0, xwink, self._MAX_Y))
 
                                 self._qp.drawText(QPointF(xwink + 5, self._MAX_Y - 14), str(num))
-                                self._qp.drawText(QPointF(xwink + 5, self._MAX_Y - 2), f"x = {X[0] / self._x_axle.divisor:.2f} {'км' if self.__km else 'м'}; v = {train.speed:3.1f} км/ч")
+                                self._qp.drawText(QPointF(xwink + 5, self._MAX_Y - 2), f"x = {X[0] / self._x_axle.divisor:.2f} {'км' if self.__km else 'м'}")
 
                     train.draw(self._qp, coords, compact=abs(self._real_to_window_x(X[0]) - self._real_to_window_x(X[-1])) / n_cars < 2)
 
@@ -262,8 +265,8 @@ try:
                 semphr.y_real = self.__profile_data.get_absolute_height(semphr.x)
                 semphr.y_win = self._real_to_window_y(semphr.y_real)
             for station in self.__track_data.stations:
-                x0 = max(station.x, self._xstart)
-                xk = min(station.x + station.l, self._xstop)
+                x0 = max(station.x, self._x_axle.start)
+                xk = min(station.x + station.l, self._x_axle.stop)
 
                 y0 = self.__profile_data.get_absolute_height(x0)
                 yk = self.__profile_data.get_absolute_height(xk)
@@ -289,13 +292,13 @@ try:
             prev_x = 0
             for i, semphr in enumerate(self.__track_data.semaphores):
                 
-                if self._xstart < semphr.x < self._xstop:
+                if self._x_axle.start < semphr.x < self._x_axle.stop:
                     if i == 0 or semphr.x_win - prev_x > semphr.r:
                         semphr.draw(self._qp, semphr.x_win, semphr.y_win, up=(semphr.y_win - 2*semphr.r - semphr.h) > self._MIN_Y)
                         prev_x = semphr.x_win
                     
             for station in self.__track_data.stations:
-                if not (self._xstart - station.l < station.x < self._xstop):
+                if not (self._x_axle.start - station.l < station.x < self._x_axle.stop):
                     continue
 
                 station.draw(self._qp, up_txt=False)

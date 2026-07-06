@@ -4,7 +4,7 @@ from array import array
 from PyQt6.QtCore import QLineF
 
 class AuxiliaryLine:
-    __slots__ = ["X", "Y", "line", "__equation", "__xmin", "__xmax"]
+    __slots__ = ("X", "Y", "line", "__equation", "__xmin", "__xmax")
 
     def __init__(self):
         self.X = array("d")
@@ -31,4 +31,3 @@ class AuxiliaryLine:
     def recalculate(self) -> None:
         self.X = array("d", [self.__xmin, self.__xmax])
         self.Y = array("d", [eval(self.__equation) for x in self.X])
-

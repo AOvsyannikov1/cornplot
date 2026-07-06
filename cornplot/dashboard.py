@@ -3,7 +3,7 @@ from math import log2, floor
 from typing import Any
 from pathlib import Path
 
-from PyQt6.QtCore import QPointF, QLineF, QRectF, pyqtSlot as Slot, Qt, QMutexLocker, QMutex
+from PyQt6.QtCore import QPointF, QLineF, QRectF, pyqtSlot as Slot, Qt, QMutexLocker, QMutex, pyqtSignal as Signal
 from PyQt6.QtWidgets import QMessageBox, QWidget
 from PyQt6.QtGui import QPainter, QPen, QColor, QFont, QFontMetrics, QPolygonF, QLinearGradient
 
@@ -19,7 +19,6 @@ from .point import Point
 from .array_utils import *
 
 
-FULL_VERSION = True
 VALUE_FONT = QFont("Consolas, Courier New", 10)
 VALUE_FONT.setBold(True)
 
@@ -28,7 +27,7 @@ mutex = QMutex()
 
 
 class Dashboard(Axles):
-    """Оси координат на которых можно построить статичные и анимированные графики и гистограммы."""
+    dark_signal = Signal(bool)
     __MAX_POINTS = 5000
 
     def __init__(self, widget: QWidget, x: int, y: int, w: int, h: int) -> None:
@@ -123,25 +122,25 @@ class Dashboard(Axles):
 
         max_x = max(x_tmp)
         min_x = min(x_tmp)
-        if min_x < self._x_axis_min or len(self.__plots) == 1:
+        if min_x < self._x_axle.min or len(self.__plots) == 1:
             if self._x_axle.logarithmic:
                 if min_x > 0:
-                    self._x_axis_min = min_x
+                    self._x_axle.min = min_x
                 else:
-                    self._x_axis_min = 0.01
+                    self._x_axle.min = 0.01
             else:
-                self._x_axis_min = min_x
-        self._set_x_start(self._x_axis_min)
+                self._x_axle.min = min_x
+        self._set_x_start(self._x_axle.min)
 
-        if max_x >= self._x_axis_max or len(self.__plots) == 1:
-            self._x_axis_max = max_x
-        self._set_x_stop(self._x_axis_max)
+        if max_x >= self._x_axle.max or len(self.__plots) == 1:
+            self._x_axle.max = max_x
+        self._set_x_stop(self._x_axle.max)
 
         self._calculate_y_parameters()
         self._recalculate_window_coords()
         self._update_step_y()
         self._update_step_x()
-        self._update_x_borders(self._x_axis_min, self._x_axis_max)
+        self._update_x_borders(self._x_axle.min, self._x_axle.max)
 
         if self.__window:
             self.__window.update_plot_info(self.__plots)
@@ -180,25 +179,25 @@ class Dashboard(Axles):
 
         max_x = max(x_tmp)
         min_x = min(x_tmp)
-        if min_x < self._x_axis_min or len(self.__plots) == 2:
+        if min_x < self._x_axle.min or len(self.__plots) == 2:
             if self._x_axle.logarithmic:
                 if min_x > 0:
-                    self._x_axis_min = min_x
+                    self._x_axle.min = min_x
                 else:
-                    self._x_axis_min = 0.01
+                    self._x_axle.min = 0.01
             else:
-                self._x_axis_min = min_x
-        self._set_x_start(self._x_axis_min)
+                self._x_axle.min = min_x
+        self._set_x_start(self._x_axle.min)
 
-        if max_x >= self._x_axis_max or len(self.__plots) == 2:
-            self._x_axis_max = max_x
-        self._set_x_stop(self._x_axis_max)
+        if max_x >= self._x_axle.max or len(self.__plots) == 2:
+            self._x_axle.max = max_x
+        self._set_x_stop(self._x_axle.max)
 
         self._calculate_y_parameters()
         self._recalculate_window_coords()
         self._update_step_y()
         self._update_step_x()
-        self._update_x_borders(self._x_axis_min, self._x_axis_max)
+        self._update_x_borders(self._x_axle.min, self._x_axle.max)
     
     def update_plot(self, name: str, x_arr, y_arr=None, rescale_y=False):
         if not hasattr(x_arr, "__iter__"):
@@ -218,22 +217,22 @@ class Dashboard(Axles):
 
                 max_x = max(x_tmp)
                 min_x = min(x_tmp)
-                if min_x < self._x_axis_min or len(self.__plots) == 1:
+                if min_x < self._x_axle.min or len(self.__plots) == 1:
                     if self._x_axle.logarithmic:
                         if min_x > 0:
-                            self._x_axis_min = min_x
+                            self._x_axle.min = min_x
                         else:
-                            self._x_axis_min = 0.01
+                            self._x_axle.min = 0.01
                     else:
-                        self._x_axis_min = min_x
+                        self._x_axle.min = min_x
 
-                if max_x >= self._x_axis_max or len(self.__plots) == 1:
-                    self._x_axis_max = max_x
+                if max_x >= self._x_axle.max or len(self.__plots) == 1:
+                    self._x_axle.max = max_x
 
                 if len(self.__plots) == 1:
-                    self._set_x_start(self._x_axis_min)
-                    self._set_x_stop(self._x_axis_max)
-                    self._update_x_borders(self._x_axis_min, self._x_axis_max)
+                    self._set_x_start(self._x_axle.min)
+                    self._set_x_stop(self._x_axle.max)
+                    self._update_x_borders(self._x_axle.min, self._x_axle.max)
                 if rescale_y:
                     self._calculate_y_parameters()
                 self._recalculate_window_coords()
@@ -250,14 +249,14 @@ class Dashboard(Axles):
         if real_time:
             self.enable_human_time_display()
 
-        if len(self.__plots) == 0 or self._real_width < x_size:
-            self._xstop = x_size
-            self._x_axis_max = x_size
-            self._real_width = x_size
-            self._xstart = 0
-            self._x_axis_min = 0
+        if len(self.__plots) == 0 or self._x_axle.real_size < x_size:
+            self._x_axle.stop = x_size
+            self._x_axle.max = x_size
+            self._x_axle.real_size = x_size
+            self._x_axle.start = 0
+            self._x_axle.min = 0
             self._update_step_x()
-            self._update_x_borders(self._x_axis_min, self._x_axis_max)
+            self._update_x_borders(self._x_axle.min, self._x_axle.max)
         self.__plots.append(Plot(self, list(), list(), self.__get_pen(color, linewidth, linestyle), name=name, checkbox_x=self.__get_checkbox_x(), 
                                  animated=True, x_size=x_size, limited=limit_data, save_data=save_data, real_time=real_time))
         self.__plots[-1].redraw_signal.connect(self.__process_checkbox_press)
@@ -310,22 +309,22 @@ class Dashboard(Axles):
         self.__plots[-1].redraw_signal.connect(self.__process_checkbox_press)
         self.__plots[-1].set_dark(self.dark)
 
-        if x0 < self._x_axis_min or len(self.__plots) == 1:
-            self._x_axis_min = x0
-        if xk >= self._x_axis_max or len(self.__plots) == 1:
-            self._x_axis_max = xk
+        if x0 < self._x_axle.min or len(self.__plots) == 1:
+            self._x_axle.min = x0
+        if xk >= self._x_axle.max or len(self.__plots) == 1:
+            self._x_axle.max = xk
 
-        if self._x_axis_min < self._xstart:
-            self._xstart = self._x_axis_min
-        if self._x_axis_max > self._xstop:
-            self._xstop = self._x_axis_max
-        self._real_width = self._xstop - self._xstart
+        if self._x_axle.min < self._x_axle.start:
+            self._x_axle.start = self._x_axle.min
+        if self._x_axle.max > self._x_axle.stop:
+            self._x_axle.stop = self._x_axle.max
+        self._x_axle.real_size = self._x_axle.stop - self._x_axle.start
 
         self._calculate_y_parameters()
         self._recalculate_window_coords()
         self._update_step_y()
         self._update_step_x()
-        self._update_x_borders(self._x_axis_min, self._x_axis_max)
+        self._update_x_borders(self._x_axle.min, self._x_axle.max)
 
         if self.__window:
             self.__window.update_plot_info(self.__plots)
@@ -377,22 +376,22 @@ class Dashboard(Axles):
         self.__plots[-1].redraw_signal.connect(self.__process_checkbox_press)
         self.__plots[-1].set_dark(self.dark)
 
-        if x0 < self._x_axis_min or len(self.__plots) == 1:
-            self._x_axis_min = x0
-        if xk >= self._x_axis_max or len(self.__plots) == 1:
-            self._x_axis_max = xk
+        if x0 < self._x_axle.min or len(self.__plots) == 1:
+            self._x_axle.min = x0
+        if xk >= self._x_axle.max or len(self.__plots) == 1:
+            self._x_axle.max = xk
 
-        if self._x_axis_min < self._xstart:
-            self._xstart = self._x_axis_min
-        if self._x_axis_max > self._xstop:
-            self._xstop = self._x_axis_max
-        self._real_width = self._xstop - self._xstart
+        if self._x_axle.min < self._x_axle.start:
+            self._x_axle.start = self._x_axle.min
+        if self._x_axle.max > self._x_axle.stop:
+            self._x_axle.stop = self._x_axle.max
+        self._x_axle.real_size = self._x_axle.stop - self._x_axle.start
 
         self._calculate_y_parameters()
         self._recalculate_window_coords()
         self._update_step_y()
         self._update_step_x()
-        self._update_x_borders(self._x_axis_min, self._x_axis_max)
+        self._update_x_borders(self._x_axle.min, self._x_axle.max)
 
         if self.__window:
             self.__window.update_plot_info(self.__plots)
@@ -411,24 +410,24 @@ class Dashboard(Axles):
                 x, y, first_point = plt.add_element(x, y)
 
                 if first_point:
-                    if x > self._xstart:
-                        self._xstart = x
-                        self._xstop = x + self._real_width
-                        self._x_axis_min = x
-                        self._x_axis_max = self._xstop
-                        self._update_x_borders(self._xstart, self._xstop)
+                    if x > self._x_axle.start:
+                        self._x_axle.start = x
+                        self._x_axle.stop = x + self._x_axle.real_size
+                        self._x_axle.min = x
+                        self._x_axle.max = self._x_axle.stop
+                        self._update_x_borders(self._x_axle.start, self._x_axle.stop)
                 else:
-                    if x > self._xstop:
-                        self._xstop = x
-                        self._x_axis_max = x
+                    if x > self._x_axle.stop:
+                        self._x_axle.stop = x
+                        self._x_axle.max = x
                         if plt.limited:
-                            self._xstart = self._xstop - self._real_width
+                            self._x_axle.start = self._x_axle.stop - self._x_axle.real_size
                             if not plt.save_data:
-                                self._x_axis_min = self._xstart
+                                self._x_axle.min = self._x_axle.start
                         else:
-                            self._real_width = self._xstop - self._xstart
+                            self._x_axle.real_size = self._x_axle.stop - self._x_axle.start
                             self._update_step_x()
-                    self._update_x_borders(self._xstart, self._xstop)
+                    self._update_x_borders(self._x_axle.start, self._x_axle.stop)
 
                 self._calculate_y_parameters()
                 self._update_step_y()
@@ -444,7 +443,7 @@ class Dashboard(Axles):
         line = AuxiliaryLine()
         if not line.set_equation(equation):
             return False
-        line.set_x_limits(self._x_axis_min, self._x_axis_max)
+        line.set_x_limits(self._x_axle.min, self._x_axle.max)
         line.recalculate()
         self.__auxiliary_lines.append(line)
         return True
@@ -480,17 +479,17 @@ class Dashboard(Axles):
 
     def delete_all_plots(self) -> None:
         """Удалить все графики"""
-        self._xstart = 0
-        self._xstop = 10
-        self._ystart = 0
-        self._ystop = 1
+        self._x_axle.start = 0
+        self._x_axle.stop = 10
+        self._y_axle.start = 0
+        self._y_axle.stop = 1
 
-        self._x_axis_min = 0
-        self._x_axis_max = 10
-        self._y_axis_min = 0
-        self._y_axis_max = 1
-        self._real_width = self._xstop - self._xstart
-        self._real_height = self._ystop - self._ystart
+        self._x_axle.min = 0
+        self._x_axle.max = 10
+        self._y_axle.min = 0
+        self._y_axle.max = 1
+        self._x_axle.real_size = self._x_axle.stop - self._x_axle.start
+        self._y_axle.real_size = self._y_axle.stop - self._y_axle.start
         self.__plots.clear()
         self._force_redraw()
         self._update_step_x()
@@ -603,11 +602,11 @@ class Dashboard(Axles):
             ywin = max(self._real_to_window_y(y), self._MIN_Y)
             ywin = min(ywin, self._MAX_Y)
 
-            if len(nearest) > 1 and (y > self._ystop or y < self._ystart):
+            if len(nearest) > 1 and (y > self._y_axle.stop or y < self._y_axle.start):
                 continue
 
-            digits_count = get_digit_count_after_dot(self._step_grid_y) + 1
-            if self._step_grid_y <= 1.0:
+            digits_count = get_digit_count_after_dot(self._y_axle.grid_step) + 1
+            if self._y_axle.grid_step <= 1.0:
                 digits_count = max(3, digits_count)
             y /= self._y_axle.divisor
             tmp_str = round_value(y, digits_count)
@@ -660,8 +659,8 @@ class Dashboard(Axles):
             return
 
         if plt.animated and not self.is_paused():
-            Xwin = c_recalculate_window_x(list(plt.X), self._MIN_X, self._get_width(), self._real_width, self._xstart, plt.index0, plt.index1 + 1, 1)
-            Ywin = c_recalculate_window_y(list(plt.Y), self._MIN_Y, self._get_heignt(), self._real_height, self._ystop, plt.index0, plt.index1 + 1, 1)
+            Xwin = c_recalculate_window_x(list(plt.X), self._MIN_X, self._get_width(), self._x_axle.real_size, self._x_axle.start, plt.index0, plt.index1 + 1, 1)
+            Ywin = c_recalculate_window_y(list(plt.Y), self._MIN_Y, self._get_heignt(), self._y_axle.real_size, self._y_axle.stop, plt.index0, plt.index1 + 1, 1)
             if plt.draw_line and plt.pen.style() == Qt.PenStyle.SolidLine and not plt.is_filling_between():
                 plt.lines = [QLineF(Xwin[i - 1], Ywin[i - 1], Xwin[i], Ywin[i]) for i in range(1, len(Xwin))]
             if plt.draw_markers or plt.pen.style() != Qt.PenStyle.SolidLine or plt.is_filling_between():
@@ -747,22 +746,22 @@ class Dashboard(Axles):
                 min_x = min(minimums)
                 max_x = max(maximums)
             else:
-                min_x = self._xstart
-                max_x = self._xstop
+                min_x = self._x_axle.start
+                max_x = self._x_axle.stop
             if min_x == max_x:
                 max_x += 10
         else:
             min_x = 0
             max_x = 10
         if self._x_axle.logarithmic:
-            self._x_axis_min = min_x if min_x > 0 else 0.01
+            self._x_axle.min = min_x if min_x > 0 else 0.01
         else:
-            self._x_axis_min = min_x
-        self._x_axis_max = max_x
-        if self._xstart < self.x_axis_min:
-            self._set_x_start(self.x_axis_min)
-        if self._xstop > self.x_axis_max:
-            self._set_x_stop(self.x_axis_max)
+            self._x_axle.min = min_x
+        self._x_axle.max = max_x
+        if self._x_axle.start < self._x_axle.min:
+            self._set_x_start(self._x_axle.min)
+        if self._x_axle.stop > self._x_axle.max:
+            self._set_x_stop(self._x_axle.max)
 
     def _calculate_y_parameters(self) -> None:
         """Пересчёт параметров оси У. Нужен при вертикальном масштабировании
@@ -774,22 +773,22 @@ class Dashboard(Axles):
         if len(self.__plots) > 0:
             all_hist = all(plt.is_hist for plt in self.__plots)
             try:
-                self._y_axis_max = max(plt.max(1) for plt in self.__plots if plt.visible)
-                self._y_axis_min = min(plt.min(1) if not plt.is_hist else 0 for plt in self.__plots if plt.visible)
+                self._y_axle.max = max(plt.max(1) for plt in self.__plots if plt.visible)
+                self._y_axle.min = min(plt.min(1) if not plt.is_hist else 0 for plt in self.__plots if plt.visible)
             except ValueError:
-                self._y_axis_max = 1
-                self._y_axis_min = 0
+                self._y_axle.max = 1
+                self._y_axle.min = 0
 
-            if self._y_axle.logarithmic and self._y_axis_min <= 0:
-                self._y_axis_min = 0.01
-            if self._y_axle.logarithmic and self._y_axis_max <= self._y_axis_min:
-                self._y_axis_max = 0.1
+            if self._y_axle.logarithmic and self._y_axle.min <= 0:
+                self._y_axle.min = 0.01
+            if self._y_axle.logarithmic and self._y_axle.max <= self._y_axle.min:
+                self._y_axle.max = 0.1
         else:
-            self._y_axis_max = 1
-            self._y_axis_min = 0 if not self._y_axle.logarithmic else 0.01
+            self._y_axle.max = 1
+            self._y_axle.min = 0 if not self._y_axle.logarithmic else 0.01
 
         if not self._y_scaled:
-            self._set_y_start(0 if not self._y_axle.logarithmic else self._y_axis_min)
+            self._set_y_start(0 if not self._y_axle.logarithmic else self._y_axle.min)
             self._set_y_stop(1)
         max_y_list = []
         min_y_list = []
@@ -817,8 +816,8 @@ class Dashboard(Axles):
 
         if not self._y_scaled:
             if self._y_axle.logarithmic:
-                self._set_y_start(self._y_axis_min)
-                self._set_y_stop(self._y_axis_max)
+                self._set_y_start(self._y_axle.min)
+                self._set_y_stop(self._y_axle.max)
             else:
                 ystart = min_y if self._zero_y_fixed and min_y == 0 else min_y - self._Y_STOP_COEFF
                 if all_hist:
@@ -827,12 +826,12 @@ class Dashboard(Axles):
                 self._set_y_start(ystart)
                 self._set_y_stop(ystop)
         
-        if self._ystart == self._ystop:
-            self._ystart -=1
-            self._ystop += 1
-            self._real_height = self._ystop - self._ystart
-            # self._set_y_start(self._y_axis_min)
-            # self._set_y_stop(self._y_axis_max)
+        if self._y_axle.start == self._y_axle.stop:
+            self._y_axle.start -=1
+            self._y_axle.stop += 1
+            self._y_axle.real_size = self._y_axle.stop - self._y_axle.start
+            # self._set_y_start(self._y_axle.min)
+            # self._set_y_stop(self._y_axle.max)
 
     def __draw_point_on_graph(self):
         if self._selectingPointGraph < 0:
@@ -929,7 +928,7 @@ class Dashboard(Axles):
             self.__recalculate_plot_coords(plt)
 
         for line in self.__auxiliary_lines:
-            line.set_x_limits(self._x_axis_min, self._x_axis_max)
+            line.set_x_limits(self._x_axle.min, self._x_axle.max)
             line.recalculate()
             line.line = QLineF(
                 self._real_to_window_x(line.X[0]), self._real_to_window_y(line.Y[0]),
@@ -945,7 +944,7 @@ class Dashboard(Axles):
 
     def __find_indexes(self, plot: Plot):
         """нахождение индексов начальной и конечной отображаемых точек"""
-        if not self.is_animated() and (plot.X[-1] < self._xstart or plot.X[0] > self._xstop):
+        if not self.is_animated() and (plot.X[-1] < self._x_axle.start or plot.X[0] > self._x_axle.stop):
             return
         plt_len = len(plot)
 
@@ -957,22 +956,22 @@ class Dashboard(Axles):
         if plt_len < 3:
             return
         try:
-            tmp = int(plt_len * (abs(self._xstart - self._x_axis_min) / (self._x_axis_max - self._x_axis_min))) - 1
+            tmp = int(plt_len * (abs(self._x_axle.start - self._x_axle.min) / (self._x_axle.max - self._x_axle.min))) - 1
         except ZeroDivisionError:
             return
         # предположительный индекс начальной точки
         tmp = min(tmp, plt_len - 1)
-        while tmp > 0 and plot.X[tmp] > self._xstart:
+        while tmp > 0 and plot.X[tmp] > self._x_axle.start:
             tmp -= 1
         if tmp < 0:
             tmp = 0
 
         plot.index0 = tmp
 
-        tmp = int(plt_len * (abs(self._xstop - self._x_axis_min) /
-                                 (self._x_axis_max - self._x_axis_min))) - 1
+        tmp = int(plt_len * (abs(self._x_axle.stop - self._x_axle.min) /
+                                 (self._x_axle.max - self._x_axle.min))) - 1
         # предположительный индекс конечной точки
-        while tmp < plt_len - 1 and plot.X[tmp] < self._xstop:
+        while tmp < plt_len - 1 and plot.X[tmp] < self._x_axle.stop:
             tmp += 1
         if tmp > plt_len - 1:
             tmp = plt_len - 1
@@ -1000,12 +999,12 @@ class Dashboard(Axles):
     def __recalculate_plot_x(self, plt: Plot, step):
         if self._x_axle.logarithmic:
             return [self._real_to_window_x(plt.X[i]) for i in range(plt.index0, plt.index1 + 1, step)]
-        return c_recalculate_window_x(list(plt.X), self._MIN_X, self._get_width(), self._real_width, self._xstart, plt.index0, plt.index1 + 1, step)
+        return c_recalculate_window_x(list(plt.X), self._MIN_X, self._get_width(), self._x_axle.real_size, self._x_axle.start, plt.index0, plt.index1 + 1, step)
     
     def __recalculate_plot_y(self, plt: Plot, step):
         if self._y_axle.logarithmic:
             return [self._real_to_window_y(plt.Y[i]) for i in range(plt.index0, plt.index1 + 1, step)]
-        return c_recalculate_window_y(list(plt.Y), self._MIN_Y, self._get_heignt(), self._real_height, self._ystop, plt.index0, plt.index1 + 1, step)
+        return c_recalculate_window_y(list(plt.Y), self._MIN_Y, self._get_heignt(), self._y_axle.real_size, self._y_axle.stop, plt.index0, plt.index1 + 1, step)
     
     def set_plot_linestyle(self, name: str, linestyle: Qt.PenStyle):
         for plt in self.__plots:
@@ -1146,18 +1145,18 @@ class Dashboard(Axles):
 
         if pause:
             if any_save_data:
-                self._xstart = min(plt.X[0] for plt in self.__plots if len(plt.X))
-                self._xstop = max(plt.X[-1] for plt in self.__plots if len(plt.X))
-                self._real_width = self._xstop - self._xstart
-                self._update_x_borders(self._xstart, self._xstop)
-            self._x_axis_min = self._xstart
-            self._x_axis_max = self._xstop
+                self._x_axle.start = min(plt.X[0] for plt in self.__plots if len(plt.X))
+                self._x_axle.stop = max(plt.X[-1] for plt in self.__plots if len(plt.X))
+                self._x_axle.real_size = self._x_axle.stop - self._x_axle.start
+                self._update_x_borders(self._x_axle.start, self._x_axle.stop)
+            self._x_axle.min = self._x_axle.start
+            self._x_axle.max = self._x_axle.stop
             self._recalculate_window_coords()
             self._update_step_x()
             
         x_size = max(plt.x_size for plt in self.__plots if plt.animated)
-        if self._real_width < x_size:
-            self._real_width = x_size
+        if self._x_axle.real_size < x_size:
+            self._x_axle.real_size = x_size
             self._update_step_x()
 
     @Slot()
@@ -1179,13 +1178,13 @@ class Dashboard(Axles):
         if self.__window:
             self.__window.update_plot_info(self.__plots)
 
-        self._xstart = 0
-        self._real_width = x_size
-        self._xstop = self._xstart + self._real_width
-        self._x_axis_min = 0
-        self._x_axis_max = self._real_width
+        self._x_axle.start = 0
+        self._x_axle.real_size = x_size
+        self._x_axle.stop = self._x_axle.start + self._x_axle.real_size
+        self._x_axle.min = 0
+        self._x_axle.max = self._x_axle.real_size
         self._update_step_x()
-        self._update_x_borders(self._xstart, self._xstop)
+        self._update_x_borders(self._x_axle.start, self._x_axle.stop)
 
         self.pause(False)
 

@@ -1,6 +1,8 @@
 from PyQt6.QtCore import QRectF
 
 class BarData:
+    __slots__ = ("categories", "values", "colors", "rects", "n_values")
+
     def __init__(self):
         self.categories = list()
         self.values: dict[str, list[float]] = dict()

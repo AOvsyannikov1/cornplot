@@ -26,6 +26,7 @@ axle_groups: dict[str, AxleGroupData] = dict()
 
 
 class Axles(QWidget):
+
     _OFFSET_Y_UP = 22             # смещение по У для размещения шапки
     _OFFSET_Y_DOWN = 25
     _OFFSET_X = 100
@@ -55,22 +56,33 @@ class Axles(QWidget):
 
         self.__MAXIMUM_X_WIDTH = -1
 
-        self._xstart = 0.0
-        self._xstop = 10.0
-        self._x_axis_min = 0.0
-        self._x_axis_max = 10.0
-        self._real_width = self._xstop - self._xstart  # длина оси Х в реальных единицах
-        self.__step_grid_x = self._real_width / 2
+        self._x_axle = CoordinateAx()
+        self._y_axle = CoordinateAx()
 
-        self.__group.x_start = self._xstart
-        self.__group.x_stop = self._xstop
+        self._x_axle.met_width = 50
+        self._x_axle.label_size = 100
+        self._x_axle.name = "X"
 
-        self._ystart = 0.0
-        self._ystop = 1.0
-        self._y_axis_min = 0.0
-        self._y_axis_max = 1.0
-        self._real_height = self._ystop - self._ystart  # длина оси У в реальных единицах
-        self._step_grid_y = self._real_height / 2
+        self._y_axle.met_width = self._OFFSET_X
+        self._y_axle.label_size = 20
+        self._y_axle.name = "Y"        
+
+        self._x_axle.start = 0.0
+        self._x_axle.stop = 10.0
+        self._x_axle.min = 0.0
+        self._x_axle.max = 10.0
+        self._x_axle.real_size = self._x_axle.stop - self._x_axle.start  # длина оси Х в реальных единицах
+        self._x_axle.grid_step = self._x_axle.real_size / 2
+
+        self.__group.x_start = self._x_axle.start
+        self.__group.x_stop = self._x_axle.stop
+
+        self._y_axle.start = 0.0
+        self._y_axle.stop = 1.0
+        self._y_axle.min = 0.0
+        self._y_axle.max = 1.0
+        self._y_axle.real_size = self._y_axle.stop - self._y_axle.start  # длина оси У в реальных единицах
+        self._y_axle.grid_step = self._y_axle.real_size / 2
 
         self.__scaling_rect = QRectF(0.0, 0.0, 0.0, 0.0)
 
@@ -92,17 +104,6 @@ class Axles(QWidget):
         self.__visible = True
 
         self._digits_count = -1
-
-        self._x_axle = CoordinateAx()
-        self._y_axle = CoordinateAx()
-
-        self._x_axle.met_width = 50
-        self._x_axle.label_size = 100
-        self._x_axle.name = "X"
-
-        self._y_axle.met_width = self._OFFSET_X
-        self._y_axle.label_size = 20
-        self._y_axle.name = "Y"        
        
         self.__background_color = QColor(255, 255, 255)
         self.__font = QFont("Bahnschrift, Arial", 11)
@@ -278,8 +279,8 @@ class Axles(QWidget):
     def move_to_group(self, grp_name: str):
         if grp_name not in axle_groups:
             axle_groups[grp_name] = AxleGroupData()
-            axle_groups[grp_name].x_start = self._xstart
-            axle_groups[grp_name].x_stop = self._xstop
+            axle_groups[grp_name].x_start = self._x_axle.start
+            axle_groups[grp_name].x_stop = self._x_axle.stop
 
         self.__group = axle_groups[grp_name]
         self.__scanner_lines = self.__group.scanner_lines
@@ -310,84 +311,84 @@ class Axles(QWidget):
     def _update_step_x(self, force=False) -> float:
         """Вычисление шага по оси Х"""
         if not self._x_axle.autoscale and not force:
-            return self.__step_grid_x
+            return self._x_axle.grid_step
         try:
-            log_val = log10(abs(self._real_width)) if self._real_width != 0 else 0
+            log_val = log10(abs(self._x_axle.real_size)) if self._x_axle.real_size != 0 else 0
             new_step = 10 ** (round(log_val) - 1)
         except (ValueError, ZeroDivisionError):
             new_step = 1.0
 
-        ticks_count = self._real_width / new_step
+        ticks_count = self._x_axle.real_size / new_step
         if ticks_count > 10:
             n = 3
-            while (ticks_count := self._real_width / new_step) > 10:
+            while (ticks_count := self._x_axle.real_size / new_step) > 10:
                 n += 1
                 new_step *= self.__get_factor(n)
         else:
             n = 0
-            while (ticks_count := self._real_width / new_step) < 10:
+            while (ticks_count := self._x_axle.real_size / new_step) < 10:
                 n += 1
                 new_step /= self.__get_factor(n)
-        tick_width_px = new_step / self._real_width * self.__w
+        tick_width_px = new_step / self._x_axle.real_size * self.__w
 
-        while (tick_width_px := new_step / self._real_width * self.__w) < self._x_axle.met_width + 15:
-            if self._real_width / new_step < 5:
+        while (tick_width_px := new_step / self._x_axle.real_size * self.__w) < self._x_axle.met_width + 15:
+            if self._x_axle.real_size / new_step < 5:
                 break
             new_step *= self.__get_factor(n)
             n += 1
 
-        if not self.__convert_to_hhmmss and 150 < tick_width_px:
-            if self._real_width / new_step > 20:  # Не больше 20 делений
+        if not (self._x_axle.min >= 0 and self.__convert_to_hhmmss) and 150 < tick_width_px:
+            if self._x_axle.real_size / new_step > 20:  # Не больше 20 делений
                 pass
             else:
                 new_step /= self.__get_factor(n)
 
         if new_step == 0:
-            new_step = self._real_width / 1
+            new_step = self._x_axle.real_size / 1
 
-        self.__step_grid_x = new_step        
+        self._x_axle.grid_step = new_step        
         return new_step
 
     def _update_step_y(self, force=False) -> float:
         """Вычисление шага по оси У"""
 
         if not self._y_axle.autoscale and not force:
-            return self._step_grid_y
+            return self._y_axle.grid_step
 
-        if self._ystart == self._ystop:
-            self._ystart -= 0.5
-            self._ystop += 0.5
-            self._real_height = 1
+        if self._y_axle.start == self._y_axle.stop:
+            self._y_axle.start -= 0.5
+            self._y_axle.stop += 0.5
+            self._y_axle.real_size = 1
 
         try:
-            self._step_grid_y = 10 ** (round(log10(self._real_height)) - 1)
+            self._y_axle.grid_step = 10 ** (round(log10(self._y_axle.real_size)) - 1)
         except ValueError:
-            self._step_grid_y = 1.0
+            self._y_axle.grid_step = 1.0
         n = 0
 
-        if self._real_height / self._step_grid_y >= 10:
+        if self._y_axle.real_size / self._y_axle.grid_step >= 10:
             n = 3
-            while self._real_height / self._step_grid_y >= 10:
+            while self._y_axle.real_size / self._y_axle.grid_step >= 10:
                 n += 1
-                self._step_grid_y *= self.__get_factor(n)
+                self._y_axle.grid_step *= self.__get_factor(n)
 
-        elif self._real_height / self._step_grid_y < 8:
-            while self._real_height / self._step_grid_y <= 10:
+        elif self._y_axle.real_size / self._y_axle.grid_step < 8:
+            while self._y_axle.real_size / self._y_axle.grid_step <= 10:
                 n += 1
-                self._step_grid_y /= self.__get_factor(n)
+                self._y_axle.grid_step /= self.__get_factor(n)
 
-        while self._step_grid_y / self._real_height * self.__h < 30:  # высота не менее 30 пикселей
+        while self._y_axle.grid_step / self._y_axle.real_size * self.__h < 30:  # высота не менее 30 пикселей
             n += 1
-            self._step_grid_y *= self.__get_factor(n)
+            self._y_axle.grid_step *= self.__get_factor(n)
 
-        if self._step_grid_y / self._real_height * self.__h > 4 * self._y_axle.met_height:
-            self._step_grid_y /= self.__get_factor(n)
+        if self._y_axle.grid_step / self._y_axle.real_size * self.__h > 4 * self._y_axle.met_height:
+            self._y_axle.grid_step /= self.__get_factor(n)
             n += 1
 
-        if self._step_grid_y / self._real_height * self.__h < self._y_axle.met_height + 5:
-            self._step_grid_y *= self.__get_factor(n)
+        if self._y_axle.grid_step / self._y_axle.real_size * self.__h < self._y_axle.met_height + 5:
+            self._y_axle.grid_step *= self.__get_factor(n)
         
-        return self._step_grid_y
+        return self._y_axle.grid_step
 
     def __get_factor(self, n):
         return 2.5 if n % 4 == 0 else 2
@@ -420,15 +421,15 @@ class Axles(QWidget):
         x0 = self._window_to_real_x(min(line_coords))
         x1 = self._window_to_real_x(max(line_coords))
 
-        if x1 - x0 > 0.02 * self._real_width:
-            self.__action_buffer.add_action(self._xstart, self._xstop, self._ystart, self._ystop)
+        if x1 - x0 > 0.02 * self._x_axle.real_size:
+            self.__action_buffer.add_action(self._x_axle.start, self._x_axle.stop, self._y_axle.start, self._y_axle.stop)
             self._set_x_start(x0)
             self._set_x_stop(x1)
             self._update_step_x()
             self._calculate_y_parameters()
             self._update_step_y()
             self._recalculate_window_coords()
-            self.__group.update_x_borders(self._xstart, self._xstop)
+            self.__group.update_x_borders(self._x_axle.start, self._x_axle.stop)
             self._redraw_required = True
 
         self.__delete_scale_lines()
@@ -437,14 +438,14 @@ class Axles(QWidget):
     def _zoom_out(self):
         if self._x_axle.logarithmic or self._y_axle.logarithmic:
             return
-        self.__action_buffer.add_action(self._xstart, self._xstop, self._ystart, self._ystop)
+        self.__action_buffer.add_action(self._x_axle.start, self._x_axle.stop, self._y_axle.start, self._y_axle.stop)
         if self.__MAXIMUM_X_WIDTH == -1:
-            self._set_x_start(self._x_axis_min)
-            self._set_x_stop(self._x_axis_max)
+            self._set_x_start(self._x_axle.min)
+            self._set_x_stop(self._x_axle.max)
         else:
             x_center = self._window_to_real_x(round(self._MAX_X / 2))
-            self._set_x_start(max(self._x_axis_min, round(x_center - self.__MAXIMUM_X_WIDTH / 2)))
-            self._set_x_stop(min(self._x_axis_max, round(x_center + self.__MAXIMUM_X_WIDTH / 2)))
+            self._set_x_start(max(self._x_axle.min, round(x_center - self.__MAXIMUM_X_WIDTH / 2)))
+            self._set_x_stop(min(self._x_axle.max, round(x_center + self.__MAXIMUM_X_WIDTH / 2)))
         self._update_step_x()
         self._y_scaled = False
 
@@ -452,11 +453,11 @@ class Axles(QWidget):
         self._calculate_y_parameters()
         self._recalculate_window_coords()
         self._update_step_y()
-        self.__group.update_x_borders(self._xstart, self._xstop)
+        self.__group.update_x_borders(self._x_axle.start, self._x_axle.stop)
         self._redraw_required = True
 
     def __check_group_x_borders(self):
-        if self._xstart != self.__group.x_start or self._xstop != self.__group.x_stop:
+        if self._x_axle.start != self.__group.x_start or self._x_axle.stop != self.__group.x_stop:
             if self._x_axle.logarithmic:
                 self._set_x_start(self.__group.x_start if self.__group.x_start > 0 else 0.01)
                 self._set_x_stop(self.__group.x_stop)
@@ -496,32 +497,32 @@ class Axles(QWidget):
 
     def _set_x_stop(self, xmax: float) -> None:
         """Установка максимального отображаемого значения Х"""
-        if self.__MAXIMUM_X_WIDTH == -1 or xmax - self._xstart <= self.__MAXIMUM_X_WIDTH:
-            self._xstop = xmax
-            self._real_width = self._xstop - self._xstart
+        if self.__MAXIMUM_X_WIDTH == -1 or xmax - self._x_axle.start <= self.__MAXIMUM_X_WIDTH:
+            self._x_axle.stop = xmax
+            self._x_axle.real_size = self._x_axle.stop - self._x_axle.start
         else:
-            self._xstop = self._xstart + self.__MAXIMUM_X_WIDTH
-            self._real_width = self.__MAXIMUM_X_WIDTH
+            self._x_axle.stop = self._x_axle.start + self.__MAXIMUM_X_WIDTH
+            self._x_axle.real_size = self.__MAXIMUM_X_WIDTH
 
     def _set_x_start(self, xmin: float) -> None:
         """Установка минимального отображаемого значения Х"""
-        self._xstart = xmin
-        self._real_width = self._xstop - self._xstart
+        self._x_axle.start = xmin
+        self._x_axle.real_size = self._x_axle.stop - self._x_axle.start
 
     def _set_y_stop(self, ymax: float) -> None:
         """Установка максимального отображаемого значения У"""
-        self._ystop = ymax
-        self._real_height = self._ystop - self._ystart
+        self._y_axle.stop = ymax
+        self._y_axle.real_size = self._y_axle.stop - self._y_axle.start
 
     def _set_y_start(self, ymin: float) -> None:
         """Установка минимального отображаемого значения У"""
-        self._ystart = ymin
-        self._real_height = self._ystop - self._ystart
+        self._y_axle.start = ymin
+        self._y_axle.real_size = self._y_axle.stop - self._y_axle.start
 
     def _reset_y_axle(self) -> None:
-        self._ystart = self._y_axis_min
-        self._ystop = self._y_axis_max
-        self._real_height = abs(self._ystop - self._ystart)
+        self._y_axle.start = self._y_axle.min
+        self._y_axle.stop = self._y_axle.max
+        self._y_axle.real_size = abs(self._y_axle.stop - self._y_axle.start)
 
     def __move_slider(self, mouse_x):
         self.__slider.x += mouse_x - self.__slider.x0
@@ -538,10 +539,10 @@ class Axles(QWidget):
 
         self.__slider.x0 = mouse_x
 
-        x_len = self._x_axis_max - self._x_axis_min
+        x_len = self._x_axle.max - self._x_axle.min
 
-        x_start = x_len * (self.__slider.x - x0) / slider_width + self._x_axis_min
-        x_stop = x_len * (self.__slider.x - x0 + self.__slider.w) / slider_width + self._x_axis_min
+        x_start = x_len * (self.__slider.x - x0) / slider_width + self._x_axle.min
+        x_stop = x_len * (self.__slider.x - x0 + self.__slider.w) / slider_width + self._x_axle.min
 
         if self._x_axle.logarithmic and x_start <= 0:
             pass
@@ -620,7 +621,7 @@ class Axles(QWidget):
             self._redraw_required = True
         
             # обработка слайдера
-            if self.__slider.is_pressed() and (self._xstart != self._x_axis_min or self._xstop != self._x_axis_max):
+            if self.__slider.is_pressed() and (self._x_axle.start != self._x_axle.min or self._x_axle.stop != self._x_axle.max):
                 self.__move_slider(pos.x() + self._MIN_X)
         else:
             self.__slider.release()
@@ -654,27 +655,27 @@ class Axles(QWidget):
 
                 # движение графика при нажатой клавише ctrl
                 tmpX = self._window_to_real_x(self.__initial_x) - self._window_to_real_x(pos.x())
-                new_xstart = max(min(tmpX, self._x_axis_max - self._real_width), self._x_axis_min)
+                new_xstart = max(min(tmpX, self._x_axle.max - self._x_axle.real_size), self._x_axle.min)
                 if self._x_axle.logarithmic and new_xstart <= 0:
-                    new_xstart = self._xstart
-                self._xstart = new_xstart
-                self._xstop = self._xstart + self._real_width
+                    new_xstart = self._x_axle.start
+                self._x_axle.start = new_xstart
+                self._x_axle.stop = self._x_axle.start + self._x_axle.real_size
 
                 tmpY = self.__initial_y - self._window_to_real_y(pos.y())
-                self._ystart += tmpY
-                min_possible_y = (0 if self._zero_y_fixed and self._y_axis_min >= 0
-                                    else self._y_axis_min - self._Y_STOP_COEFF)
-                max_possible_y = self._y_axis_max + (0 if (self._zero_y_fixed and self._y_axis_max <= 0)
+                self._y_axle.start += tmpY
+                min_possible_y = (0 if self._zero_y_fixed and self._y_axle.min >= 0
+                                    else self._y_axle.min - self._Y_STOP_COEFF)
+                max_possible_y = self._y_axle.max + (0 if (self._zero_y_fixed and self._y_axle.max <= 0)
                                                         else self._Y_STOP_COEFF)
-                if self._ystart < min_possible_y:
-                    self._ystart = min_possible_y
-                if self._ystart + self._real_height > max_possible_y:
-                    self._ystart = max_possible_y - self._real_height
-                self._ystop = self._ystart + self._real_height
+                if self._y_axle.start < min_possible_y:
+                    self._y_axle.start = min_possible_y
+                if self._y_axle.start + self._y_axle.real_size > max_possible_y:
+                    self._y_axle.start = max_possible_y - self._y_axle.real_size
+                self._y_axle.stop = self._y_axle.start + self._y_axle.real_size
 
                 self._calculate_y_parameters()
                 self._recalculate_window_coords()
-                self.__group.update_x_borders(self._xstart, self._xstop)
+                self.__group.update_x_borders(self._x_axle.start, self._x_axle.stop)
 
                 self._redraw_required = True
 
@@ -713,7 +714,7 @@ class Axles(QWidget):
         if pos.y() < self._OFFSET_Y_UP:
             return
         
-        self.__initial_x = pos.x() + self._MIN_X - self._real_to_window_x(self._x_axis_min if self._x_axle.logarithmic else 0)
+        self.__initial_x = pos.x() + self._MIN_X - self._real_to_window_x(self._x_axle.min if self._x_axle.logarithmic else 0)
         # расстояние от точки касания до осей в пикселях
         self.__initial_y = self._window_to_real_y(pos.y())
 
@@ -788,7 +789,7 @@ class Axles(QWidget):
                                 x1 = self._window_to_real_x(max(self.__scaling_rect.left(), self.__scaling_rect.right()))
                                 y0 = self._window_to_real_y(max(self.__scaling_rect.top(), self.__scaling_rect.bottom()) + self._OFFSET_Y_UP)
                                 y1 = self._window_to_real_y(min(self.__scaling_rect.top(), self.__scaling_rect.bottom()) + self._OFFSET_Y_UP)
-                                self.__action_buffer.add_action(self._xstart, self._xstop, self._ystart, self._ystop)
+                                self.__action_buffer.add_action(self._x_axle.start, self._x_axle.stop, self._y_axle.start, self._y_axle.stop)
                                 self._set_x_start(x0)
                                 self._set_x_stop(x1)
                                 self._set_y_start(y0)
@@ -854,15 +855,15 @@ class Axles(QWidget):
     def wheelEvent(self, a0):
         delta = a0.angleDelta().y()
 
-        d = self._real_width * 0.05 * abs(delta / 120)
-        w = self._real_width
+        d = self._x_axle.real_size * 0.05 * abs(delta / 120)
+        w = self._x_axle.real_size
         if delta > 0:
-            self._set_x_stop(min(self._x_axis_max, self._xstop + d))
-            self._set_x_start(self._xstop - w)
+            self._set_x_stop(min(self._x_axle.max, self._x_axle.stop + d))
+            self._set_x_start(self._x_axle.stop - w)
         elif delta < 0:
-            self._set_x_start(max(self._x_axis_min, self._xstart - d))
-            self._set_x_stop(self._xstart + w)
-        self.__group.update_x_borders(self._xstart, self._xstop)
+            self._set_x_start(max(self._x_axle.min, self._x_axle.start - d))
+            self._set_x_stop(self._x_axle.start + w)
+        self.__group.update_x_borders(self._x_axle.start, self._x_axle.stop)
         self._recalculate_window_coords()
         self._redraw_required = True
 
@@ -896,47 +897,47 @@ class Axles(QWidget):
             scale_factor_x = gesture.scaleFactor()
             scale_factor_y = gesture.scaleFactor()
             
-            left_size = abs(center.x() - self._xstart) /(scale_factor_x)
-            right_size = abs(self._xstop - center.x()) / (scale_factor_x)
+            left_size = abs(center.x() - self._x_axle.start) /(scale_factor_x)
+            right_size = abs(self._x_axle.stop - center.x()) / (scale_factor_x)
 
-            self._xstart = center.x() - left_size
-            self._xstop = center.x() + right_size
+            self._x_axle.start = center.x() - left_size
+            self._x_axle.stop = center.x() + right_size
             recalc = False
-            if self._xstart < self._x_axis_min and self._xstop > self._x_axis_max:
-                self._xstart = self._x_axis_min
-                self._xstop = self._x_axis_max
-            elif self._xstop > self._x_axis_max:
-                self._xstop = self._x_axis_max
+            if self._x_axle.start < self._x_axle.min and self._x_axle.stop > self._x_axle.max:
+                self._x_axle.start = self._x_axle.min
+                self._x_axle.stop = self._x_axle.max
+            elif self._x_axle.stop > self._x_axle.max:
+                self._x_axle.stop = self._x_axle.max
                 self._update_step_x()
                 recalc = True
-            elif self._xstart < self._x_axis_min:
-                self._xstart = self._x_axis_min
+            elif self._x_axle.start < self._x_axle.min:
+                self._x_axle.start = self._x_axle.min
                 self._update_step_x()
                 recalc = True
             else:
                 self._update_step_x()
                 recalc = True
-            self._real_width = self._xstop - self._xstart
-            self._update_x_borders(self._xstart, self._xstop)
+            self._x_axle.real_size = self._x_axle.stop - self._x_axle.start
+            self._update_x_borders(self._x_axle.start, self._x_axle.stop)
 
-            down_size = abs(center.y() - self._ystart) / scale_factor_y
-            up_size = abs(self._ystop - center.y()) / scale_factor_y
+            down_size = abs(center.y() - self._y_axle.start) / scale_factor_y
+            up_size = abs(self._y_axle.stop - center.y()) / scale_factor_y
 
             ystart_new = center.y() - down_size
             ystop_new = center.y() + up_size
-            ymax = self._y_axis_max + self._Y_STOP_COEFF
-            ymin = self._y_axis_min - self._Y_STOP_COEFF
+            ymax = self._y_axle.max + self._Y_STOP_COEFF
+            ymin = self._y_axle.min - self._Y_STOP_COEFF
             if ystart_new < ymin and ystop_new > ymax:
-                self._ystart = ymin
-                self._ystop = ymax
+                self._y_axle.start = ymin
+                self._y_axle.stop = ymax
             elif ystop_new > ymax:
-                self._ystop = ymax
-                self._ystart = ystart_new
+                self._y_axle.stop = ymax
+                self._y_axle.start = ystart_new
                 self._update_step_y()
                 recalc = True
             elif ystart_new < ymin:
-                self._ystart = ymin
-                self._ystop = ystop_new
+                self._y_axle.start = ymin
+                self._y_axle.stop = ystop_new
                 self._update_step_y()
                 recalc = True
             elif ystop_new - ystart_new < self._Y_STOP_COEFF:
@@ -944,9 +945,9 @@ class Axles(QWidget):
             else:
                 self._update_step_y()
                 recalc = True
-                self._ystart = ystart_new
-                self._ystop = ystop_new
-            self._real_height = self._ystop - self._ystart
+                self._y_axle.start = ystart_new
+                self._y_axle.stop = ystop_new
+            self._y_axle.real_size = self._y_axle.stop - self._y_axle.start
             if recalc:
                 self._recalculate_window_coords()
             self._redraw_required = True
@@ -960,22 +961,22 @@ class Axles(QWidget):
            pass
         elif gesture.state() == Qt.GestureState.GestureUpdated:
             dx, dy = gesture.delta().x(), gesture.delta().y()
-            dx_real = -dx / (self._MAX_X - self._MIN_X) * self._real_width
-            dy_real = dy / (self._MAX_Y - self._MIN_Y) * self._real_height
+            dx_real = -dx / (self._MAX_X - self._MIN_X) * self._x_axle.real_size
+            dy_real = dy / (self._MAX_Y - self._MIN_Y) * self._y_axle.real_size
             
-            xstart_new = self._xstart + dx_real
-            xstop_new = self._xstop + dx_real
+            xstart_new = self._x_axle.start + dx_real
+            xstop_new = self._x_axle.stop + dx_real
             recalc = False
-            if xstart_new > self._x_axis_min and xstop_new < self._x_axis_max:
+            if xstart_new > self._x_axle.min and xstop_new < self._x_axle.max:
                 self._set_x_start(xstart_new)
                 self._set_x_stop(xstop_new)
-                self._update_x_borders(self._xstart, self._xstop)
+                self._update_x_borders(self._x_axle.start, self._x_axle.stop)
                 recalc = True
 
-            ystart_new = self._ystart + dy_real
-            ystop_new = self._ystop + dy_real
-            ymax = self._y_axis_max + self._Y_STOP_COEFF
-            ymin = self._y_axis_min - self._Y_STOP_COEFF
+            ystart_new = self._y_axle.start + dy_real
+            ystop_new = self._y_axle.stop + dy_real
+            ymax = self._y_axle.max + self._Y_STOP_COEFF
+            ymin = self._y_axle.min - self._Y_STOP_COEFF
             if ystart_new >= ymin and ystop_new <= ymax:
                 self._set_y_start(ystart_new)
                 self._set_y_stop(ystop_new)
@@ -1017,42 +1018,42 @@ class Axles(QWidget):
 
     def _real_to_window_x(self, x: float) -> float:
         """Перевод реальных координат оси х в оконные"""
-        return c_real_to_window_x(x, self._MIN_X, self.__w, self._real_width, self._xstart)
+        return c_real_to_window_x(x, self._MIN_X, self.__w, self._x_axle.real_size, self._x_axle.start)
     
     def __real_to_window_x_linear(self, x: float) -> float:
-        return c_real_to_window_x(x, self._MIN_X, self.__w, self._real_width, self._xstart)
+        return c_real_to_window_x(x, self._MIN_X, self.__w, self._x_axle.real_size, self._x_axle.start)
     
     def __real_to_window_x_log(self, x: float) -> float:
-        return c_real_to_window_x_log(x, self._MIN_X, self.__w, self._xstart, self._xstop)
+        return c_real_to_window_x_log(x, self._MIN_X, self.__w, self._x_axle.start, self._x_axle.stop)
 
     def _real_to_window_y(self, y: float) -> float:
         """Перевод реальных координат оси у в оконные"""
-        return c_real_to_window_y(y, self._MIN_Y, self.__h, self._real_height, self._ystop)
+        return c_real_to_window_y(y, self._MIN_Y, self.__h, self._y_axle.real_size, self._y_axle.stop)
     
     def __real_to_window_y_linear(self, y: float) -> float:
-        return c_real_to_window_y(y, self._MIN_Y, self.__h, self._real_height, self._ystop)
+        return c_real_to_window_y(y, self._MIN_Y, self.__h, self._y_axle.real_size, self._y_axle.stop)
     
     def __real_to_window_y_log(self, y: float) -> float:
-        return c_real_to_window_y_log(y, self._MIN_Y, self._MAX_Y, self.__h, self._ystart, self._ystop)
+        return c_real_to_window_y_log(y, self._MIN_Y, self._MAX_Y, self.__h, self._y_axle.start, self._y_axle.stop)
 
     def _window_to_real_x(self, x: float) -> float:
         """Перевод оконных координат оси х в реальные"""
-        return c_window_to_real_x(x, self.__w, self._real_width, self._xstart)
+        return c_window_to_real_x(x, self.__w, self._x_axle.real_size, self._x_axle.start)
     
     def __window_to_real_x_linear(self, x: float) -> float:
-        return c_window_to_real_x(x, self.__w, self._real_width, self._xstart) 
+        return c_window_to_real_x(x, self.__w, self._x_axle.real_size, self._x_axle.start) 
     
     def __window_to_real_x_log(self, x: float) -> float:
-        return c_window_to_real_x_log(x, self.__w, self._xstart, self._xstop)
+        return c_window_to_real_x_log(x, self.__w, self._x_axle.start, self._x_axle.stop)
 
     def _window_to_real_y(self, y: float) -> float:
-        return c_window_to_real_y(y, self.__h, self._real_height, self._ystop, self._OFFSET_Y_UP)
+        return c_window_to_real_y(y, self.__h, self._y_axle.real_size, self._y_axle.stop, self._OFFSET_Y_UP)
     
     def __window_to_real_y_linear(self, y: float) -> float:
-        return c_window_to_real_y(y, self.__h, self._real_height, self._ystop, self._OFFSET_Y_UP)
+        return c_window_to_real_y(y, self.__h, self._y_axle.real_size, self._y_axle.stop, self._OFFSET_Y_UP)
     
     def __window_to_real_y_log(self, y: float) -> float:
-        return c_window_to_real_y_log(y, self.__h, self._ystart, self._ystop, self._OFFSET_Y_UP)
+        return c_window_to_real_y_log(y, self.__h, self._y_axle.start, self._y_axle.stop, self._OFFSET_Y_UP)
     
     def __recalculate_slider_coords(self):
         if self.__slider.is_pressed():
@@ -1060,11 +1061,11 @@ class Axles(QWidget):
 
         x0 = self._MIN_X + int((1 - self.__slider.length - 0.01) * self.__w)
 
-        x_axis_length = self._x_axis_max - self._x_axis_min
+        x_axis_length = self._x_axle.max - self._x_axle.min
         if x_axis_length == 0:
             return
-        x01 = x0 + int(self.__w * self.__slider.length * (self._xstart - self._x_axis_min) / x_axis_length)
-        x11 = x0 + int(self.__w * self.__slider.length * (self._xstop - self._x_axis_min) / x_axis_length)
+        x01 = x0 + int(self.__w * self.__slider.length * (self._x_axle.start - self._x_axle.min) / x_axis_length)
+        x11 = x0 + int(self.__w * self.__slider.length * (self._x_axle.stop - self._x_axle.min) / x_axis_length)
         self.__slider.x = x01
         self.__slider.y = self._MIN_Y + 5
         self.__slider.w = max(4, x11 - x01)
@@ -1092,27 +1093,27 @@ class Axles(QWidget):
         self._qp.setFont(font)
         
         # формируем метки по оси Х
-        x0 = round_custom(self._xstart, self.__step_grid_x)
-        xk = max(self._x_axis_max, self._xstop)
+        x0 = round_custom(self._x_axle.start, self._x_axle.grid_step)
+        xk = max(self._x_axle.max, self._x_axle.stop)
 
         if self._x_axle.logarithmic:
             if x0 <= 0:
-                x0 += self.__step_grid_x
-            initial_x_power = floor(log10(self._xstart))
-            end_x_power = ceil(log10(self._xstop))
+                x0 += self._x_axle.grid_step
+            initial_x_power = floor(log10(self._x_axle.start))
+            end_x_power = ceil(log10(self._x_axle.stop))
             x_metki_coords = [10 ** i for i in range(initial_x_power, end_x_power + 1)]
         else:
-            x_metki_coords = np.round(arange(x0, xk + self.__step_grid_x, self.__step_grid_x), 15)
+            x_metki_coords = np.round(arange(x0, xk + self._x_axle.grid_step, self._x_axle.grid_step), 15)
         old_x_met_width = self._x_axle.met_width
 
-        divised_step = self.__step_grid_x / self._x_axle.divisor
+        divised_step = self._x_axle.grid_step / self._x_axle.divisor
         digit_count = max(get_digit_count_after_dot(x / self._x_axle.divisor) for x in x_metki_coords)
         digit_count = max(get_digit_count_after_dot(divised_step), digit_count)
         if divised_step < 0.5:
             digit_count = max(2, digit_count)
 
         # формирование подписей осей
-        if self.__convert_to_hhmmss and self._x_axis_min >= 0:
+        if self._x_axle.min >= 0 and self.__convert_to_hhmmss:
             metki_str = [convert_timestamp_to_human_time(x / self._x_axle.divisor + self.__initial_timestamp, divised_step < 1) for x in x_metki_coords]
         else:
             if self._x_axle.logarithmic:
@@ -1149,9 +1150,9 @@ class Axles(QWidget):
                 xk_minor = 10 * x
                 xstep_minor = x
             elif self._x_axle.draw_minor_grid:  # побочная сетка
-                x0_minor = x + self.__step_grid_x / self._x_axle.minor_step_ratio
-                xk_minor = x + self.__step_grid_x
-                xstep_minor = self.__step_grid_x / self._x_axle.minor_step_ratio
+                x0_minor = x + self._x_axle.grid_step / self._x_axle.minor_step_ratio
+                xk_minor = x + self._x_axle.grid_step
+                xstep_minor = self._x_axle.grid_step / self._x_axle.minor_step_ratio
             else:
                 continue
             x_min = arange(x0_minor, xk_minor + xstep_minor / 2, xstep_minor)
@@ -1162,34 +1163,34 @@ class Axles(QWidget):
                     self._qp.drawLine(QLineF(x_m, self._MAX_Y, x_m, self._MIN_Y))
 
         # if abs(old_x_met_width - self._x_axle.met_width) > 5:  # Порог 5 пикселей
-        #     old_step = self.__step_grid_x
+        #     old_step = self._x_axle.grid_step
         #     new_step = self._update_step_x()
-        #     old_width_px = old_step / self._real_width * self.__w
-        #     new_width_px = new_step / self._real_width * self.__w
+        #     old_width_px = old_step / self._x_axle.real_size * self.__w
+        #     new_width_px = new_step / self._x_axle.real_size * self.__w
         #     required_width = self._x_axle.met_width + 15
         #     # Гистерезис: изменение меньше 10% от текущей ширины деления
         #     if abs(old_x_met_width - self._x_axle.met_width) < 0.1 * old_width_px:
-        #         self.__step_grid_x = old_step
+        #         self._x_axle.grid_step = old_step
         #     # Принимаем новый шаг если:
         #     # 1. Улучшает ситуацию при недостаточной ширине ИЛИ
         #     # 2. Делает ширину достаточной
         #     elif (new_width_px > old_width_px and old_width_px < required_width) \
         #         or new_width_px >= required_width:
         #         self.update()
-        #         self.__step_grid_x = new_step
+        #         self._x_axle.grid_step = new_step
         #     else:
-        #         self.__step_grid_x = old_step
+        #         self._x_axle.grid_step = old_step
         
         # if old_x_met_width != self._x_axle.met_width:
-        #     old_step = self.__step_grid_x
+        #     old_step = self._x_axle.grid_step
         #     new_step = self._update_step_x()
-        #     old_width_px = new_step / self._real_width * self.__w
+        #     old_width_px = new_step / self._x_axle.real_size * self.__w
         #     if old_step > new_step:
         #         if old_width_px <= self._x_axle.met_width:
         #             self.update()
-        #             self.__step_grid_x = new_step
+        #             self._x_axle.grid_step = new_step
         #         else:
-        #             self.__step_grid_x = old_step
+        #             self._x_axle.grid_step = old_step
 
     def __draw_grid_y(self):
         font = QFont(self.__font)
@@ -1211,18 +1212,18 @@ class Axles(QWidget):
         self._qp.setFont(font)
         self._y_axle.met_height = QFontMetrics(font).height()
 
-        y0 = round_custom(self._ystart, self._step_grid_y)
+        y0 = round_custom(self._y_axle.start, self._y_axle.grid_step)
 
         if self._y_axle.logarithmic:
             if y0 <= 0:
-                y0 += self._step_grid_y
-            initial_y_power = floor(log10(self._ystart))
-            end_y_power = ceil(log10(self._ystop))
+                y0 += self._y_axle.grid_step
+            initial_y_power = floor(log10(self._y_axle.start))
+            end_y_power = ceil(log10(self._y_axle.stop))
             y_metki_coords = [10 ** i for i in range(initial_y_power, end_y_power + 1)]
         else:
-            y_metki_coords = arange(y0, self._ystop + self._step_grid_y, self._step_grid_y)
+            y_metki_coords = arange(y0, self._y_axle.stop + self._y_axle.grid_step, self._y_axle.grid_step)
 
-        divised_step = self._step_grid_y / self._y_axle.divisor
+        divised_step = self._y_axle.grid_step / self._y_axle.divisor
         digit_count = max(get_digit_count_after_dot(round(y / self._y_axle.divisor, 10)) for y in y_metki_coords)
         digit_count = max(get_digit_count_after_dot(divised_step), digit_count)
         if divised_step < 0.5:
@@ -1232,7 +1233,7 @@ class Axles(QWidget):
             y_w = self._real_to_window_y(y)
 
             if self._y_axle.logarithmic:
-                self._step_grid_y = y
+                self._y_axle.grid_step = y
 
             if self._MIN_Y < y_w < self._MAX_Y:
                 if self._y_axle.draw_major_grid:
@@ -1259,9 +1260,9 @@ class Axles(QWidget):
                 yk_minor = 10 * y
                 ystep_minor = y
             elif self._y_axle.draw_minor_grid:  # побочная сетка
-                y0_minor = y + self._step_grid_y / self._y_axle.minor_step_ratio
-                yk_minor = y + self._step_grid_y
-                ystep_minor = self._step_grid_y / self._y_axle.minor_step_ratio
+                y0_minor = y + self._y_axle.grid_step / self._y_axle.minor_step_ratio
+                yk_minor = y + self._y_axle.grid_step
+                ystep_minor = self._y_axle.grid_step / self._y_axle.minor_step_ratio
             else:
                 continue
 
@@ -1274,8 +1275,8 @@ class Axles(QWidget):
 
         if self._y_axle.draw_minor_grid:
             y0_minor = y_metki_coords[0]
-            yk_minor = self._ystart - self._step_grid_y
-            ystep_minor = self._step_grid_y / self._y_axle.minor_step_ratio
+            yk_minor = self._y_axle.start - self._y_axle.grid_step
+            ystep_minor = self._y_axle.grid_step / self._y_axle.minor_step_ratio
             y_min = arange(y0_minor, yk_minor + ystep_minor / 2, -ystep_minor)
             y_minor = [self._real_to_window_y(y_m) for y_m in y_min]
             for y_m in y_minor:
@@ -1319,12 +1320,12 @@ class Axles(QWidget):
             x_win = self._get_line_window_coord(line)
             x_real = self._window_to_real_x(x_win - self._MIN_X)
 
-            if self._xstart < x_real < self._xstop:
+            if self._x_axle.start < x_real < self._x_axle.stop:
                 x_real /= self._x_axle.divisor
-                if self.__convert_to_hhmmss:
+                if self._x_axle.min >= 0 and self.__convert_to_hhmmss:
                     tmp_str = convert_timestamp_to_human_time(x_real + self.__initial_timestamp, millis=True)
                 else:
-                    digit_count = get_digit_count_after_dot(self.__step_grid_x / self._x_axle.divisor) + 1
+                    digit_count = get_digit_count_after_dot(self._x_axle.grid_step / self._x_axle.divisor) + 1
                     tmp_str = f"{x_real:.{digit_count}f}"
 
                 font = QFont("Consolas, Courier New", 10)
@@ -1379,10 +1380,10 @@ class Axles(QWidget):
                 self._qp.setPen(QColor(0, 0, 0, 0))
 
                 dx = abs(x_real - line_real_coords[i - 1])
-                if self.__convert_to_hhmmss:
+                if self._x_axle.min >= 0 and self.__convert_to_hhmmss:
                     tmp_str = convert_timestamp_to_human_time(dx, millis=True)
                 else:
-                    digit_count = get_digit_count_after_dot(self.__step_grid_x / self._x_axle.divisor) + 1
+                    digit_count = get_digit_count_after_dot(self._x_axle.grid_step / self._x_axle.divisor) + 1
                     tmp_str = f"{dx:.{digit_count}f}"
                 font = QFont("Consolas, Courier New", 10)
                 font.setBold(True)
@@ -1426,9 +1427,9 @@ class Axles(QWidget):
 
             # формируем подпись со значением Х, на котором стоит линия
             x_real /= self._x_axle.divisor
-            digit_count = get_digit_count_after_dot(self.__step_grid_x / self._x_axle.divisor) + 1
+            digit_count = get_digit_count_after_dot(self._x_axle.grid_step / self._x_axle.divisor) + 1
             tmp_str = convert_timestamp_to_human_time(x_real + self.__initial_timestamp, millis=True) \
-                if self.__convert_to_hhmmss else f"{x_real:.{digit_count}f}"
+                if self._x_axle.min >= 0 and self.__convert_to_hhmmss else f"{x_real:.{digit_count}f}"
 
             font = QFont("Consolas, Courier New", 10)
             font.setBold(True)
@@ -1458,10 +1459,10 @@ class Axles(QWidget):
                 self._qp.drawLine(QLineF(x_win, y, prev_val_line_coord_xwin, y))
 
                 dx = abs(x_real - prev_val_line_coord_xreal)
-                if self.__convert_to_hhmmss:
+                if self._x_axle.min >= 0 and self.__convert_to_hhmmss:
                     tmp_str = convert_timestamp_to_human_time(dx, millis=True)
                 else:
-                    digit_count = get_digit_count_after_dot(self.__step_grid_x / self._x_axle.divisor) + 1
+                    digit_count = get_digit_count_after_dot(self._x_axle.grid_step / self._x_axle.divisor) + 1
                     tmp_str = f"{dx:.{digit_count}f}"
                 font = QFont("Consolas, Courier New", 9)
                 font.setBold(True)
@@ -1488,7 +1489,7 @@ class Axles(QWidget):
         """Рисование указателя положения окна просмотра относительно всей имеющейся оси Х"""
         if self.is_animated() and not self.is_paused():
             return
-        if self._xstart <= self._x_axis_min and self._xstop >= self._x_axis_max:
+        if self._x_axle.start <= self._x_axle.min and self._x_axle.stop >= self._x_axle.max:
             return
         
         button_w = (self.__btn_group.pause_button.width() * 2) if self.is_animated() else 0
@@ -1555,10 +1556,10 @@ class Axles(QWidget):
         if self._x_axle.autoscale == state:
             return
         if state:
-            self._set_x_start(self.x_axis_min)
-            self._set_x_stop(self.x_axis_max)
+            self._set_x_start(self._x_axle.min)
+            self._set_x_stop(self._x_axle.max)
             self._update_step_x()
-            self.__group.update_x_borders(self._xstart, self._xstop)
+            self.__group.update_x_borders(self._x_axle.start, self._x_axle.stop)
         self._recalculate_window_coords()
         self._x_axle.autoscale = state
         self._redraw_required = True
@@ -1576,43 +1577,43 @@ class Axles(QWidget):
         self._redraw_required = True
 
     def set_step_x(self, step: int):
-        if step <= 0 or step > self._real_width or step == self.__step_grid_x:
+        if step <= 0 or step > self._x_axle.real_size or step == self._x_axle.grid_step:
             return
-        self.__step_grid_x = step
+        self._x_axle.grid_step = step
         self._redraw_required = True
 
     def set_step_y(self, step: int):
-        if step <= 0 or step > self._real_height or step == self._step_grid_y:
+        if step <= 0 or step > self._y_axle.real_size or step == self._y_axle.grid_step:
             return
-        self._step_grid_y = step
+        self._y_axle.grid_step = step
         self._redraw_required = True
 
     def set_x_start(self, x: float):
-        if self._x_axle.autoscale or x >= self._xstop:
+        if self._x_axle.autoscale or x >= self._x_axle.stop:
             return
-        if self._xstart == x:
+        if self._x_axle.start == x:
             return
         self._set_x_start(x)
         self._update_step_x(force=True)
-        self.__group.update_x_borders(self._xstart, self._xstop)
+        self.__group.update_x_borders(self._x_axle.start, self._x_axle.stop)
         self._recalculate_window_coords()
         self._redraw_required = True
 
     def set_x_stop(self, x: float):
-        if self._x_axle.autoscale or x <= self._xstart:
+        if self._x_axle.autoscale or x <= self._x_axle.start:
             return
-        if self._xstop == x:
+        if self._x_axle.stop == x:
             return
         self._set_x_stop(x)
         self._update_step_x(force=True)
-        self.__group.update_x_borders(self._xstart, self._xstop)
+        self.__group.update_x_borders(self._x_axle.start, self._x_axle.stop)
         self._recalculate_window_coords()
         self._redraw_required = True
 
     def set_y_start(self, y: float):
-        if self._y_axle.autoscale or y >= self._ystop:
+        if self._y_axle.autoscale or y >= self._y_axle.stop:
             return
-        if self._ystart == y:
+        if self._y_axle.start == y:
             return
         self._set_y_start(y)
         self._update_step_y(force=True)
@@ -1620,9 +1621,9 @@ class Axles(QWidget):
         self._redraw_required = True
 
     def set_y_stop(self, y: float):
-        if self._y_axle.autoscale or y <= self._ystart:
+        if self._y_axle.autoscale or y <= self._y_axle.start:
             return
-        if self._ystop == y:
+        if self._y_axle.stop == y:
             return
         self._set_y_stop(y)
         self._update_step_y(force=True)
@@ -1768,12 +1769,12 @@ class Axles(QWidget):
             if log:
                 if self.is_animated():
                     return False
-                if self._x_axis_min < 0:
+                if self._x_axle.min < 0:
                     warnings.warn("Область определения содержит значения меньше или равные нулю. Логарифмический масштаб не может быть установлен.", stacklevel=2)
                     return False
-                elif self._x_axis_min == 0:
+                elif self._x_axle.min == 0:
                     self._set_x_start(0.01)
-                    self._x_axis_min = 0
+                    self._x_axle.min = 0
                 self.disable_human_time_display()
                 self._real_to_window_x = self.__real_to_window_x_log
                 self._window_to_real_x = self.__window_to_real_x_log
@@ -1791,11 +1792,11 @@ class Axles(QWidget):
             if log:
                 if self.is_animated():
                     return False
-                if self._y_axis_min < 0:
+                if self._y_axle.min < 0:
                     warnings.warn("Область значений содержит значения меньше или равные нулю. Логарифмический масштаб не может быть установлен.", stacklevel=2)
                     return False
                 else:
-                    self._set_y_start(self._y_axis_min)
+                    self._set_y_start(self._y_axle.min)
                 self._real_to_window_y = self.__real_to_window_y_log
                 self._window_to_real_y = self.__window_to_real_y_log
             else:
@@ -1856,27 +1857,27 @@ class Axles(QWidget):
     
     @property
     def step_x(self):
-        return self.__step_grid_x
+        return self._x_axle.grid_step
     
     @property
     def step_y(self):
-        return self._step_grid_y
+        return self._y_axle.grid_step
     
     @property
     def x_start(self):
-        return self._xstart
+        return self._x_axle.start
     
     @property
     def x_stop(self):
-        return self._xstop
+        return self._x_axle.stop
     
     @property
     def y_start(self):
-        return self._ystart
+        return self._y_axle.start
     
     @property
     def y_stop(self):
-        return self._ystop
+        return self._y_axle.stop
     
     @property
     def x_major_ticks_enabled(self):
@@ -1896,11 +1897,11 @@ class Axles(QWidget):
     
     @property
     def x_axis_min(self):
-        return self._x_axis_min
+        return self._x_axle.min
     
     @property
     def x_axis_max(self):
-        return self._x_axis_max
+        return self._x_axle.max
     
     @property
     def x_origin_drawing(self):
@@ -1986,7 +1987,7 @@ class Axles(QWidget):
         return self._MIN_X + (self._MAX_X - self._MIN_X) * line.x()
 
     def _get_line_real_coord(self, line):
-        return self._xstart + self._real_width * line.x()
+        return self._x_axle.start + self._x_axle.real_size * line.x()
     
     @Slot(int)
     def set_digits_count(self, count: int):

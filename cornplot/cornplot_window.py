@@ -265,6 +265,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
             QGuiApplication.styleHints().setColorScheme(Qt.ColorScheme.Dark if dark else Qt.ColorScheme.Light)
             self.hide()
             self.show()
+            self.__dashboard.dark_signal.emit(dark)
         except:
             pass
 

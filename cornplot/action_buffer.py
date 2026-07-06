@@ -1,4 +1,5 @@
 class ActionBuffer(list):
+    __slots__ = tuple()
 
     def __init__(self):
         super(ActionBuffer, self).__init__()

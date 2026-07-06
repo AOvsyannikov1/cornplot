@@ -29,6 +29,7 @@ class VerticalLine:
 
 
 class VerticalLineList(list[VerticalLine]):
+    __slots__ = ("last_line", "nearest_line")
 
     def __init__(self, n):
         for _ in range(n):

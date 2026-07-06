@@ -1,6 +1,7 @@
-import sys, uuid
+import sys
+from uuid import uuid4
 
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSlot as Slot
 from PyQt6.QtWidgets import QWidget, QApplication, QStyleFactory
 from PyQt6.QtGui import QIcon, QGuiApplication, QFont
 
@@ -39,8 +40,9 @@ class PlotWindow(QWidget):
         self.step_y = (self.height() - 100) // self.n_rows
         self.step_x = (self.width() - 200) // self.n_cols
 
-        self.__group_id = str(uuid.uuid4())
+        self.__group_id = str(uuid4())
 
+    @Slot(bool)
     def set_dark(self, dark: bool):
         if dark != self.__dark:
             self.__dark = dark
@@ -61,10 +63,11 @@ class PlotWindow(QWidget):
             if link_plots:
                 dashboard.move_to_group(self.__group_id)
             self.dashboards.append(dashboard)
+            dashboard.dark_signal.connect(self.set_dark)
 
     def add_pie_chart_axes(self, row=1, col=1, rows=1, cols=1):
         if self.__add_axes(row, col, rows, cols):
-            self.dashboards.append(PieChart(self, 100, 100, 500, name="Содержание газов в воздухе"))
+            self.dashboards.append(PieChart(self, 100, 100, 500))
 
     def add_polar_axes(self, row=1, col=1, rows=1, cols=1):
         if self.__add_axes(row, col, rows, cols):
@@ -198,6 +201,8 @@ class PlotWindow(QWidget):
             updater.alive = False
 
 class CornPlotter:
+    __slots__ = ("app", "__windows", "__current_window_index", "__current_row", "__current_col",
+                 "__nrows", "__ncols", "__datasets", "__dark", "__app_style", "__font", "__hide_buttons")
 
     def __init__(self):
         self.app: QApplication | None = None
@@ -516,5 +521,6 @@ class CornPlotter:
             self.__windows[-1].setWindowTitle(f"Окно {len(self.__windows)}")
             self.__windows[-1].set_dark(self.__dark)
         return self.__windows[self.__current_window_index]
+
 
 _plotter = CornPlotter()

@@ -1,7 +1,6 @@
 from enum import Enum
 from PyQt6.QtGui import QPen, QColor, QPainter, QFont
 from PyQt6.QtCore import QLineF, Qt, QPointF, QRectF
-from PyQt6.QtWidgets import QWidget
 
 
 
@@ -14,9 +13,10 @@ class SemaphoreColor(Enum):
 
 
 class Semaphore:
+    __slots__ = ("__x", "__color", "__name", "dark", "h", "r",
+                 "four_digit", "x_win", "y_win", "y_real")
 
-    def __init__(self, widget: QWidget, coord: int, name: str = '', dark=False, four_digit=True):
-        self.__w = widget
+    def __init__(self, coord: int, name: str = '', dark=False, four_digit=True):
         self.__x = coord
         self.__color = SemaphoreColor.green
         self.__name = name
@@ -87,8 +87,6 @@ class Semaphore:
             else:
                 qp.setPen(QPen(QColor(0), 1))
             qp.drawText(QRectF(x + r / 2 - 20, y0 + 2 * r + r / 2, 40, 2 * r), Qt.AlignmentFlag.AlignHCenter, self.__name)
-
-
 
     def set_color(self, color: SemaphoreColor):
         self.__color = color

@@ -3,6 +3,8 @@ from PyQt6.QtCore import QRectF, Qt
 
 
 class Station:
+    __slots__ = ("__x", "__l", "__name", "dark", "h", "polygon", "y0_real", "yk_real")
+
     def __init__(self, coord: int, length: int, name: str, dark=False):
         self.__x = coord
         self.__l = length

@@ -3,6 +3,7 @@ from .train import Train
 
 
 class TrainData:
+    __slots__ = ("trains", "dark")
 
     def __init__(self, dark: bool = False) -> None:
         self.trains: dict[str, Train] = dict()
