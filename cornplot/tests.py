@@ -220,35 +220,32 @@ def show_demo_animation(dark=False):
     import time
     from .plot_updater import PlotUpdater
 
-    t0 = time.monotonic()
-
     class Update(PlotUpdater):
         def update_plot(self):
             t = time.monotonic()
-            # plt.add_point_to_animated_plot("Sin", t, 100000*(np.sin(t) * np.sin(t / 10)))
-            # plt.add_point_to_animated_plot("Cos", t, 100000*np.cos(t))
-            # plt.add_point_to_animated_plot("SinSin", t, np.sin(2 * t))
-            # plt.add_point_to_animated_plot("CosCos", t, np.cos(2 * t))
+            plt.add_point_to_animated_plot("Sin", t, 100000*(np.sin(t) * np.sin(t / 10)))
+            plt.add_point_to_animated_plot("Cos", t, 100000*np.cos(t))
+            plt.add_point_to_animated_plot("SinSin", t, 0.001*np.sin(2 * t))
+            plt.add_point_to_animated_plot("CosCos", t, 0.001*np.cos(2 * t))
 
 
     class Update1(PlotUpdater):
         def update_plot(self):
             t = time.monotonic()
-            # plt.add_point_to_animated_plot("sinsinsin", t, np.sin(t) + 0.3 * np.cos(3.5 * t))
-            plt.add_point_to_animated_plot("sinsinsin", t, -150)
+            plt.add_point_to_animated_plot("sinsinsin", t, np.sin(t) + 0.3 * np.cos(3.5 * t))
 
     plt.set_dark(dark)
     plt.window(1, name="Sin, cos")
     plt.subplot(2, 1, 1)
-    plt.animated_plot("Sin", x_size=30, real_time=True)
-    plt.animated_plot("Cos", x_size=30, real_time=True)
+    plt.animated_plot("Sin", x_size=30)
+    plt.animated_plot("Cos", x_size=30)
     plt.subplot(2, 1, 2)
-    plt.animated_plot("SinSin", x_size=30, real_time=True)
-    plt.animated_plot("CosCos", x_size=30, real_time=True)
+    plt.animated_plot("SinSin", x_size=30)
+    plt.animated_plot("CosCos", x_size=30)
     plt.add_plot_updater(Update())
 
     plt.window(2, name="Sinsin", x=500, y=200)
-    plt.animated_plot("sinsinsin", x_size=10, real_time=True)
+    plt.animated_plot("sinsinsin", x_size=30, real_time=True)
     updater = Update1()
     updater.set_delay_ms(25)
     plt.add_plot_updater(updater)

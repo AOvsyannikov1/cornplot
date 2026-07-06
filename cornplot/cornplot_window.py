@@ -1031,21 +1031,20 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
 
     @Slot()
     def __filter_plot(self):
-        from .utils import total_size
         plot = self.__plots[self.plotName.currentIndex()]
         x_arr = plot.X
         y_arr = plot.Y
         y_filtered = [y for y in y_arr]
 
+        if self.medianFilterBox.isChecked():
+            med = MedianFilter(self.medianFilterOrder.value())
+            y_filtered = [med.filter_data(y) for y in y_filtered]
         if self.movingAverageFilterBox.isChecked():
             mav = MovingAverageFilter(self.meanOrder.value())
             y_filtered = [mav.filter_data(y) for y in y_filtered]
         if self.expFilterBox.isChecked():
             filt = ExponentialFilter(self.expFilterCoeff.value())
             y_filtered = [filt.filter_data(y) for y in y_filtered]
-        if self.medianFilterBox.isChecked():
-            med = MedianFilter(self.medianFilterOrder.value())
-            y_filtered = [med.filter_data(y) for y in y_filtered]
 
         self.__dashboard.delete_plot(f"{self.plotName.currentText()} (фильтрация)")
         self.__dashboard.add_plot(np.array(x_arr), y_filtered,

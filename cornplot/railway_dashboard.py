@@ -7,7 +7,6 @@ from PyQt6.QtCore import QPointF, QRectF, Qt, QLineF
 from .dashboard import Dashboard
 from .railway.semaphore import SemaphoreColor
 from .railway.train_data import TrainData
-from .utils import total_size
 from .railway.track_data import TrackData
 try:
     from track_profile import SlopeCreator
@@ -25,8 +24,6 @@ try:
 
             self.__train_data = TrainData()
             self.__track_data = TrackData()
-
-            print(total_size(self.__train_data) + total_size(self.__track_data))
 
             self.__follow_train = False
 

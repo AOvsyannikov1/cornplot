@@ -2,7 +2,7 @@ from .plotter_window import PlotterWindow
 
 
 class DerivWindow(PlotterWindow):
-    __slots__ = "dashboard"
+    __slots__ = ("dashboard",)
 
     def __init__(self):
         from .dashboard import Dashboard

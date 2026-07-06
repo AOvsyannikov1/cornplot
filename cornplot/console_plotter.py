@@ -67,7 +67,7 @@ class PlotWindow(QWidget):
 
     def add_pie_chart_axes(self, row=1, col=1, rows=1, cols=1):
         if self.__add_axes(row, col, rows, cols):
-            self.dashboards.append(PieChart(self, 100, 100, 500))
+            self.dashboards.append(PieChart(self, 10, 30, 500))
 
     def add_polar_axes(self, row=1, col=1, rows=1, cols=1):
         if self.__add_axes(row, col, rows, cols):

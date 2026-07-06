@@ -3,7 +3,7 @@ from .plotter_window import PlotterWindow
 
 
 class FFTWindow(PlotterWindow):
-    __slots__ = "dashboard_a", "dashboard_f", "dashboard_source",
+    __slots__ = ("dashboard_a", "dashboard_f", "dashboard_source",)
     close_signal = Signal()
 
     def __init__(self):

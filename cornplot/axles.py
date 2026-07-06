@@ -1,6 +1,6 @@
-import os, warnings
-from math import log10, floor, ceil, pow
-from typing import overload
+import warnings
+from os import startfile
+from math import log10, floor, ceil, modf
 
 from PyQt6.QtCore import Qt, QLineF, QRectF, pyqtSlot as Slot, QRect, QTimer
 from PyQt6.QtGui import QPen, QColor, QPainter, QFont, QFontMetrics, QGuiApplication, QIcon
@@ -35,7 +35,6 @@ class Axles(QWidget):
 
     def __init__(self, widget, x: int, y: int, w: int, h: int):
         super().__init__()
-        self._widget = widget
         self.setParent(widget)
         self.__group = AxleGroupData()
         self.__scale_lines: VerticalLineList = self.__group.scale_lines
@@ -86,7 +85,6 @@ class Axles(QWidget):
 
         self.__scaling_rect = QRectF(0.0, 0.0, 0.0, 0.0)
 
-        # флаги
         self.__convert_to_hhmmss = False    # конвертировать ли значения Х в ЧЧ:ММ:СС
         self.__animated = False
         self._visible = True
@@ -590,7 +588,7 @@ class Axles(QWidget):
         if len(fileName) > 0:
             grab.save(fileName, 'png')
             try:
-                os.startfile(fileName)
+                startfile(fileName)
             except:
                 pass
         self.__btn_group.set_buttons_visible(True)
@@ -1104,7 +1102,6 @@ class Axles(QWidget):
             x_metki_coords = [10 ** i for i in range(initial_x_power, end_x_power + 1)]
         else:
             x_metki_coords = np.round(arange(x0, xk + self._x_axle.grid_step, self._x_axle.grid_step), 15)
-        old_x_met_width = self._x_axle.met_width
 
         divised_step = self._x_axle.grid_step / self._x_axle.divisor
         digit_count = max(get_digit_count_after_dot(x / self._x_axle.divisor) for x in x_metki_coords)
@@ -1114,7 +1111,7 @@ class Axles(QWidget):
 
         # формирование подписей осей
         if self._x_axle.min >= 0 and self.__convert_to_hhmmss:
-            metki_str = [convert_timestamp_to_human_time(x / self._x_axle.divisor + self.__initial_timestamp, divised_step < 1) for x in x_metki_coords]
+            metki_str = [convert_timestamp_to_human_time(x / self._x_axle.divisor + self.__initial_timestamp, modf(x)[0] != 0) for x in x_metki_coords]
         else:
             if self._x_axle.logarithmic:
                 metki_str = ["10" + get_upper_index(int(log10(x / self._x_axle.divisor))) for x in x_metki_coords]
@@ -1161,36 +1158,6 @@ class Axles(QWidget):
             for x_m in x_minor:
                 if self._MIN_X < x_m < self._MAX_X and x_w != x_m:
                     self._qp.drawLine(QLineF(x_m, self._MAX_Y, x_m, self._MIN_Y))
-
-        # if abs(old_x_met_width - self._x_axle.met_width) > 5:  # Порог 5 пикселей
-        #     old_step = self._x_axle.grid_step
-        #     new_step = self._update_step_x()
-        #     old_width_px = old_step / self._x_axle.real_size * self.__w
-        #     new_width_px = new_step / self._x_axle.real_size * self.__w
-        #     required_width = self._x_axle.met_width + 15
-        #     # Гистерезис: изменение меньше 10% от текущей ширины деления
-        #     if abs(old_x_met_width - self._x_axle.met_width) < 0.1 * old_width_px:
-        #         self._x_axle.grid_step = old_step
-        #     # Принимаем новый шаг если:
-        #     # 1. Улучшает ситуацию при недостаточной ширине ИЛИ
-        #     # 2. Делает ширину достаточной
-        #     elif (new_width_px > old_width_px and old_width_px < required_width) \
-        #         or new_width_px >= required_width:
-        #         self.update()
-        #         self._x_axle.grid_step = new_step
-        #     else:
-        #         self._x_axle.grid_step = old_step
-        
-        # if old_x_met_width != self._x_axle.met_width:
-        #     old_step = self._x_axle.grid_step
-        #     new_step = self._update_step_x()
-        #     old_width_px = new_step / self._x_axle.real_size * self.__w
-        #     if old_step > new_step:
-        #         if old_width_px <= self._x_axle.met_width:
-        #             self.update()
-        #             self._x_axle.grid_step = new_step
-        #         else:
-        #             self._x_axle.grid_step = old_step
 
     def __draw_grid_y(self):
         font = QFont(self.__font)

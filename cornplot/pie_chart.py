@@ -5,6 +5,8 @@ from .color_generator import ColorGenerator
 
 
 class PieCathegory:
+    __slots__ = ("value", "total", "name", "ext_info", "brush",
+                 "start_angle", "angle_length", "selected")
 
     def __init__(self, cat_value, total_value, name, ext_info='', color='blue'):
         self.value = cat_value
@@ -17,12 +19,13 @@ class PieCathegory:
         self.selected = False
 
 
-class PieChart:
+class PieChart(QtWidgets.QWidget):
 
     def __init__(self, widget, x, y, width, name="Круговая диаграмма"):
+        super().__init__()
+        self.setParent(widget)
         self.__x = x
         self.__name = name
-        self.__widget = widget
         self.__y = y
         self.__w = width
         self.__h = width
@@ -37,27 +40,37 @@ class PieChart:
         self.__rect = QtCore.QRect(int(self.__x + (1 - self.__kd) * self.__w // 2),
                                    int(self.__y + (1 - self.__kd) * self.__w // 2) + 10, self.__D, self.__D)
 
-        self.__frame = QtWidgets.QFrame(widget)
-        self.__frame.setGeometry(self.__x, self.__y, self.__w, self.__w)
-        self.__frame.setMouseTracking(True)
-        self.__frame.mouseMoveEvent = self.mouse_move_event
-        self.__frame.mousePressEvent = self.mouse_press_event
-        self.__frame.mouseReleaseEvent = self.mouse_release_event
-        self.__frame.wheelEvent = self.wheel_event
-        self.__frame.mouseDoubleClickEvent = self.mouse_double_click_event
-        self.__frame.show()
-
         self.__info_rect_geometry = list()
         self.__info_rect_data = list()
         self.__info_rect_fixed = list()
         self.__info_rect_font = QtGui.QFont("Bahnschrift, Arial", 10)
+
+        self.setMouseTracking(True)
+        self.show()
+
+        self.__tmr = QtCore.QTimer(self)
+        self.__tmr.timeout.connect(self.__timer_callback)
+        self.__tmr.start()
+
+    @QtCore.pyqtSlot()
+    def __timer_callback(self):
+        # self.__check_color_theme()
+        # self.__btn_group.process_visibility()
+        # self.__check_group_x_borders()
+        if self.__redraw_flag:
+            self.update()
+
+    def paintEvent(self, a0):
+        self.__qp.begin(self)
+        self.redraw()
+        self.__qp.end()
 
     def needs_redrawing(self):
         return self.__redraw_flag
 
     def mouse_in_circle(self, x, y):
         x -= (self.__w - self.__legend_width) // 2
-        y -= self.__h // 2 + 10
+        y -= self.__h // 2
         return x ** 2 + y ** 2 <= (self.__D // 2) ** 2
 
     def setGeometry(self, x: int, y: int, w: int, h: int) -> None:
@@ -80,7 +93,7 @@ class PieChart:
         new_x = int(self.__x + (self.__w - self.__legend_width) // 2)
         new_y = int(self.__y + self.__h // 2) + 10
         self.__rect = QtCore.QRect(new_x - self.__D // 2, new_y - self.__D // 2, self.__D, self.__D)
-        self.__frame.setGeometry(self.__x, self.__y, (self.__w - self.__legend_width), self.__h)
+        # self.__frame.setGeometry(self.__x, self.__y, (self.__w - self.__legend_width), self.__h)
         self.__redraw_flag = True
         for i in range(len(self.__info_rect_geometry)):
             if self.__info_rect_geometry[i][0] == -1:
@@ -94,7 +107,7 @@ class PieChart:
 
     def mouse_coords_to_angle(self, x, y):
         x -= (self.__w - self.__legend_width) // 2
-        y -= self.__h // 2 + 10
+        y -= self.__h // 2 + 10 + self.__y
         y = -y
         return round(self.vector_angle(x, y) * 180 / np.pi)
 
@@ -105,19 +118,25 @@ class PieChart:
                 return i
         return -1
 
-    def mouse_move_event(self, event: QtGui.QMouseEvent):
+    def mouseMoveEvent(self, event: QtGui.QMouseEvent):
         x = event.pos().x()
         y = event.pos().y()
         if not self.mouse_in_circle(x, y):
             for cat in self.__cathegories:
                 cat.selected = False
+            self.update()
             return
         index = self.get_cathegory_index(x, y)
         for i, cat in enumerate(self.__cathegories):
             cat.selected = (i == index)
-        self.__redraw_flag = True
+        self.update()
 
-    def mouse_press_event(self, event: QtGui.QMouseEvent):
+    def leaveEvent(self, a0):
+        for i, cat in enumerate(self.__cathegories):
+            cat.selected = False
+        self.update()
+
+    def mousePressEvent(self, event: QtGui.QMouseEvent):
         x = event.pos().x()
         y = event.pos().y()
         if event.button() == QtCore.Qt.MouseButton.LeftButton:
@@ -133,22 +152,22 @@ class PieChart:
                                                                   self.__info_rect_data[cat_index]).width() + 10
                 self.__info_rect_geometry[cat_index][3] = qm.size(0,
                                                                   self.__info_rect_data[cat_index]).height() + 10
-                self.__redraw_flag = True
+                self.update()
 
-    def mouse_release_event(self, event: QtGui.QMouseEvent):
+    def mouseReleaseEvent(self, event: QtGui.QMouseEvent):
         pass
 
-    def wheel_event(self, event: QtGui.QMouseEvent):
+    def wheelEvent(self, event: QtGui.QMouseEvent):
         pass
 
-    def mouse_double_click_event(self, event: QtGui.QMouseEvent):
+    def mouseDoubleClickEvent(self, event: QtGui.QMouseEvent):
         if event.button() == QtCore.Qt.MouseButton.RightButton:
             for i in range(len(self.__cathegories)):
                 self.__info_rect_geometry[i][0] = -1
                 self.__info_rect_geometry[i][1] = -1
                 self.__info_rect_geometry[i][2] = 0
                 self.__info_rect_geometry[i][3] = 0
-            self.__redraw_flag = True
+            self.update()
 
     def add_cathegory(self, percentage: float, name: str, extended_info='') -> None:
         max_len = 25
@@ -207,14 +226,12 @@ class PieChart:
             self.__D = int(self.__kd * self.__h)
         self.__rect = QtCore.QRect(int(self.__x + (self.__w - self.__legend_width) // 2 - self.__D // 2),
                                    int(self.__y + self.__h // 2 - self.__D // 2) + 10, self.__D, self.__D)
-        self.__frame.setGeometry(self.__x, self.__y, (self.__w - self.__legend_width), self.__h)
+        # self.__frame.setGeometry(self.__x, self.__y, (self.__w - self.__legend_width), self.__h)
 
     def legend_width(self):
         return self.__legend_width
 
-    def redraw_plots(self):
-        self.__qp.begin(self.__widget)
-
+    def redraw(self):
         self.__qp.setPen(QtGui.QColor(0, 0, 0, 0))
         self.__qp.setBrush(QtGui.QColor(255, 255, 255))
         self.__qp.drawRect(self.__x, self.__y, self.__w, self.__h)
@@ -249,5 +266,4 @@ class PieChart:
             self.__qp.setBrush(QtGui.QColor(150, 150, 150))
             self.__qp.drawPie(self.__rect, start_angle, 360 * 16 - start_angle)
 
-        self.__qp.end()
         self.__redraw_flag = False

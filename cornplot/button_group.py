@@ -46,6 +46,7 @@ class ButtonGroup:
                  "add_vert_button", "clear_button", "fix_button", "__lower_buttons", "__upper_buttons",
                  "__animated", "__visible", "__dark", "__idle_opacity",
                  "__need_to_change_opacity")
+    
     def __init__(self, widget: QWidget, w, h):
         self.pause_button = CustomButton(widget, self.__restart_timer)
         self.pause_button.setGeometry(w - 56, 22, 25, 25)
