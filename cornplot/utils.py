@@ -157,8 +157,8 @@ def round_value(num: float, digit_count=-1) -> str:
         if '-' in int_part:
             int_part = int_part[1:]
         if len(int_part) > 4:
-            tmp_str = f"{num:.3E}"
-            val, power = tuple(map(float, tmp_str.split('E')))
+            tmp_str = f"{num:.3e}"
+            val, power = tuple(map(float, tmp_str.split('e')))
             return f"{val}×10{get_upper_index(int(power))}"
 
         if digit_count < 0:
@@ -169,6 +169,8 @@ def round_value(num: float, digit_count=-1) -> str:
         else:
             if num == 0:
                 return f"{num:.{digit_count}f}"
-            return f"{num:.3e}"
+            tmp_str = f"{num:.3e}"
+            val, power = tmp_str.split('e')
+            return f"{float(val):.3f}×10{get_upper_index(int(power))}"
     else:
         return st
