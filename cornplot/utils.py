@@ -1,5 +1,4 @@
 import dataclasses
-from math import log, exp, pow
 from array import array
 from datetime import datetime
 import importlib.resources as pkg_resources

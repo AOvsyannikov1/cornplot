@@ -1,6 +1,6 @@
 import warnings
 from os import startfile
-from math import log10, floor, ceil, modf
+from math import log10, floor, ceil, modf, isclose
 
 from PyQt6.QtCore import Qt, QLineF, QRectF, pyqtSlot as Slot, QRect, QTimer
 from PyQt6.QtGui import QPen, QColor, QPainter, QFont, QFontMetrics, QGuiApplication, QIcon
@@ -776,7 +776,7 @@ class Axles(QWidget):
                 if self.__animated and not self.__paused or self.__scale_lines.any_selected() or self.__scanner_lines.any_selected():
                     return
                 else:
-                    if not self._x_axle.logarithmic and not self._y_axle.logarithmic:
+                    if not self.__ctrl_pressed and not self._x_axle.logarithmic and not self._y_axle.logarithmic:
                         if pos.x() > self._MIN_X and self.__scaling_rect.width() == 0 and self.__scaling_rect.height() == 0 and not self.__zoom_active:
                             if self.__touch_x == pos.x() and self.__touch_y == pos.y() and not self._point_added:
                                 self.__scale_lines.add_line((pos.x() - self._MIN_X) / (self._MAX_X - self._MIN_X))
@@ -813,6 +813,8 @@ class Axles(QWidget):
         match a0.button():
             case Qt.MouseButton.RightButton:
                 if a0.pos().y() < self._OFFSET_Y_UP or (self.__animated and not self.__paused):
+                    return
+                if self.__shift_pressed:
                     return
                 # возвращаем исходный масштаб
                 self._zoom_out()
@@ -1092,7 +1094,7 @@ class Axles(QWidget):
         
         # формируем метки по оси Х
         x0 = round_custom(self._x_axle.start, self._x_axle.grid_step)
-        xk = max(self._x_axle.max, self._x_axle.stop)
+        xk = self._x_axle.stop + self._x_axle.grid_step
 
         if self._x_axle.logarithmic:
             if x0 <= 0:
@@ -1101,7 +1103,7 @@ class Axles(QWidget):
             end_x_power = ceil(log10(self._x_axle.stop))
             x_metki_coords = [10 ** i for i in range(initial_x_power, end_x_power + 1)]
         else:
-            x_metki_coords = np.round(arange(x0, xk + self._x_axle.grid_step, self._x_axle.grid_step), 15)
+            x_metki_coords = np.round(arange(x0, xk, self._x_axle.grid_step), 15)
 
         divised_step = self._x_axle.grid_step / self._x_axle.divisor
         digit_count = max(get_digit_count_after_dot(x / self._x_axle.divisor) for x in x_metki_coords)
