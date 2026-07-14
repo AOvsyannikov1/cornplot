@@ -926,7 +926,6 @@ class Dashboard(Axles):
     def _recalculate_window_coords(self) -> None:
         """Пересчёт массивов оконных координат графиков"""
         super()._recalculate_window_coords()
-        t0 = monotonic()
         for plt in self.__plots:
             self.__recalculate_plot_coords(plt)
 
@@ -937,7 +936,6 @@ class Dashboard(Axles):
                 self._real_to_window_x(line.X[0]), self._real_to_window_y(line.Y[0]),
                 self._real_to_window_x(line.X[1]), self._real_to_window_y(line.Y[1]),
             )
-        # print(monotonic() - t0)
 
     def __recalculate_plot_coords(self, plt: Plot):
         if plt.animated and not self.is_paused():
