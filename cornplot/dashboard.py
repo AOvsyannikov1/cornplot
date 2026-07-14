@@ -2,10 +2,12 @@ import pickle, csv
 from math import log2, floor
 from typing import Any
 from pathlib import Path
+from time import monotonic
 
 from PyQt6.QtCore import QPointF, QLineF, QRectF, pyqtSlot as Slot, Qt, QMutexLocker, QMutex, pyqtSignal as Signal
 from PyQt6.QtWidgets import QMessageBox, QWidget
 from PyQt6.QtGui import QPainter, QPen, QColor, QFont, QFontMetrics, QPolygonF, QLinearGradient
+from numpy import sort as np_sort
 
 from .axles import Axles
 from .auxiliary_line import AuxiliaryLine
@@ -66,7 +68,7 @@ class Dashboard(Axles):
             self.import_from_cplt_file(file_name)
         elif file_name.lower().endswith(".csv"):
             try:
-                with open(file_name, "r") as f:
+                with open(file_name, "r", newline='') as f:
                     reader = csv.reader(f)
                     x_arr = list()
                     y_arrays = list()
@@ -278,7 +280,7 @@ class Dashboard(Axles):
         intervals = [x0 + (xk - x0) / interval_count * i for i in range(interval_count + 1)]
         x = [(intervals[i + 1] + intervals[i]) / 2 for i in range(interval_count)]
 
-        for val in np.sort(data):
+        for val in np_sort(data):
             while val > intervals[n_bin + 1] and n_bin < interval_count - 1:
                 n_bin += 1
             try:
@@ -346,7 +348,7 @@ class Dashboard(Axles):
         x = [(intervals[i + 1] + intervals[i]) / 2 for i in range(interval_count)]
         dx = x[1] - x[0]
 
-        for val in np.sort(data):
+        for val in np_sort(data):
             while val > intervals[n_bin + 1] and n_bin < interval_count - 1:
                 n_bin += 1
             try:
@@ -659,8 +661,8 @@ class Dashboard(Axles):
             return
 
         if plt.animated and not self.is_paused():
-            Xwin = c_recalculate_window_x(list(plt.X), self._MIN_X, self._get_width(), self._x_axle.real_size, self._x_axle.start, plt.index0, plt.index1 + 1, 1)
-            Ywin = c_recalculate_window_y(list(plt.Y), self._MIN_Y, self._get_heignt(), self._y_axle.real_size, self._y_axle.stop, plt.index0, plt.index1 + 1, 1)
+            Xwin = c_recalculate_window_x(plt.X, self._MIN_X, self._get_width(), self._x_axle.real_size, self._x_axle.start, plt.index0, plt.index1 + 1, 1)
+            Ywin = c_recalculate_window_y(plt.Y, self._MIN_Y, self._get_heignt(), self._y_axle.real_size, self._y_axle.stop, plt.index0, plt.index1 + 1, 1)
             if plt.draw_line and plt.pen.style() == Qt.PenStyle.SolidLine and not plt.is_filling_between():
                 plt.lines = [QLineF(Xwin[i - 1], Ywin[i - 1], Xwin[i], Ywin[i]) for i in range(1, len(Xwin))]
             if plt.draw_markers or plt.pen.style() != Qt.PenStyle.SolidLine or plt.is_filling_between():
@@ -924,6 +926,7 @@ class Dashboard(Axles):
     def _recalculate_window_coords(self) -> None:
         """Пересчёт массивов оконных координат графиков"""
         super()._recalculate_window_coords()
+        t0 = monotonic()
         for plt in self.__plots:
             self.__recalculate_plot_coords(plt)
 
@@ -934,6 +937,7 @@ class Dashboard(Axles):
                 self._real_to_window_x(line.X[0]), self._real_to_window_y(line.Y[0]),
                 self._real_to_window_x(line.X[1]), self._real_to_window_y(line.Y[1]),
             )
+        # print(monotonic() - t0)
 
     def __recalculate_plot_coords(self, plt: Plot):
         if plt.animated and not self.is_paused():
@@ -978,9 +982,9 @@ class Dashboard(Axles):
         plot.index1 = tmp
 
     def __recalculate_window_xy(self, plt: Plot, step):
-        Xwin = array('d', self.__recalculate_plot_x(plt, step))
-        Ywin = array('d', self.__recalculate_plot_y(plt, step))
-        
+        Xwin = self.__recalculate_plot_x(plt, step)
+        Ywin = self.__recalculate_plot_y(plt, step)
+
         length = plt.index1 - plt.index0
         if length == 0:
             return
@@ -999,12 +1003,12 @@ class Dashboard(Axles):
     def __recalculate_plot_x(self, plt: Plot, step):
         if self._x_axle.logarithmic:
             return [self._real_to_window_x(plt.X[i]) for i in range(plt.index0, plt.index1 + 1, step)]
-        return c_recalculate_window_x(list(plt.X), self._MIN_X, self._get_width(), self._x_axle.real_size, self._x_axle.start, plt.index0, plt.index1 + 1, step)
+        return c_recalculate_window_x(plt.X, self._MIN_X, self._get_width(), self._x_axle.real_size, self._x_axle.start, plt.index0, plt.index1 + 1, step)
     
     def __recalculate_plot_y(self, plt: Plot, step):
         if self._y_axle.logarithmic:
             return [self._real_to_window_y(plt.Y[i]) for i in range(plt.index0, plt.index1 + 1, step)]
-        return c_recalculate_window_y(list(plt.Y), self._MIN_Y, self._get_heignt(), self._y_axle.real_size, self._y_axle.stop, plt.index0, plt.index1 + 1, step)
+        return c_recalculate_window_y(plt.Y, self._MIN_Y, self._get_heignt(), self._y_axle.real_size, self._y_axle.stop, plt.index0, plt.index1 + 1, step)
     
     def set_plot_linestyle(self, name: str, linestyle: Qt.PenStyle):
         for plt in self.__plots:

@@ -1,6 +1,7 @@
 import warnings
 from os import startfile
 from math import log10, floor, ceil, modf, isclose
+from numpy import round as np_round
 
 from PyQt6.QtCore import Qt, QLineF, QRectF, pyqtSlot as Slot, QRect, QTimer
 from PyQt6.QtGui import QPen, QColor, QPainter, QFont, QFontMetrics, QGuiApplication, QIcon
@@ -1103,7 +1104,7 @@ class Axles(QWidget):
             end_x_power = ceil(log10(self._x_axle.stop))
             x_metki_coords = [10 ** i for i in range(initial_x_power, end_x_power + 1)]
         else:
-            x_metki_coords = np.round(arange(x0, xk, self._x_axle.grid_step), 15)
+            x_metki_coords = np_round(arange(x0, xk, self._x_axle.grid_step), 15)
 
         divised_step = self._x_axle.grid_step / self._x_axle.divisor
         digit_count = max(get_digit_count_after_dot(x / self._x_axle.divisor) for x in x_metki_coords)
@@ -1113,7 +1114,8 @@ class Axles(QWidget):
 
         # формирование подписей осей
         if self._x_axle.min >= 0 and self.__convert_to_hhmmss:
-            metki_str = [convert_timestamp_to_human_time(x / self._x_axle.divisor + self.__initial_timestamp, modf(x)[0] != 0) for x in x_metki_coords]
+            millis = any(not isclose(modf(x / self._x_axle.divisor + self.__initial_timestamp)[0], 0, rel_tol=1e-3) and not isclose(modf(x / self._x_axle.divisor + self.__initial_timestamp)[0], 1, rel_tol=1e-3) for x in x_metki_coords)
+            metki_str = [convert_timestamp_to_human_time(x / self._x_axle.divisor + self.__initial_timestamp, millis) for x in x_metki_coords]
         else:
             if self._x_axle.logarithmic:
                 metki_str = ["10" + get_upper_index(int(log10(x / self._x_axle.divisor))) for x in x_metki_coords]

@@ -126,47 +126,155 @@ PyObject* c_window_to_real_y_log(PyObject* self, PyObject* args)
 }
 
 
+// PyObject* c_recalculate_window_x(PyObject* self, PyObject* args)
+// {
+//     PyListObject *X_real;
+//     double x_start, real_width;
+//     int min_x, width, i0, ik, step;
+
+//     PyArg_ParseTuple(args, "O!iiddiii", &PyList_Type, &X_real, &min_x, &width, &real_width, &x_start, &i0, &ik, &step);
+
+//     int len = (ik - i0 + step - 1) / step;
+//     double scale = (double)width / real_width;
+//     PyListObject *ret = PyList_New(len);
+//     PyObject **items = ((PyListObject*)X_real)->ob_item;
+
+//     for (int i = i0, j = 0; i < ik && j < len; i += step, j++)
+//     {
+//         double x = PyFloat_AS_DOUBLE(items[i]);
+//         double x_win = min_x + scale * (x - x_start);
+//         PyList_SET_ITEM(ret, j, PyFloat_FromDouble(x_win));
+//     }
+//     return ret;
+// }
+
+
 PyObject* c_recalculate_window_x(PyObject* self, PyObject* args)
 {
-    PyListObject *X_real;
+    PyObject *X_real_obj;
     double x_start, real_width;
     int min_x, width, i0, ik, step;
 
-    PyArg_ParseTuple(args, "O!iiddiii", &PyList_Type, &X_real, &min_x, &width, &real_width, &x_start, &i0, &ik, &step);
-    int len = (int)round((float)(ik - i0) / (float)step);
-    PyListObject *ret = PyList_New(len);
-    int j = 0;
-    for(int i = i0; i < ik; i += step)
+    if (!PyArg_ParseTuple(args, "Oiiddiii", &X_real_obj, &min_x, &width, &real_width, &x_start, &i0, &ik, &step))
+        return NULL;
+
+    Py_buffer view;
+    if (PyObject_GetBuffer(X_real_obj, &view, PyBUF_SIMPLE | PyBUF_FORMAT) < 0)
+        return NULL;
+
+    double *data = (double*)view.buf;
+    
+    int len = (ik - i0 + step - 1) / step;
+    if (len <= 0)
     {
-        double x = PyFloat_AsDouble(PyList_GetItem(X_real, i));
-        double x_win = real_to_window_x(x, min_x, width, real_width, x_start);
-        if(j < len)
-            PyList_SetItem(ret, j++, PyFloat_FromDouble(x_win));
+        PyBuffer_Release(&view);
+        return PyList_New(0);
+    }
+    
+    double scale = (double)width / real_width;
+    
+    PyObject *ret = PyList_New(len);
+    if (ret == NULL)
+    {
+        PyBuffer_Release(&view);
+        return NULL;
     }
 
-    return (PyObject*)ret;
+    int arr_len = view.len / sizeof(double);
+    if (i0 < 0 || ik > arr_len || i0 >= ik)
+    {
+        PyBuffer_Release(&view);
+        Py_DECREF(ret);
+        PyErr_SetString(PyExc_IndexError, "Index out of range");
+        return NULL;
+    }
+
+    for (int i = i0, j = 0; i < ik && j < len; i += step, j++)
+    {
+        double x = data[i];
+        double x_win = min_x + scale * (x - x_start);
+        PyList_SET_ITEM(ret, j, PyFloat_FromDouble(x_win));
+    }
+
+    PyBuffer_Release(&view);
+    return ret;
 }
 
 
-PyObject* c_recalculate_window_y(PyObject* self, PyObject* args)
+/*PyObject* c_recalculate_window_y(PyObject* self, PyObject* args)
 {
     PyListObject *Y_real;
     double y_stop, real_height;
     int min_y, height, i0, ik, step;
 
     PyArg_ParseTuple(args, "O!iiddiii", &PyList_Type, &Y_real, &min_y, &height, &real_height, &y_stop, &i0, &ik, &step);
-    int len = (int)round((float)(ik - i0) / (float)step);
+
+    int len = (ik - i0 + step - 1) / step;
+    double scale = (double)height / real_height;
+    if (len < 0) len = 0;
     PyListObject *ret = PyList_New(len);
-    int j = 0;
-    for(int i = i0; i < ik; i += step)
+
+    PyObject** items = ((PyListObject*)Y_real)->ob_item;
+
+    for (int i = i0, j = 0; i < ik && j < len; i += step, j++)
     {
-        double y = PyFloat_AsDouble(PyList_GetItem(Y_real, i));
-        double y_win = real_to_window_y(y, min_y, height, real_height, y_stop);
-        if(j < len)
-            PyList_SetItem(ret, j++, PyFloat_FromDouble(y_win));
+        double y = PyFloat_AS_DOUBLE(items[i]);
+        double y_win = min_y + scale * (y_stop - y);
+        PyList_SET_ITEM(ret, j, PyFloat_FromDouble(y_win));
+    }
+    return ret;
+}*/
+
+
+PyObject* c_recalculate_window_y(PyObject* self, PyObject* args)
+{
+    PyObject *Y_real;
+    double y_stop, real_height;
+    int min_y, height, i0, ik, step;
+
+    if (!PyArg_ParseTuple(args, "Oiiddiii", &Y_real, &min_y, &height, &real_height, &y_stop, &i0, &ik, &step))
+        return NULL;
+
+    Py_buffer view;
+    if (PyObject_GetBuffer(Y_real, &view, PyBUF_SIMPLE | PyBUF_FORMAT) < 0)
+        return NULL;
+
+    double *data = (double*)view.buf;
+    
+    int len = (ik - i0 + step - 1) / step;
+    if (len <= 0)
+    {
+        PyBuffer_Release(&view);
+        return PyList_New(0);
+    }
+    
+    double scale = (double)height / real_height;
+    
+    PyObject *ret = PyList_New(len);
+    if (ret == NULL)
+    {
+        PyBuffer_Release(&view);
+        return NULL;
     }
 
-    return (PyObject*)ret;
+    int arr_len = view.len / sizeof(double);
+    if (i0 < 0 || ik > arr_len || i0 >= ik)
+    {
+        PyBuffer_Release(&view);
+        Py_DECREF(ret);
+        PyErr_SetString(PyExc_IndexError, "Index out of range");
+        return NULL;
+    }
+
+    for (int i = i0, j = 0; i < ik && j < len; i += step, j++)
+    {
+        double y = data[i];
+        double y_win = min_y + scale * (y_stop - y);
+        PyList_SET_ITEM(ret, j, PyFloat_FromDouble(y_win));
+    }
+
+    PyBuffer_Release(&view);
+    return ret;
 }
 
 

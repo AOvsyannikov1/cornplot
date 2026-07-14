@@ -863,6 +863,10 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.__fftWindow.dashboard_a.add_plot([0, 1], [0, 1], name='Амплитудный спектр', color="#f64a46", accurate=True)
         self.__fftWindow.dashboard_f.add_plot([0, 1], [0, 1], name='Фазовый спектр', color="#1560bd", accurate=True)
         self.__fftWindow.dashboard_source.add_plot([0, 1], [0, 1], name='Оригинал', color="#1560bd")
+        if self.__dashboard.human_time_display_enabled():
+            self.__fftWindow.dashboard_source.enable_human_time_display()
+        else:
+            self.__fftWindow.dashboard_source.disable_human_time_display()
         
         self.__fftWindow.setWindowTitle(f"Преобразование Фурье {self.plotName.currentText()}")
         self.__fftWindow.show()

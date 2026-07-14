@@ -3,9 +3,9 @@ from array import array
 from datetime import datetime
 import importlib.resources as pkg_resources
 from pathlib import Path
+from math import isclose, modf
 
 from PyQt6.QtGui import QColor
-import numpy as np
 import sys
 
 
@@ -63,7 +63,7 @@ def convert_timestamp_to_human_time(timestamp, millis=False):
     if millis:
         return datetime.fromtimestamp(timestamp).time().strftime("%H:%M:%S.%f")[:-3]
     else:
-        return datetime.fromtimestamp(int(timestamp)).time().strftime("%H:%M:%S")
+        return datetime.fromtimestamp(round(timestamp)).time().strftime("%H:%M:%S")
 
 
 def round_custom(num, step):
