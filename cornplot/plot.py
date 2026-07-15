@@ -26,19 +26,18 @@ class Plot(QObject):
         self.__save_data = save_data
         self.__real_time = real_time
         self.__dark = False
+        self.__first_point = True
 
         if self.__animated:
             self.X: array = array("d")
             self.Y: array = array("d")
             self.x_size = x_size
-            self.__first_point = True
             self.__x0 = 0
             self.length = 0
         else:
-            self.X: array = array("d", x_arr)
-            self.Y: array = array("d", y_arr)
+            self.X: array = x_arr
+            self.Y: array = y_arr
             self.__x0 = x_arr[0]
-            self.__first_point = False
             self.x_size = 0
             self.length = len(x_arr)
 

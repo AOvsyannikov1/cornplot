@@ -70,12 +70,12 @@ class Dashboard(Axles):
             try:
                 with open(file_name, "r", newline='') as f:
                     reader = csv.reader(f)
-                    x_arr = list()
+                    x_arr = array("d")
                     y_arrays = list()
                     for i, row in enumerate(reader):
                         if i == 0:
                             for j in range(len(row) - 1):
-                                y_arrays.append(list())
+                                y_arrays.append(array("d"))
                         try:
                             values = list(map(float, row))     
                         except:
@@ -112,18 +112,17 @@ class Dashboard(Axles):
         
         self.set_initial_timestamp(initial_ts)
 
-        x_tmp = list(x_arr)
-        y_tmp = list(y_arr)
+        x_tmp = array("d", x_arr)
+        y_tmp = array("d", y_arr)
         if len(name) == 0:
             name = f"График {len(self.__plots) + 1}"
-    
         self.__plots.append(Plot(self, x_tmp, y_tmp, self.__get_pen(color, linewidth, linestyle), 
                                  name=name, accurate=accurate, hist=False, checkbox_x=self.__get_checkbox_x()))
         self.__plots[-1].redraw_signal.connect(self.__process_checkbox_press)
         self.__plots[-1].set_dark(self.dark)
 
-        max_x = max(x_tmp)
-        min_x = min(x_tmp)
+        max_x = self.__plots[-1].max(0)
+        min_x = self.__plots[-1].min(0)
         if min_x < self._x_axle.min or len(self.__plots) == 1:
             if self._x_axle.logarithmic:
                 if min_x > 0:
@@ -832,8 +831,6 @@ class Dashboard(Axles):
             self._y_axle.start -=1
             self._y_axle.stop += 1
             self._y_axle.real_size = self._y_axle.stop - self._y_axle.start
-            # self._set_y_start(self._y_axle.min)
-            # self._set_y_stop(self._y_axle.max)
 
     def __draw_point_on_graph(self):
         if self._selectingPointGraph < 0:
