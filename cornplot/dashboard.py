@@ -152,9 +152,9 @@ class Dashboard(Axles):
         if not hasattr(x, "__iter__") or not hasattr(y1, "__iter__") or not hasattr(y2, "__iter__"):
             return None
         
-        x_tmp = list(x)
-        y1_tmp = list(y1)
-        y2_tmp = list(y2)
+        x_tmp = array("d", x)
+        y1_tmp = array("d", y1)
+        y2_tmp = array("d", y2)
         if len(name) == 0:
             plt_name = f"График {len(self.__plots) + 1}"
         else:
@@ -177,8 +177,8 @@ class Dashboard(Axles):
         self.__plots[-1].set_filling_with(len(self.__plots) - 2)
         self.__plots[-2].set_filling_with(len(self.__plots) - 1)
 
-        max_x = max(x_tmp)
-        min_x = min(x_tmp)
+        max_x = self.__plots[-1].max(0)
+        min_x = self.__plots[-1].min(0)
         if min_x < self._x_axle.min or len(self.__plots) == 2:
             if self._x_axle.logarithmic:
                 if min_x > 0:
@@ -210,13 +210,13 @@ class Dashboard(Axles):
         
         for plt in self.__plots:
             if plt.name == name:
-                x_tmp = list(x_arr)
-                y_tmp = list(y_arr)
-                plt.update_x_array(array('d', x_tmp))
-                plt.update_y_array(array('d', y_tmp))
+                x_tmp = array("d", x_arr)
+                y_tmp = array("d", y_arr)
+                plt.update_x_array(x_tmp)
+                plt.update_y_array(y_tmp)
 
-                max_x = max(x_tmp)
-                min_x = min(x_tmp)
+                max_x = plt.max(0)
+                min_x = plt.min(0)
                 if min_x < self._x_axle.min or len(self.__plots) == 1:
                     if self._x_axle.logarithmic:
                         if min_x > 0:

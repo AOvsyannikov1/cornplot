@@ -1,4 +1,4 @@
-import csv, pathlib
+import csv
 import statistics
 from functools import partial
 from enum import Enum
