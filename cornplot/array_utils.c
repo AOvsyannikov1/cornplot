@@ -126,29 +126,6 @@ PyObject* c_window_to_real_y_log(PyObject* self, PyObject* args)
 }
 
 
-// PyObject* c_recalculate_window_x(PyObject* self, PyObject* args)
-// {
-//     PyListObject *X_real;
-//     double x_start, real_width;
-//     int min_x, width, i0, ik, step;
-
-//     PyArg_ParseTuple(args, "O!iiddiii", &PyList_Type, &X_real, &min_x, &width, &real_width, &x_start, &i0, &ik, &step);
-
-//     int len = (ik - i0 + step - 1) / step;
-//     double scale = (double)width / real_width;
-//     PyListObject *ret = PyList_New(len);
-//     PyObject **items = ((PyListObject*)X_real)->ob_item;
-
-//     for (int i = i0, j = 0; i < ik && j < len; i += step, j++)
-//     {
-//         double x = PyFloat_AS_DOUBLE(items[i]);
-//         double x_win = min_x + scale * (x - x_start);
-//         PyList_SET_ITEM(ret, j, PyFloat_FromDouble(x_win));
-//     }
-//     return ret;
-// }
-
-
 PyObject* c_recalculate_window_x(PyObject* self, PyObject* args)
 {
     PyObject *X_real_obj;
@@ -199,31 +176,6 @@ PyObject* c_recalculate_window_x(PyObject* self, PyObject* args)
     PyBuffer_Release(&view);
     return ret;
 }
-
-
-/*PyObject* c_recalculate_window_y(PyObject* self, PyObject* args)
-{
-    PyListObject *Y_real;
-    double y_stop, real_height;
-    int min_y, height, i0, ik, step;
-
-    PyArg_ParseTuple(args, "O!iiddiii", &PyList_Type, &Y_real, &min_y, &height, &real_height, &y_stop, &i0, &ik, &step);
-
-    int len = (ik - i0 + step - 1) / step;
-    double scale = (double)height / real_height;
-    if (len < 0) len = 0;
-    PyListObject *ret = PyList_New(len);
-
-    PyObject** items = ((PyListObject*)Y_real)->ob_item;
-
-    for (int i = i0, j = 0; i < ik && j < len; i += step, j++)
-    {
-        double y = PyFloat_AS_DOUBLE(items[i]);
-        double y_win = min_y + scale * (y_stop - y);
-        PyList_SET_ITEM(ret, j, PyFloat_FromDouble(y_win));
-    }
-    return ret;
-}*/
 
 
 PyObject* c_recalculate_window_y(PyObject* self, PyObject* args)
@@ -280,28 +232,37 @@ PyObject* c_recalculate_window_y(PyObject* self, PyObject* args)
 
 PyObject* c_get_nearest_value(PyObject* self, PyObject* args)
 {
-    PyListObject *X;
+    PyObject *X;
     double x_real;
+    unsigned int i0, ik;
 
-    PyArg_ParseTuple(args, "O!d", &PyList_Type, &X, &x_real);
+    PyArg_ParseTuple(args, "Odii", &X, &x_real, &i0, &ik);
+
+    Py_buffer view;
+    if (PyObject_GetBuffer(X, &view, PyBUF_SIMPLE | PyBUF_FORMAT) < 0)
+        return NULL;
+
+    double *data = (double*)view.buf;
 
     double x_nearest;
     int i_nearest = 0;
 
-    for(int i = 0; i < PyList_Size(X); ++i)
+    for (int i = i0; i < ik; ++i)
     {
         if(i == 0)
         {
-            x_nearest = PyFloat_AsDouble(PyList_GetItem(X, i));
+            x_nearest = data[i];
             continue;
         }
-        double val_cur = PyFloat_AsDouble(PyList_GetItem(X, i));
+        double val_cur = data[i];
         if(fabs(val_cur - x_real) < fabs(x_nearest - x_real))
         {
             x_nearest = val_cur;
             i_nearest = i;
         }
     }
+
+    PyBuffer_Release(&view);
 
     PyObject *ret = PyList_New(2);
     PyList_SetItem(ret, 0, PyFloat_FromDouble(x_nearest));

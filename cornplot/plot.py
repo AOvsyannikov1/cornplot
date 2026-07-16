@@ -239,12 +239,11 @@ class Plot(QObject):
         return self.X[index], self.Y[index]
 
     def get_nearest(self, x_real):
-        X = list(self.X[self.index0:self.index1+1])
         if self.x_ascending:
-            x, indx = c_get_nearest_value(X, x_real)
-            indx += self.index0
+            x, indx = c_get_nearest_value(self.X, x_real, self.index0, self.index1 + 1)
             return [x, indx],
 
+        X = self.X[self.index0:self.index1+1]
         accuracy = max([abs(self.X[i] - self.X[i - 1]) for i in range(1, len(X))])
 
         ascending = self.X[1] - self.X[0] > 0
