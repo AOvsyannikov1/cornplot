@@ -228,6 +228,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.backgroundColorAction.triggered.connect(self.__choose_background_color)
 
         self.fontAction.triggered.connect(self.__select_font)
+        self.legendFontAction.triggered.connect(self.__select_legend_font)
 
         self.acceptXdivisor.clicked.connect(lambda: self.__dashboard.set_x_divisor(self.xDivisor.value()))
         self.acceptYdivisor.clicked.connect(lambda: self.__dashboard.set_y_divisor(self.yDivisor.value()))
@@ -316,6 +317,13 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         font, selected = dlg.getFont(self.__dashboard.font)
         if selected:
             self.__dashboard.set_font(font)
+
+    @Slot()
+    def __select_legend_font(self):
+        dlg = QFontDialog(self)
+        font, selected = dlg.getFont(self.__dashboard.font)
+        if selected:
+            self.__dashboard.set_legend_font(font)
 
     @Slot()
     def __choose_background_color(self):

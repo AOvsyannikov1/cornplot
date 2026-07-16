@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>792</width>
-    <height>725</height>
+    <height>639</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1035,51 +1035,6 @@
            </layout>
           </item>
          </layout>
-        </item>
-        <item row="1" column="0">
-         <widget class="QGroupBox" name="groupBox_11">
-          <property name="title">
-           <string>Анимация</string>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_28">
-           <item row="0" column="0">
-            <layout class="QVBoxLayout" name="verticalLayout_9">
-             <item>
-              <widget class="QCheckBox" name="saveAnimatedData">
-               <property name="text">
-                <string>Сохранять данные</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_65">
-               <item>
-                <widget class="QLabel" name="label_72">
-                 <property name="text">
-                  <string>Ширина (в ед. оси Х)</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QSpinBox" name="animatedWidth">
-                 <property name="maximum">
-                  <number>1000000000</number>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <widget class="QPushButton" name="acceptAnimationSettings">
-               <property name="text">
-                <string>Применить</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </widget>
         </item>
        </layout>
       </widget>
@@ -3603,6 +3558,7 @@
     </widget>
     <addaction name="backgroundColorAction"/>
     <addaction name="fontAction"/>
+    <addaction name="legendFontAction"/>
     <addaction name="darkThemeAction"/>
     <addaction name="separator"/>
     <addaction name="drawOriginAction"/>
@@ -3851,6 +3807,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+S</string>
+   </property>
+  </action>
+  <action name="legendFontAction">
+   <property name="text">
+    <string>Шрифт легенды...</string>
    </property>
   </action>
  </widget>

@@ -99,6 +99,9 @@ class Plot(QObject):
     def save_data(self):
         return self.__save_data
     
+    def set_legend_font(self, font: QFont):
+        self.__checkbox.setFont(font)
+    
     def set_color(self, clr_name):
         self.pen.setColor(QColor(clr_name))
         self.set_dark(self.__dark)

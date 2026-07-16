@@ -8,7 +8,7 @@ from .plot_updater import PlotUpdater
 __all__ = ['set_style', 'set_dark', 'plot', 'auxiliary_line', 'scatter', 'polar_plot', 'polar_scatter', 
            'animated_plot', 'add_point_to_animated_plot', 'add_plot_updater',
            'histogram', 'density_histogram', 'bar_chart', 'pie_chart', 'subplot', 'figure', 'show', 'clear',
-           "set_font", "reset_font", "fill_between", "hide_buttons", "plot_from_file"]
+           "set_font", "reset_font", "fill_between", "hide_buttons", "plot_from_file", "set_legend_font"]
 
 
 def set_style(style: str):
@@ -257,6 +257,10 @@ def clear():
 
 def set_font(font_name: str, font_size: int):
     _plotter.set_font(font_name, font_size)
+
+
+def set_legend_font(font_name: str, font_size: int):
+    _plotter.set_legend_font(font_name, font_size)
 
 
 def reset_font():

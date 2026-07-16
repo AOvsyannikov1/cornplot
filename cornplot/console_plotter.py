@@ -202,7 +202,7 @@ class PlotWindow(QWidget):
 
 class CornPlotter:
     __slots__ = ("app", "__windows", "__current_window_index", "__current_row", "__current_col",
-                 "__nrows", "__ncols", "__datasets", "__dark", "__app_style", "__font", "__hide_buttons")
+                 "__nrows", "__ncols", "__datasets", "__dark", "__app_style", "__font", "__hide_buttons", "__legend_font")
 
     def __init__(self):
         self.app: QApplication | None = None
@@ -216,6 +216,7 @@ class CornPlotter:
         self.__dark = False
         self.__app_style = "Fusion"
         self.__font = None
+        self.__legend_font = None
         self.__hide_buttons = False
 
     def set_dark(self, dark=True):
@@ -297,6 +298,9 @@ class CornPlotter:
         win.add_plot(self.__current_row, self.__current_col, x_arr, y_arr,
                                                              plot_label, linewidth, linestyle, color, scatter, markerwidth)
         
+        if self.__legend_font:
+            win.dashboards[-1].set_legend_font(self.__legend_font)
+        
     def plot_from_file(self, file_name: str, x_label="X", y_label="Y", plot_labels=None, link_plots=True, axes=False, draw_x=True):
         self.__create_qapp()
         win = self.__add_window()
@@ -306,7 +310,12 @@ class CornPlotter:
         win.dashboards[-1].set_y_name(y_label)
         win.dashboards[-1].enable_x_ticks(draw_x)
         win.dashboards[-1].enable_x_label(draw_x)
+        if self.__font:
+            win.dashboards[-1].set_font(self.__font)
         win.add_plots_from_file(self.__current_row, self.__current_col, file_name, plot_labels)
+
+        if self.__legend_font:
+            win.dashboards[-1].set_legend_font(self.__legend_font)
         
     def fill_between(self, x_arr, y_arr1, y_arr2, x_label="X", y_label="Y", plot_label='', opacity=128, color='any', link_plots=True, axes=False, draw_x=True):
         self.__create_qapp()
@@ -320,9 +329,15 @@ class CornPlotter:
         if self.__font:
             win.dashboards[-1].set_font(self.__font)
         win.fill_between_plots(self.__current_row, self.__current_col, x_arr, y_arr1, y_arr2, name=plot_label, opacity=opacity, color=color)
+
+        if self.__legend_font:
+            win.dashboards[-1].set_legend_font(self.__legend_font)
         
     def set_font(self, font_name: str, font_size: int) -> None:
         self.__font = QFont(font_name, font_size)
+
+    def set_legend_font(self, font_name: str, font_size: int):
+        self.__legend_font = QFont(font_name, font_size)
 
     def reset_font(self) -> None:
         self.__font = None
@@ -362,8 +377,13 @@ class CornPlotter:
                                                              x_name=x_label, y_name=y_label, link_plots=link_plots, draw_axes=axes, hide_buttons=self.__hide_buttons)
         win.dashboards[-1].set_x_name(x_label)
         win.dashboards[-1].set_y_name(y_label)
+        if self.__font:
+            win.dashboards[-1].set_font(self.__font)
         win.add_animated_plot(self.__current_row, self.__current_col, plot_label, x_size, linewidth, linestyle, color, limit_data, save_data, real_time)
         self.__datasets[plot_label] = self.__current_window_index
+
+        if self.__legend_font:
+            win.dashboards[-1].set_legend_font(self.__legend_font)
         
     def add_plot_updater(self, updater: PlotUpdater):
         """
@@ -407,7 +427,12 @@ class CornPlotter:
                                                              x_name=x_label, y_name=y_label, link_plots=link_plots, draw_axes=False, hide_buttons=self.__hide_buttons)
         win.dashboards[-1].set_x_name(x_label)
         win.dashboards[-1].set_y_name(y_label)
+        if self.__font:
+            win.dashboards[-1].set_font(self.__font)
         win.add_histogram(self.__current_row, self.__current_col, data, intervals_count=intervals_count, name=hist_label, color=color, probabilities=probabilities)
+
+        if self.__legend_font:
+            win.dashboards[-1].set_legend_font(self.__legend_font)
 
     def density_histogram(self, data, intervals_count=0, x_label="X", y_label="Y", hist_label="", color='any', link_plots=False):
         """
@@ -427,7 +452,12 @@ class CornPlotter:
                                                              x_name=x_label, y_name=y_label, link_plots=link_plots, draw_axes=False, hide_buttons=self.__hide_buttons)
         win.dashboards[-1].set_x_name(x_label)
         win.dashboards[-1].set_y_name(y_label)
+        if self.__font:
+            win.dashboards[-1].set_font(self.__font)
         win.add_density_histogram(self.__current_row, self.__current_col, data, intervals_count=intervals_count, name=hist_label, color=color)
+
+        if self.__legend_font:
+            win.dashboards[-1].set_legend_font(self.__legend_font)
 
     def polar_plot(self, amplitudes, angles, color='any', linewidth=2, linestyle='solid', scatter=False):
         """

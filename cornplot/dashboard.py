@@ -1238,3 +1238,7 @@ class Dashboard(Axles):
         if self.__draw_aux_lines != enable:
             self._force_redraw()
         self.__draw_aux_lines = enable
+
+    def set_legend_font(self, font: QFont):
+        for plt in self.__plots:
+            plt.set_legend_font(font)
