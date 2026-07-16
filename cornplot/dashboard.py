@@ -2,7 +2,6 @@ import pickle, csv
 from math import log2, floor
 from typing import Any
 from pathlib import Path
-from time import monotonic
 
 from PyQt6.QtCore import QPointF, QLineF, QRectF, pyqtSlot as Slot, Qt, QMutexLocker, QMutex, pyqtSignal as Signal
 from PyQt6.QtWidgets import QMessageBox, QWidget
