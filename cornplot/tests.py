@@ -1,6 +1,68 @@
 import numpy as np
+from random import uniform
 from .console_plotter import _plotter as plt
 from .utils import UPPER_INDEXES
+
+
+class SecondOrderLink:
+
+    def __init__(self, t1, t2, dt, y0=0, v0=0):
+        self.dt = dt
+        self.T1 = t1
+        self.T2 = t2
+
+        self.v = v0
+        self.y = y0
+
+    def dv(self, x_in, v, y):
+        return (1 * x_in - (self.T1 + self.T2) * v - y) / (self.T1 * self.T2)
+
+    def process(self, x_in):
+        self.v += self.dv(x_in, self.v, self.y) * self.dt
+        self.y += self.v * self.dt
+
+        return self.y
+    
+
+class RealDiffLink:
+
+    def __init__(self, kd, td, dt):
+        self.T = td
+        self.diff_output = 0
+        self.prev_input = 0
+        self.Kd = kd
+        self.dt = dt
+
+    def deriv_process(self, x_in, dt=0.0):
+        if dt > 0:
+            self.dt = dt
+
+        deriv = (x_in - self.prev_input) / self.dt
+        self.prev_input = x_in
+        self.diff_output += (self.Kd * deriv - self.diff_output) / self.T * self.dt
+        return self.diff_output
+
+
+class PID(RealDiffLink):
+
+    def __init__(self, kp, ki, kd, td, dt):
+        super().__init__(kd, td, dt)
+        self.Kp = kp
+        self.Ki = ki
+        self.dt = dt
+        self.integral = 0
+
+    def control(self, target, value, dt=0.0):
+        if dt > 0:
+            self.dt = dt
+        e = target - value
+        self.integral += e * self.dt
+        derivative = self.deriv_process(e)
+        return self.Kp * e + self.Ki * self.integral + derivative
+
+    def reset(self):
+        self.diff_output = 0
+        self.integral = 0
 
 
 def show_demo_plots_1(dark=False):
@@ -221,12 +283,26 @@ def show_demo_animation(dark=False):
     from .plot_updater import PlotUpdater
 
     class Update(PlotUpdater):
+        def __init__(self):
+            super().__init__()
+            self.link = SecondOrderLink(0.7, 1.1, 0.025)
+            self.controller = PID(5, 2, 0.2, 1, 0.025)
+            self.t = time.monotonic()
+            self.target = 1
+
         def update_plot(self):
             t = time.monotonic()
             plt.add_point_to_animated_plot("Sin", t, 100000*(np.sin(t) * np.sin(t / 10)))
             plt.add_point_to_animated_plot("Cos", t, 100000*np.cos(t))
-            plt.add_point_to_animated_plot("SinSin", t, 0.001*np.sin(2 * t))
-            plt.add_point_to_animated_plot("CosCos", t, 0.001*np.cos(2 * t))
+
+            if t - self.t >= 10:
+                self.target = uniform(-1, 1)
+                self.t = t
+
+            u = self.controller.control(self.target, self.link.y)
+            y = self.link.process(u)
+            plt.add_point_to_animated_plot("Second order link", t, y)
+            plt.add_point_to_animated_plot("Target", t, self.target)
 
 
     class Update1(PlotUpdater):
@@ -240,12 +316,12 @@ def show_demo_animation(dark=False):
     plt.animated_plot("Sin", x_size=30)
     plt.animated_plot("Cos", x_size=30)
     plt.subplot(2, 1, 2)
-    plt.animated_plot("SinSin", x_size=30)
-    plt.animated_plot("CosCos", x_size=30)
+    plt.animated_plot("Second order link", x_size=30)
+    plt.animated_plot("Target", x_size=30)
     plt.add_plot_updater(Update())
 
     plt.window(2, name="Sinsin", x=500, y=200)
-    plt.animated_plot("sinsinsin", x_size=30, real_time=False)
+    plt.animated_plot("sinsinsin", x_size=30, real_time=True)
     updater = Update1()
     updater.set_delay_ms(25)
     plt.add_plot_updater(updater)
