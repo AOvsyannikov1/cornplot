@@ -257,7 +257,7 @@ class Dashboard(Axles):
             self._x_axle.min = 0
             self._update_step_x()
             self._update_x_borders(self._x_axle.min, self._x_axle.max)
-        self.__plots.append(Plot(self, list(), list(), self.__get_pen(color, linewidth, linestyle), name=name, checkbox_x=self.__get_checkbox_x(), 
+        self.__plots.append(Plot(self, array("d"), array("d"), self.__get_pen(color, linewidth, linestyle), name=name, checkbox_x=self.__get_checkbox_x(), 
                                  animated=True, x_size=x_size, limited=limit_data, save_data=save_data, real_time=real_time))
         self.__plots[-1].redraw_signal.connect(self.__process_checkbox_press)
         self.__plots[-1].set_dark(self.dark)
@@ -304,6 +304,8 @@ class Dashboard(Axles):
         if len(name) == 0:
             name = f"Гистограмма {len(self.__plots) + 1}"
 
+        x = array("d", x)
+        y = array("d", y)
         self.__plots.append(Plot(self, x, y, pen, name=name, accurate=True, hist=True, heatmap=heatmap, checkbox_x=self.__get_checkbox_x(),
                                  hist_data=data))
         self.__plots[-1].redraw_signal.connect(self.__process_checkbox_press)
@@ -371,6 +373,8 @@ class Dashboard(Axles):
         if len(name) == 0:
             name = f"Гистограмма {len(self.__plots) + 1}"
 
+        x = array("d", x)
+        y = array("d", y)
         self.__plots.append(Plot(self, x, y, pen, name=name, accurate=True, hist=True, heatmap=heatmap, checkbox_x=self.__get_checkbox_x(),
                                  hist_data=data))
         self.__plots[-1].redraw_signal.connect(self.__process_checkbox_press)

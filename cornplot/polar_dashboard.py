@@ -2,6 +2,7 @@ import os
 from typing import Iterable
 from array import array
 from math import sqrt, atan2, degrees, pi
+import numpy as np
 
 from PyQt6.QtGui import QPainter, QPainterPath, QPen, QFont, QFontMetrics, QAction, QGuiApplication
 from PyQt6.QtWidgets import QMenu, QFileDialog, QWidget
@@ -56,6 +57,8 @@ class DashboardPolar(PolarAxles):
         self.__menu.addAction(self.__darkTheme)
         self.__menu.addAction(self.__addScanner)
         self.__menu.addAction(self.__rotateScanner)
+
+        self.__set_dark_theme(False)
 
     @Slot(bool)
     def __set_dark_theme(self, dark: bool):
@@ -139,7 +142,7 @@ class DashboardPolar(PolarAxles):
         try:
             for plt in self.__plots:
                 self.__recalculate_plot_coords(plt)
-        except:
+        except Exception as e:
             pass
 
     def __recalculate_plot_coords(self, plt: PolarPlot):
@@ -300,10 +303,10 @@ class DashboardPolar(PolarAxles):
             plt.points = [QPointF(x, y) for x, y in zip(Xwin, Ywin)]
 
     def __recalculate_plot_x(self, plt: PolarPlot, step):
-        return c_recalculate_window_x(list(plt.X), self._MIN_X, self._get_width(), self._real_size, self._start_value, 0, len(plt.Y), step)
+        return c_recalculate_window_x(plt.X, self._MIN_X, self._get_width(), self._real_size, self._start_value, 0, len(plt.Y), step)
     
     def __recalculate_plot_y(self, plt: PolarPlot, step):
-        return c_recalculate_window_y(list(plt.Y), self._MIN_Y, self._get_heignt(), self._real_size, self._stop_value, 0, len(plt.Y), step)
+        return c_recalculate_window_y(plt.Y, self._MIN_Y, self._get_heignt(), self._real_size, self._stop_value, 0, len(plt.Y), step)
     
     def __win_to_real_angle(self, angle: float) -> float:
         if angle < 0:

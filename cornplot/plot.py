@@ -62,8 +62,8 @@ class Plot(QObject):
         self.__maximums = [0.0, 0.0]
         self.__minimums = [0.0, 0.0]
         if not animated and len(x_arr) > 0 and len(y_arr) > 0:
-            self.__maximums = [max(x_arr), max(y_arr)]
-            self.__minimums = [min(x_arr), min(y_arr)]
+            self.__minimums[0], self.__maximums[0] = c_get_min_and_max(self.X, len(x_arr))
+            self.__minimums[1], self.__maximums[1] = c_get_min_and_max(self.Y, len(y_arr))
 
         font = QFont("Consolas, Courier New", 12)
         font.setBold(False)
@@ -201,18 +201,19 @@ class Plot(QObject):
         else:
             first = False
 
-        if self.__real_time:
-            self.X.append(x)
-        else:
-            self.X.append(x - self.__x0)
-        self.Y.append(y)
+        if not self.__real_time:
+            x -=self.__x0
 
-        if self.__limited and len(self.X) >= 2 and self.X[-1] - self.X[0] >= self.x_size:
+        if self.__limited and len(self.X) > 0 and x - self.X[0] >= self.x_size:
             if not self.__save_data:
                 self.X.pop(0)
                 self.Y.pop(0)
-            self.__maximums[1] = max(self.Y)
-            self.__minimums[1] = min(self.Y)
+                self.X.append(x)
+                self.Y.append(y)
+            else:
+                self.X.append(x)
+                self.Y.append(y)
+            self.__minimums[1], self.__maximums[1] = c_get_min_and_max(self.Y, self.length)
             self.__minimums[0] = self.X[0]
             self.__maximums[0] = x
         else:
@@ -222,10 +223,13 @@ class Plot(QObject):
                 self.__maximums[0] = x
             elif self.__minimums[0] > x:
                 self.__minimums[0] = x
+                
             if self.__maximums[1] < y:
                 self.__maximums[1] = y
             elif self.__minimums[1] > y:
                 self.__minimums[1] = y
+            self.X.append(x)
+            self.Y.append(y)
         
         self.index0 = 0
         self.index1 = self.length - 1
@@ -277,13 +281,11 @@ class Plot(QObject):
 
     def update_x_array(self, x):
         self.X = x
-        self.__maximums[0] = max(x)
-        self.__minimums[0] = min(x)
+        self.__minimums[0], self.__maximums[0] = c_get_min_and_max(x, len(x))
 
     def update_y_array(self, y):
         self.Y = y
-        self.__maximums[1] = max(y)
-        self.__minimums[1] = min(y)
+        self.__minimums[1], self.__maximums[1] = c_get_min_and_max(y, len(y))
 
     def min(self, axis: int) -> float:
         return self.__minimums[axis] if not self.is_hist else 0

@@ -245,20 +245,20 @@ def show_demo_animation(dark=False):
     plt.add_plot_updater(Update())
 
     plt.window(2, name="Sinsin", x=500, y=200)
-    plt.animated_plot("sinsinsin", x_size=30, real_time=True)
+    plt.animated_plot("sinsinsin", x_size=30, real_time=False)
     updater = Update1()
     updater.set_delay_ms(25)
     plt.add_plot_updater(updater)
     plt.show()
 
 
-def show_demo_pie_chart():
+def show_demo_pie_chart(dark=False):
     perc = (78, 21, 1)
     cats = ("Азот", "Кислород", "Прочие газы")
     descrs = ("АЗОТ АЗОТ ЕГО ДОФИГА АЗОТ ОН НЕ ДЫШИТСЯ АЗОТ АЗООООООООООООООТ",
               "кислород любимый кислород что ж ты такой классный аааааааааа",
               "а прочие газы тут углекислый газ лох но им растения дышат")
-
+    plt.set_dark(dark)
     plt.pie_chart(perc, cats, descrs)
     plt.show()
 

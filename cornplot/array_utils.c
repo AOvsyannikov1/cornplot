@@ -264,9 +264,39 @@ PyObject* c_get_nearest_value(PyObject* self, PyObject* args)
 
     PyBuffer_Release(&view);
 
-    PyObject *ret = PyList_New(2);
-    PyList_SetItem(ret, 0, PyFloat_FromDouble(x_nearest));
-    PyList_SetItem(ret, 1, PyLong_FromLong(i_nearest));
+    PyObject *ret = PyTuple_New(2);
+    PyTuple_SET_ITEM(ret, 0, PyFloat_FromDouble(x_nearest));
+    PyTuple_SET_ITEM(ret, 1, PyLong_FromLong(i_nearest));
+    return ret;
+}
+
+
+PyObject* c_get_min_and_max(PyObject* self, PyObject* args)
+{
+    PyObject *X;
+    unsigned int length;
+
+    PyArg_ParseTuple(args, "Oi", &X, &length);
+
+    Py_buffer view;
+    if (PyObject_GetBuffer(X, &view, PyBUF_SIMPLE | PyBUF_FORMAT) < 0)
+        return NULL;
+
+    double *data = (double*)view.buf;
+    double max = data[0];
+    double min = data[0];
+
+    for (int i = 1; i < length; ++i)
+    {
+        if (data[i] > max) max = data[i];
+        else if (data[i] < min) min = data[i];
+    }
+
+    PyBuffer_Release(&view);
+
+    PyObject *ret = PyTuple_New(2);
+    PyTuple_SET_ITEM(ret, 0, PyFloat_FromDouble(min));
+    PyTuple_SET_ITEM(ret, 1, PyFloat_FromDouble(max));
     return ret;
 }
 
@@ -286,7 +316,8 @@ PyMethodDef module_methods[] =
     {"c_window_to_real_y_log", c_window_to_real_y_log, METH_VARARGS, "Перевод оконных координат в реальные при логарифмическом масштабе"},
     {"c_recalculate_window_x", c_recalculate_window_x, METH_VARARGS, "Пересчёт оконных координат по Х"},
     {"c_recalculate_window_y", c_recalculate_window_y, METH_VARARGS, "Пересчёт оконных координат по У"},
-    {"c_get_nearest_value", c_get_nearest_value, METH_VARARGS, "Нахождение ближайшего значения в массиве"},
+    {"c_get_nearest_value", c_get_nearest_value, METH_VARARGS, "Поиск ближайшего значения в массиве"},
+    {"c_get_min_and_max", c_get_min_and_max, METH_VARARGS, "Поиск минимума и максимума массива"},
     {NULL} // this struct signals the end of the array
 };
 
@@ -296,7 +327,7 @@ struct PyModuleDef array_utils =
     PyModuleDef_HEAD_INIT, // Always initialize this member to PyModuleDef_HEAD_INIT
     "array_utils", // module name
     "Модуль содержит функции, наиболее критичные по времени, реализованные на С", // module description
-    -1, // module size (more on this later)
+    -1, // module size
     module_methods // methods associated with the module
 };
 

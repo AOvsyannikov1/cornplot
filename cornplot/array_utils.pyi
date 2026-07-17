@@ -30,13 +30,16 @@ def c_real_to_window_y_log(y: float, min_y: int, max_y: int, win_height: int, ys
     ...
 
 
-def c_get_nearest_value(x_array: list[float], x_real: float) -> list[float]:
+def c_get_nearest_value(x_array, x_real: float, i0: int, ik: int) -> tuple[float, int]:
     ...
 
 
-def c_recalculate_window_x(x: list[float], min_x: int, win_width: int, real_width: float, xstart: float, i0: int, ik: int, step:int) -> list[float]:
+def c_recalculate_window_x(x_array, min_x: int, win_width: int, real_width: float, xstart: float, i0: int, ik: int, step:int) -> list[float]:
     ...
 
 
-def c_recalculate_window_y(y: list[float], min_y: int, win_height: int, real_height: float, ystop: float, i0: int, ik: int, step:int) -> list[float]:
+def c_recalculate_window_y(y_array, min_y: int, win_height: int, real_height: float, ystop: float, i0: int, ik: int, step:int) -> list[float]:
+    ...
+
+def c_get_min_and_max(arr, length: int) -> tuple[float, float]:
     ...
