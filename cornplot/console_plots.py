@@ -1,8 +1,8 @@
 from typing import Iterable
 
-import numpy as np
 from .console_plotter import _plotter
 from .plot_updater import PlotUpdater
+from .utils import arange
 
 
 __all__ = ['set_style', 'set_dark', 'plot', 'auxiliary_line', 'scatter', 'polar_plot', 'polar_scatter', 
@@ -55,7 +55,7 @@ def plot(x_arr: Iterable[float], y_arr: Iterable[float] | None = None, x_label: 
     """
     if y_arr is None:
         y_arr = list(x_arr)
-        x_arr = np.arange(len(x_arr))
+        x_arr = arange(0, len(x_arr), 1)
     _plotter.plot(x_arr, y_arr, x_label=x_label, y_label=y_label, plot_label=plot_label, linewidth=linewidth,
                 color=color, link_plots=synchronise_plots, axes=axes)
     
@@ -89,7 +89,7 @@ def auxiliary_line(equation: str):
 def scatter(x_arr, y_arr=None, x_name="X", y_name="Y", name='', markerwidth=5, color="any", synchronise_plots=True, axes=True):
     if y_arr is None:
         y_arr = list(x_arr)
-        x_arr = np.arange(len(x_arr))
+        x_arr = arange(0, len(x_arr), 1)
     _plotter.plot(x_arr, y_arr, x_label=x_name, y_label=y_name, plot_label=name, linewidth=2,
                 color=color, link_plots=synchronise_plots, axes=axes, scatter=True, markerwidth=markerwidth)
     

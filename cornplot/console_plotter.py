@@ -1,11 +1,10 @@
 import sys
+from math import ceil
 from uuid import uuid4
 
 from PyQt6.QtCore import Qt, pyqtSlot as Slot
 from PyQt6.QtWidgets import QWidget, QApplication, QStyleFactory
 from PyQt6.QtGui import QIcon, QGuiApplication, QFont
-
-import numpy as np
 
 from .dashboard import Dashboard
 from .polar_dashboard import DashboardPolar
@@ -260,7 +259,7 @@ class CornPlotter:
         """
         self.__create_qapp()
         self.__add_window()
-        self.__current_col = np.ceil(number / rows)
+        self.__current_col = ceil(number / rows)
         self.__current_row = number - (self.__current_col - 1) * rows
 
         self.__nrows = rows

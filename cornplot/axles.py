@@ -1,7 +1,6 @@
 import warnings
 from os import startfile
 from math import log10, floor, ceil, modf, isclose
-from numpy import round as np_round
 
 from PyQt6.QtCore import Qt, QLineF, QRectF, pyqtSlot as Slot, QRect, QTimer
 from PyQt6.QtGui import QPen, QColor, QPainter, QFont, QFontMetrics, QGuiApplication, QIcon
@@ -21,7 +20,6 @@ from .array_utils import *
 from .axle_group_data import AxleGroupData, MAX_SCANNER_LINES
 from .coordinate_ax import CoordinateAx
 from .scanner_lines import VerticalLineList
-
 
 axle_groups: dict[str, AxleGroupData] = dict()
 
@@ -1104,12 +1102,12 @@ class Axles(QWidget):
             end_x_power = ceil(log10(self._x_axle.stop))
             x_metki_coords = [10 ** i for i in range(initial_x_power, end_x_power + 1)]
         else:
-            x_metki_coords = np_round(arange(x0, xk, self._x_axle.grid_step), 15)
+            x_metki_coords = [round(x, 15) for x in arange(x0, xk, self._x_axle.grid_step)]
 
-        divised_step = self._x_axle.grid_step / self._x_axle.divisor
+        step_x = self._x_axle.grid_step / self._x_axle.divisor
         digit_count = max(get_digit_count_after_dot(x / self._x_axle.divisor) for x in x_metki_coords)
-        digit_count = max(get_digit_count_after_dot(divised_step), digit_count)
-        if divised_step < 0.5:
+        digit_count = max(get_digit_count_after_dot(step_x), digit_count)
+        if step_x < 0.5:
             digit_count = max(2, digit_count)
 
         # формирование подписей осей
@@ -1120,7 +1118,7 @@ class Axles(QWidget):
             if self._x_axle.logarithmic:
                 metki_str = ["10" + get_upper_index(int(log10(x / self._x_axle.divisor))) for x in x_metki_coords]
             else:
-                metki_str = [self.__get_rounded_tick(x / self._x_axle.divisor, divised_step, digit_count if self._digits_count < 0 else self._digits_count) for x in x_metki_coords]
+                metki_str = [self.__get_rounded_tick(x / self._x_axle.divisor, step_x, digit_count if self._digits_count < 0 else self._digits_count) for x in x_metki_coords]
         metrics = QFontMetrics(font)
         # расчёт максимальной ширины подписи
         self._x_axle.met_width = max(metrics.horizontalAdvance(st) for st in metki_str)

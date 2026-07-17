@@ -2,7 +2,7 @@ import os
 from typing import Iterable
 from array import array
 from math import sqrt, atan2, degrees, pi
-import numpy as np
+from random import uniform
 
 from PyQt6.QtGui import QPainter, QPainterPath, QPen, QFont, QFontMetrics, QAction, QGuiApplication
 from PyQt6.QtWidgets import QMenu, QFileDialog, QWidget
@@ -106,7 +106,7 @@ class DashboardPolar(PolarAxles):
         if x_max - x_min == 0 and y_max - y_min == 0:
             return False
 
-        maximum_abs_amplitude = np.max(np.abs(amplitudes))
+        maximum_abs_amplitude = max(abs(a) for a in amplitudes)
         if maximum_abs_amplitude > self._max_value or len(self.__plots) == 0:
             self._max_value = maximum_abs_amplitude
             self._min_value = -maximum_abs_amplitude
@@ -185,7 +185,7 @@ class DashboardPolar(PolarAxles):
     def __show_scanner(self, val: bool):
         self.__scanner_line.visible = val
         if val:
-            self.__scanner_line.angle = np.random.uniform(-pi, pi)
+            self.__scanner_line.angle = uniform(-pi, pi)
         self._force_redraw()
 
     def __create_value_pointer(self, angle, plt: PolarPlot):

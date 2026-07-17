@@ -1,4 +1,4 @@
-import numpy as np
+from math import pi, atan2, degrees
 from PyQt6 import QtCore, QtWidgets, QtGui
 
 from .color_generator import ColorGenerator
@@ -103,13 +103,13 @@ class PieChart(QtWidgets.QWidget):
 
     @staticmethod
     def vector_angle(x, y):
-        return np.arctan2(y, x) + (2 * np.pi if y < 0 else 0)
+        return atan2(y, x) + (2 * pi if y < 0 else 0)
 
     def mouse_coords_to_angle(self, x, y):
         x -= (self.__w - self.__legend_width) // 2
         y -= self.__h // 2 + 10 + self.__y
         y = -y
-        return round(self.vector_angle(x, y) * 180 / np.pi)
+        return round(degrees(self.vector_angle(x, y)))
 
     def get_cathegory_index(self, x, y):
         angle = self.mouse_coords_to_angle(x, y)
