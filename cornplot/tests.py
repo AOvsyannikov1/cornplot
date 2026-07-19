@@ -2,6 +2,7 @@ import numpy as np
 from random import uniform
 from .console_plotter import _plotter as plt
 from .utils import UPPER_INDEXES
+from math import pi
 
 
 class SecondOrderLink:
@@ -292,8 +293,8 @@ def show_demo_animation(dark=False):
 
         def update_plot(self):
             t = time.monotonic()
-            plt.add_point_to_animated_plot("Sin", t, 100000*(np.sin(t) * np.sin(t / 10)))
-            plt.add_point_to_animated_plot("Cos", t, 100000*np.cos(t))
+            plt.add_point_to_animated_plot("Sin", t, 1e5*(np.sin(t) * np.sin(t / 10)))
+            plt.add_point_to_animated_plot("Cos", t, 1e5 * (np.sin(t) + 0.3 * np.cos(3.5 * t)))
 
             if t - self.t >= 10:
                 self.target = uniform(-1, 1)
@@ -306,9 +307,22 @@ def show_demo_animation(dark=False):
 
 
     class Update1(PlotUpdater):
+        def __init__(self):
+            from random import uniform
+            super().__init__()
+
+            self.A = [uniform(0.001, 1) for _ in range(10)]
+            self.F = [uniform(0.5, 5) for _ in range(10)]
+            self.phase = [uniform(0, pi / 2) for _ in range(10)]
+
         def update_plot(self):
             t = time.monotonic()
-            plt.add_point_to_animated_plot("sinsinsin", t, np.sin(t) + 0.3 * np.cos(3.5 * t))
+            # plt.add_point_to_animated_plot("sinsinsin", t, np.sin(t) + 0.3 * np.cos(3.5 * t))
+            y = 0
+            for i in range(len(self.A)):
+                y += self.A[i] * np.sin(self.F[i] * t + self.phase[i])
+            plt.add_point_to_animated_plot("sinsinsin", t, y)
+
 
     plt.set_dark(dark)
     plt.window(1, name="Sin, cos")
@@ -321,7 +335,7 @@ def show_demo_animation(dark=False):
     plt.add_plot_updater(Update())
 
     plt.window(2, name="Sinsin", x=500, y=200)
-    plt.animated_plot("sinsinsin", x_size=30, real_time=True)
+    plt.animated_plot("sinsinsin", x_size=30, real_time=True, color="light grey" if dark else None)
     updater = Update1()
     updater.set_delay_ms(25)
     plt.add_plot_updater(updater)

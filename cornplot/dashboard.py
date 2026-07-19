@@ -92,7 +92,7 @@ class Dashboard(Axles):
             raise TypeError("Неподдерживаемый формат файла!")
 
     def add_plot(self, x_arr, y_arr=None, name='', linewidth=2.0, linestyle='solid',
-                 color='any', accurate=False, initial_ts=0) -> str | None:
+                 color=None, accurate=False, initial_ts=0) -> str | None:
         """Добавить статичный график"""
 
         if not hasattr(x_arr, "__iter__"):
@@ -148,7 +148,7 @@ class Dashboard(Axles):
         self._force_redraw()
         return name
     
-    def fill_between(self, x, y1, y2, name='', opacity=128, color='any'):
+    def fill_between(self, x, y1, y2, name='', opacity=128, color=None):
         if not hasattr(x, "__iter__") or not hasattr(y1, "__iter__") or not hasattr(y2, "__iter__"):
             return None
         
@@ -241,7 +241,7 @@ class Dashboard(Axles):
                 self._force_redraw()
                 break
     
-    def add_animated_plot(self, name: str, color='any', x_size=30, linewidth=2, linestyle='solid', 
+    def add_animated_plot(self, name: str, color=None, x_size=30, linewidth=2, linestyle='solid', 
                           limit_data=True, save_data=False, real_time=False) -> bool:
         if len(name) == 0:
             return False
@@ -264,7 +264,7 @@ class Dashboard(Axles):
         self._set_animated(True)
         return True
     
-    def add_histogram(self, data, interval_count=0, name="", color="any", probabilities=False):
+    def add_histogram(self, data, interval_count=0, name="", color=None, probabilities=False):
         """Добавить гистограмму. Если аргумент probabilities равен True, по оси Y откладываются относительные частоты появления
         экземпляров данных, иначе - количество появлений."""
         if interval_count <= 0:
@@ -289,7 +289,7 @@ class Dashboard(Axles):
         if probabilities:
             y = [yi / summa for yi in y]
 
-        if color == 'any':
+        if color is None:
             color = self.__color_generator.get_color()
             heatmap = False
         elif color == 'heatmap':
@@ -334,7 +334,7 @@ class Dashboard(Axles):
 
         return True
     
-    def add_density_histogram(self, data, interval_count=0, name="", color="any"):
+    def add_density_histogram(self, data, interval_count=0, name="", color=None):
         """Аналогично гистограмме, но в этом случае строится гистограмма плотности вероятности."""
         if interval_count <= 0:
             interval_count = 1 + floor(log2(len(data)))
@@ -358,7 +358,7 @@ class Dashboard(Axles):
         summa = sum(y)
         y = [yi / (summa * dx) for yi in y]
 
-        if color == 'any':
+        if color is None:
             color = self.__color_generator.get_color()
             heatmap = False
         elif color == 'heatmap':
@@ -460,7 +460,7 @@ class Dashboard(Axles):
         self.update()
 
     def __get_pen(self, color, linewidth: float, linestyle: str, opacity=255) -> QPen:
-        if color == 'any':
+        if color is None:
             color = self.__color_generator.get_color()
         else:
             color = color
@@ -650,7 +650,7 @@ class Dashboard(Axles):
                 self._qp.setPen(QColor(255, 255, 255, 127 if any_hist else 0))
                 self._qp.setBrush(rect.color)
                 self._qp.drawRoundedRect(rect, 5, 5)
-                self._qp.setPen(QColor("white"))
+                self._qp.setPen(QColor(choose_contrast_color(rect.color)))
                 self._qp.setFont(VALUE_FONT)
                 self._qp.drawText(rect, Qt.AlignmentFlag.AlignCenter, rect.text)
                 

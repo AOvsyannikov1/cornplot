@@ -83,7 +83,7 @@ class DashboardPolar(PolarAxles):
             self.__take_picture = False
             self.repaint()
 
-    def add_plot(self, amplitudes: Iterable[float], angles: Iterable[float], color='any',
+    def add_plot(self, amplitudes: Iterable[float], angles: Iterable[float], color=None,
                  linewidth=2.0, linestyle='solid', scatter=False):
         if not hasattr(amplitudes, "__iter__"):
             return False
@@ -342,7 +342,7 @@ class DashboardPolar(PolarAxles):
         self.__draw_scanner_lines(value_rects)
 
     def __get_pen(self, color, linewidth: float, linestyle: str) -> QPen:
-        if color == 'any':
+        if color is None:
             color = self.__color_generator.get_color()
         else:
             color = color

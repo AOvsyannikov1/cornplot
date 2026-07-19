@@ -1,5 +1,6 @@
 import warnings
 from os import startfile
+from datetime import timezone
 from math import log10, floor, ceil, modf, isclose
 
 from PyQt6.QtCore import Qt, QLineF, QRectF, pyqtSlot as Slot, QRect, QTimer
@@ -232,7 +233,7 @@ class Axles(QWidget):
 
     @Slot()
     def __add_scanner(self):
-        x0 = 1 / MAX_SCANNER_LINES
+        x0 = 1 / (MAX_SCANNER_LINES + 1)
         self.__scanner_lines.add_line(x0 + self.__scanner_lines.line_count() / (MAX_SCANNER_LINES + 1))
         self._redraw_required = True
         self.__group.line_move_signal.emit()
@@ -1350,7 +1351,7 @@ class Axles(QWidget):
 
                 dx = abs(x_real - line_real_coords[i - 1])
                 if self._x_axle.min >= 0 and self.__convert_to_hhmmss:
-                    tmp_str = convert_timestamp_to_human_time(dx, millis=True)
+                    tmp_str = convert_timestamp_to_human_time(dx, millis=True, tz=timezone.utc)
                 else:
                     digit_count = get_digit_count_after_dot(self._x_axle.grid_step / self._x_axle.divisor) + 1
                     tmp_str = f"{dx:.{digit_count}f}"
@@ -1429,7 +1430,7 @@ class Axles(QWidget):
 
                 dx = abs(x_real - prev_val_line_coord_xreal)
                 if self._x_axle.min >= 0 and self.__convert_to_hhmmss:
-                    tmp_str = convert_timestamp_to_human_time(dx, millis=True)
+                    tmp_str = convert_timestamp_to_human_time(dx, millis=True, tz=timezone.utc)
                 else:
                     digit_count = get_digit_count_after_dot(self._x_axle.grid_step / self._x_axle.divisor) + 1
                     tmp_str = f"{dx:.{digit_count}f}"

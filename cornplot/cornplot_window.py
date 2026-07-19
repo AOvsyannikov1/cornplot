@@ -20,7 +20,7 @@ from .filters import MovingAverageFilter, ExponentialFilter, MedianFilter
 from scipy.optimize import curve_fit
 from scipy.fft import fft, fftfreq
 from scipy.signal import correlate, correlation_lags
-from .utils import get_image_path, get_upper_index, SelectedPoint
+from .utils import get_image_path, get_upper_index, SelectedPoint, choose_contrast_color
 from .version import *
 
 
@@ -526,7 +526,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
         self.colorButton.setStyleSheet(f"""QPushButton
                                         {{
                                             background-color : {plot.pen.color().name()};
-                                            color: {self.__choose_contrast_color(plot.pen.color()).name()};
+                                            color: {choose_contrast_color(plot.pen.color()).name()};
                                             border-style : outset;
                                             border-radius : 5px;
                                             border-width : 1px;
@@ -615,7 +615,7 @@ class CornplotWindow(Ui_CornplotGui, QMainWindow):
             self.colorButton.setStyleSheet(f"""QPushButton
                                             {{
                                                 background-color: '{plt.pen.color().name()}'; 
-                                                color: {self.__choose_contrast_color(plt.pen.color()).name()};
+                                                color: {choose_contrast_color(plt.pen.color()).name()};
                                                 border-style: outset;
                                                 border-radius: 5px;
                                                 border-width: 1px;

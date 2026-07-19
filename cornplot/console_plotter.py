@@ -90,7 +90,7 @@ class PlotWindow(QWidget):
         self.dashboard_sizes.append((rows, cols))
         return True
 
-    def add_plot(self, row, col, x_arr, y_arr, name='', linewidth=2.0, linestyle='solid', color='any', scatter=False, markerwidth=5.0):
+    def add_plot(self, row, col, x_arr, y_arr, name='', linewidth=2.0, linestyle='solid', color=None, scatter=False, markerwidth=5.0):
         index = self.dashboard_locations.index((row, col))
         plt_name = self.dashboards[index].add_plot(x_arr, y_arr, name=name, linewidth=linewidth,
                                         color=color, linestyle=linestyle)
@@ -103,7 +103,7 @@ class PlotWindow(QWidget):
         index = self.dashboard_locations.index((row, col))
         self.dashboards[index].add_plots_from_file(file_name, plot_labels=plot_labels)
 
-    def fill_between_plots(self, row, col, x_arr, y_arr1, y_arr2, name='', opacity=128, color='any'):
+    def fill_between_plots(self, row, col, x_arr, y_arr1, y_arr2, name='', opacity=128, color=None):
         index = self.dashboard_locations.index((row, col))
         self.dashboards[index].fill_between(x_arr, y_arr1, y_arr2, name=name, opacity=opacity, color=color)
 
@@ -111,11 +111,11 @@ class PlotWindow(QWidget):
         index = self.dashboard_locations.index((row, col))
         self.dashboards[index].add_auxiliary_line(equation)
 
-    def add_polar_plot(self, row, col, amplitudes, angles, color="any", linewidth=2, linestyle="solid", scatter=False):
+    def add_polar_plot(self, row, col, amplitudes, angles, color=None, linewidth=2, linestyle="solid", scatter=False):
         index = self.dashboard_locations.index((row, col))
         self.dashboards[index].add_plot(amplitudes, angles, color=color, linewidth=linewidth, linestyle=linestyle, scatter=scatter)
 
-    def add_animated_plot(self, row, col, name='', x_size=20, linewidth=2, linestyle='solid', color='any', limit_data=True, save_data=False, real_time=False):
+    def add_animated_plot(self, row, col, name='', x_size=20, linewidth=2, linestyle='solid', color=None, limit_data=True, save_data=False, real_time=False):
         index = self.dashboard_locations.index((row, col))
         self.__datasets[name] = index
         self.dashboards[index].add_animated_plot(name, x_size=x_size, linewidth=linewidth, linestyle=linestyle, color=color, 
@@ -128,11 +128,11 @@ class PlotWindow(QWidget):
         index = self.__datasets[name]
         self.dashboards[index].add_point_to_animated_plot(name, x, y)
 
-    def add_histogram(self, row, col, data, intervals_count=0, name="", color="any", probabilities=False):
+    def add_histogram(self, row, col, data, intervals_count=0, name="", color=None, probabilities=False):
         index = self.dashboard_locations.index((row, col))
         self.dashboards[index].add_histogram(data, name=name, color=color, interval_count=intervals_count, probabilities=probabilities)
 
-    def add_density_histogram(self, row, col, data, intervals_count=0, name="", color="any"):
+    def add_density_histogram(self, row, col, data, intervals_count=0, name="", color=None):
         index = self.dashboard_locations.index((row, col))
         self.dashboards[index].add_density_histogram(data, name=name, color=color, interval_count=intervals_count)
 
@@ -266,7 +266,7 @@ class CornPlotter:
         self.__ncols = cols
 
     def plot(self, x_arr, y_arr, x_label="X", y_label="Y", plot_label='',
-             linewidth=2.0, linestyle='solid', color='any', link_plots=True, axes=False, scatter=False, markerwidth=5.0, draw_x=True):
+             linewidth=2.0, linestyle='solid', color=None, link_plots=True, axes=False, scatter=False, markerwidth=5.0, draw_x=True):
         """
             Добавить статичный график.
 
@@ -277,7 +277,7 @@ class CornPlotter:
             :param plot_label: Название графика.
             :param linewidth: Толщина линии.
             :param linestyle: Стиль линии (solid/dash/dot/dash-dot/dash-dot-dot).
-            :param color: Цвет графика. Если равен any, генерируется автоматически.
+            :param color: Цвет графика. Если равен None, генерируется автоматически.
             :param link_plots: Синхронизировать ли оси, расположенные в одном окне.
             :param axes: Рисовать ли оси.
             :param scatter: Отображать график точками.
@@ -316,7 +316,7 @@ class CornPlotter:
         if self.__legend_font:
             win.dashboards[-1].set_legend_font(self.__legend_font)
         
-    def fill_between(self, x_arr, y_arr1, y_arr2, x_label="X", y_label="Y", plot_label='', opacity=128, color='any', link_plots=True, axes=False, draw_x=True):
+    def fill_between(self, x_arr, y_arr1, y_arr2, x_label="X", y_label="Y", plot_label='', opacity=128, color=None, link_plots=True, axes=False, draw_x=True):
         self.__create_qapp()
         win = self.__add_window()
         win.add_dashboard(self.__current_row, self.__current_col, rows=self.__nrows, cols=self.__ncols,
@@ -352,7 +352,7 @@ class CornPlotter:
         win.add_dashboard(self.__current_row, self.__current_col, self.__nrows, self.__ncols, hide_buttons=self.__hide_buttons)
         win.add_auxiliary_line(self.__current_row, self.__current_col, equation)
         
-    def animated_plot(self, plot_label: str, x_size=30, x_label="X", y_label="Y", linewidth=2, linestyle='solid', color='any', 
+    def animated_plot(self, plot_label: str, x_size=30, x_label="X", y_label="Y", linewidth=2, linestyle='solid', color=None, 
                       link_plots=True, axes=False, limit_data=True, save_data=False, real_time=False):
         """
             Добавить анимированный график.
@@ -407,7 +407,7 @@ class CornPlotter:
         index = self.__datasets[plot_label]
         self.__windows[index].add_point_to_dataset(plot_label, x, y)
 
-    def histogram(self, data, intervals_count=0, x_label="X", y_label="Y", hist_label="", color='any', link_plots=False, probabilities=False):
+    def histogram(self, data, intervals_count=0, x_label="X", y_label="Y", hist_label="", color=None, link_plots=False, probabilities=False):
         """
             Добавляет гистограмму.
 
@@ -433,7 +433,7 @@ class CornPlotter:
         if self.__legend_font:
             win.dashboards[-1].set_legend_font(self.__legend_font)
 
-    def density_histogram(self, data, intervals_count=0, x_label="X", y_label="Y", hist_label="", color='any', link_plots=False):
+    def density_histogram(self, data, intervals_count=0, x_label="X", y_label="Y", hist_label="", color=None, link_plots=False):
         """
             Добавляет гистограмму плотности распределения.
 
@@ -458,7 +458,7 @@ class CornPlotter:
         if self.__legend_font:
             win.dashboards[-1].set_legend_font(self.__legend_font)
 
-    def polar_plot(self, amplitudes, angles, color='any', linewidth=2, linestyle='solid', scatter=False):
+    def polar_plot(self, amplitudes, angles, color=None, linewidth=2, linestyle='solid', scatter=False):
         """
             Добавляет график в полярных координатах.
 

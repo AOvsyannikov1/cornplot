@@ -17,7 +17,7 @@ def readme():
 
 setup(
     name="cornplot",
-    version="1.4.2",
+    version="1.4.3",
     packages=find_packages(include=['cornplot', 'cornplot.*']),
     long_description=readme(),
     ext_modules=[extension],

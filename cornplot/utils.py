@@ -1,9 +1,9 @@
 import dataclasses
 from array import array
+from statistics import mean
 from datetime import datetime
 import importlib.resources as pkg_resources
 from pathlib import Path
-from math import isclose, modf
 
 from PyQt6.QtGui import QColor
 import sys
@@ -59,11 +59,11 @@ def get_nearest_value(iterable, value):
         return 0
 
 
-def convert_timestamp_to_human_time(timestamp, millis=False):
+def convert_timestamp_to_human_time(timestamp, millis=False, tz=None):
     if millis:
-        return datetime.fromtimestamp(timestamp).time().strftime("%H:%M:%S.%f")[:-3]
+        return datetime.fromtimestamp(timestamp, tz=tz).time().strftime("%H:%M:%S.%f")[:-3]
     else:
-        return datetime.fromtimestamp(round(timestamp)).time().strftime("%H:%M:%S")
+        return datetime.fromtimestamp(round(timestamp), tz=tz).time().strftime("%H:%M:%S")
 
 
 def round_custom(num, step):
@@ -174,3 +174,10 @@ def round_value(num: float, digit_count=-1) -> str:
             return f"{float(val):.3f}×10{get_upper_index(int(power))}"
     else:
         return st
+    
+
+def choose_contrast_color(color: QColor):
+    if mean((color.red(), color.green(), color.blue())) >= 150:
+        return QColor(0, 0, 0)
+    else:
+        return QColor(255, 255, 255)

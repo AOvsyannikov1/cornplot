@@ -39,7 +39,7 @@ def plot_from_file(file_name, x_label: str="X", y_label: str = "Y", plot_labels:
 
 
 def plot(x_arr: Iterable[float], y_arr: Iterable[float] | None = None, x_label: str="X", 
-         y_label: str = "Y", plot_label: str = '', linewidth: float = 2.0, color="any", synchronise_plots=True, axes=True):
+         y_label: str = "Y", plot_label: str = '', linewidth: float = 2.0, color=None, synchronise_plots=True, axes=True):
     """
         Добавить статичный график.
 
@@ -61,7 +61,7 @@ def plot(x_arr: Iterable[float], y_arr: Iterable[float] | None = None, x_label: 
     
 
 def fill_between(x_arr: Iterable[float], y_arr1: Iterable[float], y_arr2: Iterable[float], x_label: str="X", 
-         y_label: str = "Y", plot_label: str = '', color="any", opacity=128):
+         y_label: str = "Y", plot_label: str = '', color=None, opacity=128):
     """
         Добавить заливку между графиками.
 
@@ -86,7 +86,7 @@ def auxiliary_line(equation: str):
     _plotter.auxiliary_line(equation)
         
 
-def scatter(x_arr, y_arr=None, x_name="X", y_name="Y", name='', markerwidth=5, color="any", synchronise_plots=True, axes=True):
+def scatter(x_arr, y_arr=None, x_name="X", y_name="Y", name='', markerwidth=5, color=None, synchronise_plots=True, axes=True):
     if y_arr is None:
         y_arr = list(x_arr)
         x_arr = arange(0, len(x_arr), 1)
@@ -94,7 +94,7 @@ def scatter(x_arr, y_arr=None, x_name="X", y_name="Y", name='', markerwidth=5, c
                 color=color, link_plots=synchronise_plots, axes=axes, scatter=True, markerwidth=markerwidth)
     
 
-def polar_plot(amplitudes, angles, linewidth=2, color="any"):
+def polar_plot(amplitudes, angles, linewidth=2, color=None):
     """
         Добавляет график в полярных координатах.
 
@@ -106,7 +106,7 @@ def polar_plot(amplitudes, angles, linewidth=2, color="any"):
     _plotter.polar_plot(amplitudes, angles, color, linewidth)
 
 
-def polar_scatter(amplitudes, angles, linewidth=2, color="any"):
+def polar_scatter(amplitudes, angles, linewidth=2, color=None):
     """
         Добавляет точечный график в полярных координатах.
 
@@ -119,7 +119,7 @@ def polar_scatter(amplitudes, angles, linewidth=2, color="any"):
     
 
 def animated_plot(plot_label: str, x_size=30, x_label="T", y_label="Y", linewidth=2, 
-                  color="any", synchronise_plots=True, axes=True, limit_data=True, save_data=False, real_time=False):
+                  color=None, synchronise_plots=True, axes=True, limit_data=True, save_data=False, real_time=False):
     """
         Добавить анимированный график.
 
@@ -160,7 +160,7 @@ def add_point_to_animated_plot(plot_label, x, y):
     _plotter.add_point_to_animated_plot(plot_label, x, y)
 
 
-def histogram(x_arr, intervals_count=0, x_label="X", y_label="Y", hist_label='', color="any", probabilities=False, synchronise_plots=False):
+def histogram(x_arr, intervals_count=0, x_label="X", y_label="Y", hist_label='', color=None, probabilities=False, synchronise_plots=False):
     """
         Добавляет гистограмму.
 
@@ -177,7 +177,7 @@ def histogram(x_arr, intervals_count=0, x_label="X", y_label="Y", hist_label='',
              color=color, probabilities=probabilities, link_plots=synchronise_plots)
     
 
-def density_histogram(x_arr, intervals_count=0, x_label="X", y_label="Y", hist_label='', color="any", synchronise_plots=False):
+def density_histogram(x_arr, intervals_count=0, x_label="X", y_label="Y", hist_label='', color=None, synchronise_plots=False):
     """
         Добавляет гистограмму плотности распределения.
 
