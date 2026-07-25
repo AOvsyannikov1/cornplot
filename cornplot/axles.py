@@ -245,7 +245,6 @@ class Axles(QWidget):
         for line in self.__scanner_lines:
             line.hide()
         self.__group.line_clear_signal.emit(self)
-        self._redraw_required = True
         self.update()
 
     def _update_x_borders(self, x0, xk):
@@ -682,7 +681,6 @@ class Axles(QWidget):
                 new_coord = min(max(pos_x, 2), self.__w - 1)
                 self.__scanner_lines.get_nearest_line().set_x_coord(new_coord / (self._MAX_X - self._MIN_X))
                 self.__scanner_lines.last_line = self.__scanner_lines.nearest_line
-                self._redraw_required = True
                 self.update()
                 self.__group.line_move_signal.emit()
 
@@ -690,7 +688,6 @@ class Axles(QWidget):
             if self.__scale_lines.line_under_mouse() != -1 and not self.__scanner_lines.line_under_mouse():
                 new_coord = min(max(pos_x, 1), self.__w - 1)
                 self.__scale_lines.get_nearest_line().set_x_coord(new_coord / (self._MAX_X - self._MIN_X))
-                self._redraw_required = True
                 self.update()
                 self.__group.line_move_signal.emit()
 
