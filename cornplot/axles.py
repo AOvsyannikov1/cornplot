@@ -144,6 +144,7 @@ class Axles(QWidget):
         self.grabGesture(Qt.GestureType.TapGesture)
 
         self.__tapped = False
+        self.__border = False
 
         self._update_step_x()
         self._update_step_y()
@@ -154,6 +155,11 @@ class Axles(QWidget):
         self.tmr = QTimer(self)
         self.tmr.timeout.connect(self.__timer_callback)
         self.tmr.start(25)
+
+    def draw_border(self, draw: bool):
+        if self.__border != draw:
+            self.update()
+        self.__border = draw
 
     def paintEvent(self, a0):
         self._qp.begin(self)
@@ -171,7 +177,10 @@ class Axles(QWidget):
         self._draw_grid()
 
     def __draw_background(self):
-        self._qp.setPen(QColor(0, 0, 0, 0))
+        if self.__border:
+            self._qp.setPen(QPen(QColor(0, 0, 0), 2))
+        else:
+            self._qp.setPen(QColor(0, 0, 0, 0))
         self._qp.setBrush(background_color(self.__dark))
         self._qp.drawRect(self._OFFSET_X, self._OFFSET_Y_UP, self.__w, self.__h)  # поле графика
 

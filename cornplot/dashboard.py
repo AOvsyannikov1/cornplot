@@ -145,7 +145,7 @@ class Dashboard(Axles):
         if self.__window:
             self.__window.update_plot_info(self.__plots)
 
-        self._force_redraw()
+        self.update()
         return name
     
     def fill_between(self, x, y1, y2, name='', opacity=128, color=None):
