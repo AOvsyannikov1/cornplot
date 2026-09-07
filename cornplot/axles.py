@@ -145,6 +145,7 @@ class Axles(QWidget):
 
         self.__tapped = False
         self.__border = False
+        self.__border_width = 1.0
 
         self._update_step_x()
         self._update_step_y()
@@ -156,10 +157,11 @@ class Axles(QWidget):
         self.tmr.timeout.connect(self.__timer_callback)
         self.tmr.start(25)
 
-    def draw_border(self, draw: bool):
+    def draw_border(self, draw: bool, width=1.0):
         if self.__border != draw:
             self.update()
         self.__border = draw
+        self.__border_width = width
 
     def paintEvent(self, a0):
         self._qp.begin(self)
@@ -178,7 +180,7 @@ class Axles(QWidget):
 
     def __draw_background(self):
         if self.__border:
-            self._qp.setPen(QPen(QColor(0, 0, 0), 2))
+            self._qp.setPen(QPen(QColor(0, 0, 0), self.__border_width))
         else:
             self._qp.setPen(QColor(0, 0, 0, 0))
         self._qp.setBrush(background_color(self.__dark))
@@ -1279,7 +1281,7 @@ class Axles(QWidget):
         self._OFFSET_X = self._y_axle.met_width
         self._MIN_X = self._OFFSET_X
         self._MAX_X = self._MIN_X + self.__w
-        super().setGeometry(self.__x - self._OFFSET_X, self.__y - self._OFFSET_Y_UP, self.__w + self._OFFSET_X, self.__h + self._OFFSET_Y_UP + self._OFFSET_Y_DOWN)
+        super().setGeometry(self.__x - self._OFFSET_X, self.__y - self._OFFSET_Y_UP, self.__w + self._OFFSET_X + 5, self.__h + self._OFFSET_Y_UP + self._OFFSET_Y_DOWN)
         self.__btn_group.setGeometry(self._MIN_X, self._OFFSET_Y_DOWN - self._OFFSET_Y_UP, self.__w, self.__h)
         self._recalculate_window_coords()
         self._update_step_x()
