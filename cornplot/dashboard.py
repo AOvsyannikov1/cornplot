@@ -765,6 +765,7 @@ class Dashboard(Axles):
         if self._x_axle.start < self._x_axle.min:
             self._set_x_start(self._x_axle.min)
         if self._x_axle.stop > self._x_axle.max:
+            self._x_axle.start = min_x
             self._set_x_stop(self._x_axle.max)
 
     def _calculate_y_parameters(self) -> None:
