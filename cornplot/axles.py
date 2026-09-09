@@ -1477,6 +1477,9 @@ class Axles(QWidget):
         x1 = x0 + round(self.__w * self.__slider.length)
         y0 = self.__slider.y
 
+        if self.__slider.w >= x1 - x0:
+            return
+
         self._qp.setPen(QColor(0, 0, 0, 0))
         if self.__dark:
             self._qp.setBrush(QColor(150, 150, 150, 255 if self.__slider.is_pressed() else 100))
